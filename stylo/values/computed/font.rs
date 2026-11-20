@@ -1515,7 +1515,7 @@ impl ToResolvedValue for LineHeight {
     }
 }
 
-// Osmium patch: `font-palette` with `palette-mix()` (CSS Fonts 4 §9.1-9.2; OSMIUM-PATCHES.md 62).
+// Snowlark patch: `font-palette` with `palette-mix()` (CSS Fonts 4 §9.1-9.2; SNOWLARK-PATCHES.md 62).
 /// A computed `font-palette`: every percentage of a `palette-mix()` resolved and filled in.
 pub type FontPalette = generics::GenericFontPalette<crate::values::computed::Percentage>;
 

@@ -52,7 +52,7 @@ impl FeatureType {
         use crate::stylesheets::container_rule::CONTAINER_FEATURES;
 
         match *self {
-            // Osmium patch: the servo list is built on first use (its names are dynamic atoms).
+            // Snowlark patch: the servo list is built on first use (its names are dynamic atoms).
             FeatureType::Media => &*MEDIA_FEATURES,
             FeatureType::Container => &CONTAINER_FEATURES,
         }

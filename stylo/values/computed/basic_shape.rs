@@ -266,7 +266,7 @@ impl From<&generic::ArcRadii<CSSFloat>> for generic::ArcRadii<LengthPercentage> 
     }
 }
 
-/// Osmium patch: the computed value of `object-view-box` (an `inset()`).
+/// Snowlark patch: the computed value of `object-view-box` (an `inset()`).
 pub type ObjectViewBox = generic::GenericObjectViewBox<InsetRect>;
 
 impl ObjectViewBox {

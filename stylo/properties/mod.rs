@@ -1491,7 +1491,7 @@ pub struct SourcePropertyDeclaration {
 // we only pass `&mut SourcePropertyDeclaration` references around.
 #[cfg(feature = "gecko")]
 size_of_test!(SourcePropertyDeclaration, 632);
-// Osmium patch: one declaration more, `font` resets `font-variant-emoji` (OSMIUM-PATCHES.md 63).
+// Snowlark patch: one declaration more, `font` resets `font-variant-emoji` (SNOWLARK-PATCHES.md 63).
 #[cfg(feature = "servo")]
 size_of_test!(SourcePropertyDeclaration, 600);
 

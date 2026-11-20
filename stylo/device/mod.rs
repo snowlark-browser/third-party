@@ -108,11 +108,11 @@ impl Device {
         &self.default_values
     }
 
-    /// Osmium patch 66: what a computed style may read from this device besides its media
+    /// Snowlark patch 66: what a computed style may read from this device besides its media
     /// features: the root element's font size, line height and font metrics, the viewport size and
     /// the body text color, without marking any of them used.
     #[cfg(feature = "servo")]
-    pub fn osmium_root_and_viewport(&self) -> ([u32; 6], [i32; 2], AbsoluteColor) {
+    pub fn snowlark_root_and_viewport(&self) -> ([u32; 6], [i32; 2], AbsoluteColor) {
         let viewport = self.au_viewport_size();
         (
             [

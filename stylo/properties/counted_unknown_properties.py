@@ -7,7 +7,7 @@ COUNTED_UNKNOWN_PROPERTIES = [
     "speak",
     "text-size-adjust",
     "-webkit-user-drag",
-    # Osmium patch (OSMIUM-PATCHES.md 58): `orphans` and `widows` are known properties here.
+    # Snowlark patch (SNOWLARK-PATCHES.md 58): `orphans` and `widows` are known properties here.
     "-webkit-user-modify",
     "-webkit-margin-before",
     "-webkit-margin-after",

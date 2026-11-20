@@ -324,7 +324,7 @@ impl LengthPercentage {
         }
     }
 
-    /// Osmium patch: resolves the percentage without the clamp of the property's range (a `calc()`
+    /// Snowlark patch: resolves the percentage without the clamp of the property's range (a `calc()`
     /// in a non-negative property clamps its result at zero, CSS Values 4 §10.12), so that a linear
     /// `calc()` can be taken apart into its length and percentage.
     #[inline]
@@ -652,7 +652,7 @@ impl From<&CalcAnchorSide> for AnchorSide {
 }
 
 impl CalcLengthPercentage {
-    /// Osmium patch: the expression tree, so an embedder can map `min()`/`max()`/`clamp()` of
+    /// Snowlark patch: the expression tree, so an embedder can map `min()`/`max()`/`clamp()` of
     /// lengths and percentages to its own layout representation.
     #[inline]
     pub fn node(&self) -> &CalcNode {
@@ -680,7 +680,7 @@ impl CalcLengthPercentage {
         }
     }
 
-    /// Osmium patch: `resolve` without the final clamp to the property's range.
+    /// Snowlark patch: `resolve` without the final clamp to the property's range.
     #[inline]
     pub fn resolve_unclamped(&self, basis: Length) -> Length {
         if let ComputedLeaf::Length(px) = self

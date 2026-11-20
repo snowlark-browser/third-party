@@ -186,7 +186,7 @@ pub struct ValidationData {
     pres_hints: Option<ThinVec<ApplicableDeclarationBlock>>,
 
     /// The pointer identity of the parent ComputedValues, the parent, and whether the parent lets
-    /// its children share styles with cousins (Osmium patch 67: found once per element, not once
+    /// its children share styles with cousins (Snowlark patch 67: found once per element, not once
     /// per candidate tested; the parent is styled before its children and stays as it is for the
     /// rest of the traversal, which is as long as a candidate lives).
     parent: Option<(OpaqueComputedValues, OpaqueNode, bool)>,
@@ -715,6 +715,15 @@ impl<E: TElement> StyleSharingCache<E> {
             return None;
         }
 
+        // (Snowlark patch 68: hints no other element holds match no candidate's)
+        if target.element.has_unshared_presentational_hints() {
+            debug!(
+                "{:?} Cannot share style: presentational hints of its own",
+                target.element
+            );
+            return None;
+        }
+
         if target.inheritance_parent().is_none() {
             debug!(
                 "{:?} Cannot share style: element has no parent",
@@ -781,7 +790,7 @@ impl<E: TElement> StyleSharingCache<E> {
             return None;
         }
 
-        // (Osmium patch 67: the class lists and presentational hints, kept with each element once
+        // (Snowlark patch 67: the class lists and presentational hints, kept with each element once
         // found, reject most candidates; they go before the checks that ask the elements again for
         // each candidate.)
         if !checks::have_same_class(target, candidate) {
@@ -917,7 +926,10 @@ impl<E: TElement> StyleSharingCache<E> {
         dom_depth: usize,
     ) -> Option<PrimaryStyle> {
         debug_assert_eq!(target.as_node().depth(), dom_depth);
-        if shared_context.options.disable_style_sharing_cache {
+        // (Snowlark patch 68: a block no other element holds is in no other rule node)
+        if shared_context.options.disable_style_sharing_cache
+            || target.has_unshared_presentational_hints()
+        {
             return None;
         }
 

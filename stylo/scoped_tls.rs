@@ -20,8 +20,13 @@ use std::ops::DerefMut;
 /// the Send bound.
 pub struct ScopedTLS<'scope, T: Send> {
     pool: Option<&'scope rayon::ThreadPool>,
-    slots: [RefCell<Option<T>>; STYLO_MAX_THREADS],
+    // Snowlark patch 71: one slot more than the pool's threads, for the thread that started the
+    // traversal when it is not one of the pool's (it styles the traversal's top in place).
+    slots: [RefCell<Option<T>>; STYLO_MAX_THREADS + 1],
 }
+
+/// The slot of the thread that started a traversal from outside the pool (Snowlark patch 71).
+pub const CALLER_SLOT: usize = STYLO_MAX_THREADS;
 
 /// The scoped TLS is `Sync` because no more than one worker thread can access a
 /// given slot.
@@ -41,7 +46,8 @@ impl<'scope, T: Send> ScopedTLS<'scope, T> {
     /// Returns the index corresponding to the calling thread in the thread pool.
     #[inline]
     pub fn current_thread_index(&self) -> usize {
-        self.pool.map_or(0, |p| p.current_thread_index().unwrap())
+        self.pool
+            .map_or(0, |p| p.current_thread_index().unwrap_or(CALLER_SLOT))
     }
 
     /// Return an immutable reference to the `Option<T>` that this thread owns.

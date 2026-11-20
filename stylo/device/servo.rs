@@ -69,7 +69,7 @@ pub(super) struct ExtraDeviceData {
     /// Whether the user prefers light mode or dark mode
     #[ignore_malloc_size_of = "Pure stack type"]
     prefers_color_scheme: PrefersColorScheme,
-    /// Osmium patch: the page color scheme (CSS Color Adjust 1 §2.1, set in HTML by the
+    /// Snowlark patch: the page color scheme (CSS Color Adjust 1 §2.1, set in HTML by the
     /// `color-scheme` `<meta>`), which elements whose `color-scheme` is `normal` use. Empty when the
     /// page sets none.
     #[ignore_malloc_size_of = "Pure stack type"]
@@ -83,7 +83,7 @@ pub(super) struct ExtraDeviceData {
     /// An implementation of a trait which implements support for querying font metrics.
     #[ignore_malloc_size_of = "Owned by embedder"]
     font_metrics_provider: Box<dyn FontMetricsProvider>,
-    /// Osmium patch: whether scripting is enabled for the document (the `scripting` media
+    /// Snowlark patch: whether scripting is enabled for the document (the `scripting` media
     /// feature, Media Queries 5 §8.1).
     scripting: bool,
 }
@@ -281,12 +281,12 @@ impl Device {
         self.extra.media_type = media_type;
     }
 
-    /// Osmium patch: whether scripting is enabled for the document (`@media (scripting)`).
+    /// Snowlark patch: whether scripting is enabled for the document (`@media (scripting)`).
     pub fn scripting_enabled(&self) -> bool {
         self.extra.scripting
     }
 
-    /// Osmium patch: sets whether scripting is enabled for the document.
+    /// Snowlark patch: sets whether scripting is enabled for the document.
     pub fn set_scripting_enabled(&mut self, enabled: bool) {
         self.extra.scripting = enabled;
     }
@@ -325,14 +325,14 @@ impl Device {
         self.extra.prefers_color_scheme
     }
 
-    /// Osmium patch: sets the page color scheme (the `color-scheme` value of the page's
+    /// Snowlark patch: sets the page color scheme (the `color-scheme` value of the page's
     /// `<meta name=color-scheme>`, HTML §4.2.5.1; empty for none). Like the preferred color scheme,
     /// changing it requires restyling the whole document.
     pub fn set_page_color_scheme(&mut self, flags: ColorSchemeFlags) {
         self.extra.page_color_scheme = flags;
     }
 
-    /// Osmium patch: the page color scheme.
+    /// Snowlark patch: the page color scheme.
     pub fn page_color_scheme(&self) -> ColorSchemeFlags {
         self.extra.page_color_scheme
     }
@@ -365,7 +365,7 @@ impl Device {
         self.extra.all_pointer_capabilities
     }
 
-    /// Osmium patch: whether an element whose `color-scheme` computes to `color_scheme_flags` has
+    /// Snowlark patch: whether an element whose `color-scheme` computes to `color_scheme_flags` has
     /// a dark used color scheme (see [`used_color_scheme_is_dark`]).
     pub fn is_dark_color_scheme(&self, color_scheme_flags: ColorSchemeFlags) -> bool {
         used_color_scheme_is_dark(
@@ -408,7 +408,7 @@ impl Device {
                 | SystemColor::Threedhighlight
                 | SystemColor::Threedlightshadow => srgb(107, 107, 107),
                 SystemColor::Buttontext => srgb(245, 245, 245),
-                // Osmium patch: Canvas, CanvasText, Field and FieldText take Chrome's dark values
+                // Snowlark patch: Canvas, CanvasText, Field and FieldText take Chrome's dark values
                 // (the canvas surface the shell clears to is the same #121212).
                 SystemColor::Canvas
                 // Deprecated system colors (CSS Color 4) mapped to Canvas.
@@ -534,7 +534,7 @@ impl Device {
     }
 }
 
-/// Osmium patch: CSS Color Adjust 1 §2.3 "determine the used color scheme" for the light and dark
+/// Snowlark patch: CSS Color Adjust 1 §2.3 "determine the used color scheme" for the light and dark
 /// schemes this user agent supports, as a dark/light answer. `element` is the element's computed
 /// `color-scheme` (empty bits: `normal`, or only schemes the UA does not know), `page` the page
 /// color scheme (empty: none), `preferred` the user's preferred scheme.

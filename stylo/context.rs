@@ -157,11 +157,11 @@ pub struct SharedStyleContext<'a> {
     #[cfg(feature = "servo")]
     pub registered_speculative_painters: &'a dyn RegisteredSpeculativePainters,
 
-    /// Osmium patch 66: styles kept from earlier restyles, which a cascade may reuse.
+    /// Snowlark patch 66: styles kept from earlier restyles, which a cascade may reuse.
     #[cfg(feature = "servo")]
     pub matched_properties: Option<&'a crate::rule_cache::MatchedPropertiesCache>,
 
-    /// Osmium patch 66: where a traversal leaves the styles its threads kept, for the owner of
+    /// Snowlark patch 66: where a traversal leaves the styles its threads kept, for the owner of
     /// `matched_properties` to move there once it ends (`driver::traverse_dom`).
     #[cfg(feature = "servo")]
     pub matched_properties_sink:
@@ -673,7 +673,7 @@ pub struct ThreadLocalStyleContext<E: TElement> {
     pub selector_caches: SelectorCaches,
     /// Caches for speeding up tree-counting function evaluations.
     pub tree_counting_caches: TreeCountingCaches,
-    /// Osmium patch 66: the styles this thread kept for `SharedStyleContext::matched_properties`.
+    /// Snowlark patch 66: the styles this thread kept for `SharedStyleContext::matched_properties`.
     #[cfg(feature = "servo")]
     pub matched_properties: crate::rule_cache::MatchedPropertiesCache,
 }

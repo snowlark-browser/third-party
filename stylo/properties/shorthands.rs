@@ -545,7 +545,7 @@ pub mod border {
     }
 }
 
-// Osmium patch: in the servo build too.
+// Snowlark patch: in the servo build too.
 pub mod container {
     use super::*;
     pub use crate::properties::generated::shorthands::container::*;
@@ -787,7 +787,7 @@ pub mod columns {
         if values == 0 || values > 2 {
             return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
         }
-        // Osmium patch (OSMIUM-PATCHES.md 57): CSS Multi-column Layout 2,
+        // Snowlark patch (SNOWLARK-PATCHES.md 57): CSS Multi-column Layout 2,
         // `[ <'column-width'> || <'column-count'> ] [ / <'column-height'> ]?`; `column-wrap` is
         // reset to its initial value.
         let column_height = if input.try_parse(|input| input.expect_delim('/')).is_ok() {
@@ -830,7 +830,7 @@ pub mod columns {
     }
 }
 
-// Osmium patch (OSMIUM-PATCHES.md 56): in the servo build too.
+// Snowlark patch (SNOWLARK-PATCHES.md 56): in the servo build too.
 pub mod column_rule {
     pub use crate::properties::generated::shorthands::column_rule::*;
 
@@ -864,7 +864,7 @@ pub mod column_rule {
         })
     }
 
-    // Osmium patch (OSMIUM-PATCHES.md 56): CSSOM's shortest serialization, width, style, color
+    // Snowlark patch (SNOWLARK-PATCHES.md 56): CSSOM's shortest serialization, width, style, color
     // order, leaving out the longhands at their initial values (all three initial: `medium`).
     impl<'a> ToCss for LonghandsToSerialize<'a> {
         fn to_css<W>(&self, dest: &mut CssWriter<W>) -> fmt::Result
@@ -889,7 +889,7 @@ pub mod column_rule {
     }
 }
 
-// Osmium patch (OSMIUM-PATCHES.md 54): in the servo build too.
+// Snowlark patch (SNOWLARK-PATCHES.md 54): in the servo build too.
 pub mod text_wrap {
     pub use crate::properties::generated::shorthands::text_wrap::*;
 
@@ -1223,7 +1223,7 @@ pub mod gap {
     }
 }
 
-// Osmium patch (OSMIUM-PATCHES.md 17): in the servo build too.
+// Snowlark patch (SNOWLARK-PATCHES.md 17): in the servo build too.
 pub mod marker {
     pub use crate::properties::generated::shorthands::marker::*;
 
@@ -2503,7 +2503,7 @@ pub mod font {
     use super::*;
     #[cfg(feature = "gecko")]
     use crate::properties::longhands::font_size_adjust;
-    // Osmium patch: font-variant-emoji in the servo build (OSMIUM-PATCHES.md 63).
+    // Snowlark patch: font-variant-emoji in the servo build (SNOWLARK-PATCHES.md 63).
     use crate::properties::longhands::font_variant_emoji;
     use crate::properties::longhands::{font_family, font_size};
     use crate::properties::longhands::{
@@ -2825,7 +2825,7 @@ pub mod font_variant {
     pub use crate::properties::generated::shorthands::font_variant::*;
 
     use super::*;
-    // Osmium patch: font-variant-emoji in the servo build (OSMIUM-PATCHES.md 63).
+    // Snowlark patch: font-variant-emoji in the servo build (SNOWLARK-PATCHES.md 63).
     use crate::properties::longhands::font_variant_emoji;
     use crate::properties::longhands::{
         font_variant_alternates, font_variant_caps, font_variant_east_asian,
@@ -3063,7 +3063,7 @@ pub mod font_synthesis {
     }
 }
 
-// Osmium patch: in the servo build too (OSMIUM-PATCHES.md 4).
+// Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
 pub mod text_box {
     pub use crate::properties::generated::shorthands::text_box::*;
 

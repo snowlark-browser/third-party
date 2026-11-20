@@ -477,7 +477,7 @@ impl AnimationValue {
         })
     }
 
-    /// Osmium patch 39: whether `property` (a physical longhand) has the same animated value in
+    /// Snowlark patch 39: whether `property` (a physical longhand) has the same animated value in
     /// both styles, decided from their computed values without building either `AnimationValue`,
     /// as Blink's `CSSAnimations` compares the before-change and after-change styles
     /// (`ComputedTransitionValuesEqual`, `CSSPropertyEquality::PropertiesEqual`) before it makes
@@ -511,7 +511,7 @@ impl AnimationValue {
         }
     }
 
-    /// Osmium patch 49: for `transition-property: all`, calls `f` with each physical animatable
+    /// Snowlark patch 49: for `transition-property: all`, calls `f` with each physical animatable
     /// longhand of `all` whose transition can start or change between `a` and `b`, in the reverse
     /// of `all`'s order (the order `start_transitions_if_applicable` takes them in): the longhands
     /// of the style structs that differ (an unchanged struct holds equal values, as

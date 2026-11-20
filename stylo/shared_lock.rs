@@ -77,7 +77,7 @@ impl SharedRwLock {
             .unwrap_or(ptr::null())
     }
 
-    /// Osmium patch: whether `other` is this lock (a sheet parsed under one lock can join a
+    /// Snowlark patch: whether `other` is this lock (a sheet parsed under one lock can join a
     /// cascade read under the other).
     pub fn same_lock(&self, other: &SharedRwLock) -> bool {
         self.ptr() == other.ptr()

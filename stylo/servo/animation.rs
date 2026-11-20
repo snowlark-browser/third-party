@@ -52,7 +52,7 @@ pub struct PropertyAnimation {
     /// The duration of this `PropertyAnimation` in seconds.
     pub duration: f64,
 
-    /// Osmium patch 48: the last value calculated, with the progress it was calculated at. A
+    /// Snowlark patch 48: the last value calculated, with the progress it was calculated at. A
     /// restyle asks for a running transition's value up to three times (its cascade, its
     /// before-change style, the traversal's animation rules) at the timeline's time, which does not
     /// move within a task.
@@ -644,12 +644,12 @@ impl Animation {
         new_ui.animation_duration_mod(index).seconds() == 0.
     }
 
-    /// The properties that change in this animation (Osmium patch 41).
+    /// The properties that change in this animation (Snowlark patch 41).
     pub fn properties_changed(&self) -> &PropertyDeclarationIdSet {
         &self.properties_changed
     }
 
-    /// Osmium patch: the keyframes that declare `id`, in order, as (offset, value, the timing
+    /// Snowlark patch: the keyframes that declare `id`, in order, as (offset, value, the timing
     /// function to the next one): the property-specific keyframes a compositor samples.
     pub fn property_keyframes(
         &self,
@@ -1044,7 +1044,7 @@ impl Animation {
             let percentage_between_keyframes =
                 (next_keyframe.start_percentage - previous_keyframe.start_percentage).abs();
             let duration_between_keyframes = percentage_between_keyframes * self.duration;
-            // Osmium patch (Web Animations 1 §5.3.4, "the effect value of a keyframe effect"): the
+            // Snowlark patch (Web Animations 1 §5.3.4, "the effect value of a keyframe effect"): the
             // interval is chosen by the directed progress, and the easing of its first keyframe (by
             // offset) applies to the distance from it, in either direction. In a reversed iteration
             // that is the keyframe the iteration reaches last, interpolated towards the one it left
@@ -1099,7 +1099,7 @@ pub struct Transition {
     /// timeline when this transition was created plus any animation delay.
     pub start_time: f64,
 
-    /// Osmium patch: `start_time` as it was when the transition was created (script may move
+    /// Snowlark patch: `start_time` as it was when the transition was created (script may move
     /// `start_time` later), which identifies the transition.
     pub created_at: f64,
 
@@ -1221,7 +1221,7 @@ impl Transition {
             Ok(new_start) => self.property_animation.from = new_start,
             Err(..) => {},
         }
-        // (Osmium patch 48: its start value and duration changed)
+        // (Snowlark patch 48: its start value and duration changed)
         *self.property_animation.last.get_mut() = None;
     }
 
@@ -1232,7 +1232,7 @@ impl Transition {
         time >= self.start_time + (self.property_animation.duration)
     }
 
-    /// Osmium patch: its start and end values and timing function, for a compositor.
+    /// Snowlark patch: its start and end values and timing function, for a compositor.
     pub fn parts(&self) -> (&AnimationValue, &AnimationValue, &TimingFunction) {
         let p = &self.property_animation;
         (&p.from, &p.to, &p.timing_function)
@@ -1825,7 +1825,7 @@ impl DocumentAnimationSet {
     }
 }
 
-/// Osmium patch 49: whether `style`'s `transition-property` is `all` alone.
+/// Snowlark patch 49: whether `style`'s `transition-property` is `all` alone.
 fn is_sole_transition_all(style: &ComputedValues) -> bool {
     use crate::properties::ShorthandId;
     use crate::values::computed::TransitionProperty;
@@ -1856,7 +1856,7 @@ pub fn start_transitions_if_applicable(
     // Reversing the transition order here means that transitions defined later in the list
     // have preference, in accordance with the specification.
     //
-    // Osmium patch 49: `transition-property: all` alone (as `transition: all 0.3s`) takes the
+    // Snowlark patch 49: `transition-property: all` alone (as `transition: all 0.3s`) takes the
     // longhands of `all` a style struct at a time: the structs the two styles share hold equal
     // values, which start nothing for a property with no transition (see patch 39 below), so only
     // the changed structs' longhands and the element's transitions' properties are looked at, in
@@ -1909,7 +1909,7 @@ pub fn start_transitions_if_applicable(
         }
 
         properties_that_transition.insert(physical_property);
-        // Osmium patch 39: with no transition for the property, equal before-change and
+        // Snowlark patch 39: with no transition for the property, equal before-change and
         // after-change values start none (step 1 needs them to differ; steps 2 to 4 need an
         // existing transition), so skip building both values, as Blink does
         // (`CSSAnimations::CalculateTransitionUpdateForPropertyHandle`). This is most of the

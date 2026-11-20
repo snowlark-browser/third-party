@@ -16,8 +16,8 @@ use style_traits::{CssWriter, ParseError, ToCss};
 /// A hue-interpolation-method as defined in [1].
 ///
 /// [1]: https://drafts.csswg.org/css-color-4/#typedef-hue-interpolation-method
-// Osmium patch: Serialize and Deserialize, for `font-palette`'s palette-mix() in the servo font
-// struct (OSMIUM-PATCHES.md 62).
+// Snowlark patch: Serialize and Deserialize, for `font-palette`'s palette-mix() in the servo font
+// struct (SNOWLARK-PATCHES.md 62).
 #[derive(
     Clone,
     Copy,
@@ -49,7 +49,7 @@ pub enum HueInterpolationMethod {
 }
 
 /// https://drafts.csswg.org/css-color-4/#color-interpolation-method
-// Osmium patch: Serialize and Deserialize (OSMIUM-PATCHES.md 62).
+// Snowlark patch: Serialize and Deserialize (SNOWLARK-PATCHES.md 62).
 #[derive(
     Clone,
     Copy,

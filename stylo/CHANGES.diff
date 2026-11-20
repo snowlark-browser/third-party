@@ -1,23 +1,402 @@
-diff --git a/OSMIUM-PATCHES.md b/OSMIUM-PATCHES.md
+diff --git a/LICENSE b/LICENSE
 new file mode 100644
-index 00000000..9f961ddf
+index 00000000..d0a1fa14
 --- /dev/null
-+++ b/OSMIUM-PATCHES.md
-@@ -0,0 +1,378 @@
-+# stylo 0.22.0, patched for Osmium
++++ b/LICENSE
+@@ -0,0 +1,373 @@
++Mozilla Public License Version 2.0
++==================================
++
++1. Definitions
++--------------
++
++1.1. "Contributor"
++    means each individual or legal entity that creates, contributes to
++    the creation of, or owns Covered Software.
++
++1.2. "Contributor Version"
++    means the combination of the Contributions of others (if any) used
++    by a Contributor and that particular Contributor's Contribution.
++
++1.3. "Contribution"
++    means Covered Software of a particular Contributor.
++
++1.4. "Covered Software"
++    means Source Code Form to which the initial Contributor has attached
++    the notice in Exhibit A, the Executable Form of such Source Code
++    Form, and Modifications of such Source Code Form, in each case
++    including portions thereof.
++
++1.5. "Incompatible With Secondary Licenses"
++    means
++
++    (a) that the initial Contributor has attached the notice described
++        in Exhibit B to the Covered Software; or
++
++    (b) that the Covered Software was made available under the terms of
++        version 1.1 or earlier of the License, but not also under the
++        terms of a Secondary License.
++
++1.6. "Executable Form"
++    means any form of the work other than Source Code Form.
++
++1.7. "Larger Work"
++    means a work that combines Covered Software with other material, in
++    a separate file or files, that is not Covered Software.
++
++1.8. "License"
++    means this document.
++
++1.9. "Licensable"
++    means having the right to grant, to the maximum extent possible,
++    whether at the time of the initial grant or subsequently, any and
++    all of the rights conveyed by this License.
++
++1.10. "Modifications"
++    means any of the following:
++
++    (a) any file in Source Code Form that results from an addition to,
++        deletion from, or modification of the contents of Covered
++        Software; or
++
++    (b) any new file in Source Code Form that contains any Covered
++        Software.
++
++1.11. "Patent Claims" of a Contributor
++    means any patent claim(s), including without limitation, method,
++    process, and apparatus claims, in any patent Licensable by such
++    Contributor that would be infringed, but for the grant of the
++    License, by the making, using, selling, offering for sale, having
++    made, import, or transfer of either its Contributions or its
++    Contributor Version.
++
++1.12. "Secondary License"
++    means either the GNU General Public License, Version 2.0, the GNU
++    Lesser General Public License, Version 2.1, the GNU Affero General
++    Public License, Version 3.0, or any later versions of those
++    licenses.
++
++1.13. "Source Code Form"
++    means the form of the work preferred for making modifications.
++
++1.14. "You" (or "Your")
++    means an individual or a legal entity exercising rights under this
++    License. For legal entities, "You" includes any entity that
++    controls, is controlled by, or is under common control with You. For
++    purposes of this definition, "control" means (a) the power, direct
++    or indirect, to cause the direction or management of such entity,
++    whether by contract or otherwise, or (b) ownership of more than
++    fifty percent (50%) of the outstanding shares or beneficial
++    ownership of such entity.
++
++2. License Grants and Conditions
++--------------------------------
++
++2.1. Grants
++
++Each Contributor hereby grants You a world-wide, royalty-free,
++non-exclusive license:
++
++(a) under intellectual property rights (other than patent or trademark)
++    Licensable by such Contributor to use, reproduce, make available,
++    modify, display, perform, distribute, and otherwise exploit its
++    Contributions, either on an unmodified basis, with Modifications, or
++    as part of a Larger Work; and
++
++(b) under Patent Claims of such Contributor to make, use, sell, offer
++    for sale, have made, import, and otherwise transfer either its
++    Contributions or its Contributor Version.
++
++2.2. Effective Date
++
++The licenses granted in Section 2.1 with respect to any Contribution
++become effective for each Contribution on the date the Contributor first
++distributes such Contribution.
++
++2.3. Limitations on Grant Scope
++
++The licenses granted in this Section 2 are the only rights granted under
++this License. No additional rights or licenses will be implied from the
++distribution or licensing of Covered Software under this License.
++Notwithstanding Section 2.1(b) above, no patent license is granted by a
++Contributor:
++
++(a) for any code that a Contributor has removed from Covered Software;
++    or
++
++(b) for infringements caused by: (i) Your and any other third party's
++    modifications of Covered Software, or (ii) the combination of its
++    Contributions with other software (except as part of its Contributor
++    Version); or
++
++(c) under Patent Claims infringed by Covered Software in the absence of
++    its Contributions.
++
++This License does not grant any rights in the trademarks, service marks,
++or logos of any Contributor (except as may be necessary to comply with
++the notice requirements in Section 3.4).
++
++2.4. Subsequent Licenses
++
++No Contributor makes additional grants as a result of Your choice to
++distribute the Covered Software under a subsequent version of this
++License (see Section 10.2) or under the terms of a Secondary License (if
++permitted under the terms of Section 3.3).
++
++2.5. Representation
++
++Each Contributor represents that the Contributor believes its
++Contributions are its original creation(s) or it has sufficient rights
++to grant the rights to its Contributions conveyed by this License.
++
++2.6. Fair Use
++
++This License is not intended to limit any rights You have under
++applicable copyright doctrines of fair use, fair dealing, or other
++equivalents.
++
++2.7. Conditions
++
++Sections 3.1, 3.2, 3.3, and 3.4 are conditions of the licenses granted
++in Section 2.1.
++
++3. Responsibilities
++-------------------
++
++3.1. Distribution of Source Form
++
++All distribution of Covered Software in Source Code Form, including any
++Modifications that You create or to which You contribute, must be under
++the terms of this License. You must inform recipients that the Source
++Code Form of the Covered Software is governed by the terms of this
++License, and how they can obtain a copy of this License. You may not
++attempt to alter or restrict the recipients' rights in the Source Code
++Form.
++
++3.2. Distribution of Executable Form
++
++If You distribute Covered Software in Executable Form then:
++
++(a) such Covered Software must also be made available in Source Code
++    Form, as described in Section 3.1, and You must inform recipients of
++    the Executable Form how they can obtain a copy of such Source Code
++    Form by reasonable means in a timely manner, at a charge no more
++    than the cost of distribution to the recipient; and
++
++(b) You may distribute such Executable Form under the terms of this
++    License, or sublicense it under different terms, provided that the
++    license for the Executable Form does not attempt to limit or alter
++    the recipients' rights in the Source Code Form under this License.
++
++3.3. Distribution of a Larger Work
++
++You may create and distribute a Larger Work under terms of Your choice,
++provided that You also comply with the requirements of this License for
++the Covered Software. If the Larger Work is a combination of Covered
++Software with a work governed by one or more Secondary Licenses, and the
++Covered Software is not Incompatible With Secondary Licenses, this
++License permits You to additionally distribute such Covered Software
++under the terms of such Secondary License(s), so that the recipient of
++the Larger Work may, at their option, further distribute the Covered
++Software under the terms of either this License or such Secondary
++License(s).
++
++3.4. Notices
++
++You may not remove or alter the substance of any license notices
++(including copyright notices, patent notices, disclaimers of warranty,
++or limitations of liability) contained within the Source Code Form of
++the Covered Software, except that You may alter any license notices to
++the extent required to remedy known factual inaccuracies.
++
++3.5. Application of Additional Terms
++
++You may choose to offer, and to charge a fee for, warranty, support,
++indemnity or liability obligations to one or more recipients of Covered
++Software. However, You may do so only on Your own behalf, and not on
++behalf of any Contributor. You must make it absolutely clear that any
++such warranty, support, indemnity, or liability obligation is offered by
++You alone, and You hereby agree to indemnify every Contributor for any
++liability incurred by such Contributor as a result of warranty, support,
++indemnity or liability terms You offer. You may include additional
++disclaimers of warranty and limitations of liability specific to any
++jurisdiction.
++
++4. Inability to Comply Due to Statute or Regulation
++---------------------------------------------------
++
++If it is impossible for You to comply with any of the terms of this
++License with respect to some or all of the Covered Software due to
++statute, judicial order, or regulation then You must: (a) comply with
++the terms of this License to the maximum extent possible; and (b)
++describe the limitations and the code they affect. Such description must
++be placed in a text file included with all distributions of the Covered
++Software under this License. Except to the extent prohibited by statute
++or regulation, such description must be sufficiently detailed for a
++recipient of ordinary skill to be able to understand it.
++
++5. Termination
++--------------
++
++5.1. The rights granted under this License will terminate automatically
++if You fail to comply with any of its terms. However, if You become
++compliant, then the rights granted under this License from a particular
++Contributor are reinstated (a) provisionally, unless and until such
++Contributor explicitly and finally terminates Your grants, and (b) on an
++ongoing basis, if such Contributor fails to notify You of the
++non-compliance by some reasonable means prior to 60 days after You have
++come back into compliance. Moreover, Your grants from a particular
++Contributor are reinstated on an ongoing basis if such Contributor
++notifies You of the non-compliance by some reasonable means, this is the
++first time You have received notice of non-compliance with this License
++from such Contributor, and You become compliant prior to 30 days after
++Your receipt of the notice.
++
++5.2. If You initiate litigation against any entity by asserting a patent
++infringement claim (excluding declaratory judgment actions,
++counter-claims, and cross-claims) alleging that a Contributor Version
++directly or indirectly infringes any patent, then the rights granted to
++You by any and all Contributors for the Covered Software under Section
++2.1 of this License shall terminate.
++
++5.3. In the event of termination under Sections 5.1 or 5.2 above, all
++end user license agreements (excluding distributors and resellers) which
++have been validly granted by You or Your distributors under this License
++prior to termination shall survive termination.
++
++************************************************************************
++*                                                                      *
++*  6. Disclaimer of Warranty                                           *
++*  -------------------------                                           *
++*                                                                      *
++*  Covered Software is provided under this License on an "as is"       *
++*  basis, without warranty of any kind, either expressed, implied, or  *
++*  statutory, including, without limitation, warranties that the       *
++*  Covered Software is free of defects, merchantable, fit for a        *
++*  particular purpose or non-infringing. The entire risk as to the     *
++*  quality and performance of the Covered Software is with You.        *
++*  Should any Covered Software prove defective in any respect, You     *
++*  (not any Contributor) assume the cost of any necessary servicing,   *
++*  repair, or correction. This disclaimer of warranty constitutes an   *
++*  essential part of this License. No use of any Covered Software is   *
++*  authorized under this License except under this disclaimer.         *
++*                                                                      *
++************************************************************************
++
++************************************************************************
++*                                                                      *
++*  7. Limitation of Liability                                          *
++*  --------------------------                                          *
++*                                                                      *
++*  Under no circumstances and under no legal theory, whether tort      *
++*  (including negligence), contract, or otherwise, shall any           *
++*  Contributor, or anyone who distributes Covered Software as          *
++*  permitted above, be liable to You for any direct, indirect,         *
++*  special, incidental, or consequential damages of any character      *
++*  including, without limitation, damages for lost profits, loss of    *
++*  goodwill, work stoppage, computer failure or malfunction, or any    *
++*  and all other commercial damages or losses, even if such party      *
++*  shall have been informed of the possibility of such damages. This   *
++*  limitation of liability shall not apply to liability for death or   *
++*  personal injury resulting from such party's negligence to the       *
++*  extent applicable law prohibits such limitation. Some               *
++*  jurisdictions do not allow the exclusion or limitation of           *
++*  incidental or consequential damages, so this exclusion and          *
++*  limitation may not apply to You.                                    *
++*                                                                      *
++************************************************************************
++
++8. Litigation
++-------------
++
++Any litigation relating to this License may be brought only in the
++courts of a jurisdiction where the defendant maintains its principal
++place of business and such litigation shall be governed by laws of that
++jurisdiction, without reference to its conflict-of-law provisions.
++Nothing in this Section shall prevent a party's ability to bring
++cross-claims or counter-claims.
++
++9. Miscellaneous
++----------------
++
++This License represents the complete agreement concerning the subject
++matter hereof. If any provision of this License is held to be
++unenforceable, such provision shall be reformed only to the extent
++necessary to make it enforceable. Any law or regulation which provides
++that the language of a contract shall be construed against the drafter
++shall not be used to construe this License against a Contributor.
++
++10. Versions of the License
++---------------------------
++
++10.1. New Versions
++
++Mozilla Foundation is the license steward. Except as provided in Section
++10.3, no one other than the license steward has the right to modify or
++publish new versions of this License. Each version will be given a
++distinguishing version number.
++
++10.2. Effect of New Versions
++
++You may distribute the Covered Software under the terms of the version
++of the License under which You originally received the Covered Software,
++or under the terms of any subsequent version published by the license
++steward.
++
++10.3. Modified Versions
++
++If you create software not governed by this License, and you want to
++create a new license for such software, you may create and use a
++modified version of this License if you rename the license and remove
++any references to the name of the license steward (except to note that
++such modified license differs from this License).
++
++10.4. Distributing Source Code Form that is Incompatible With Secondary
++Licenses
++
++If You choose to distribute Source Code Form that is Incompatible With
++Secondary Licenses under the terms of this version of the License, the
++notice described in Exhibit B of this License must be attached.
++
++Exhibit A - Source Code Form License Notice
++-------------------------------------------
++
++  This Source Code Form is subject to the terms of the Mozilla Public
++  License, v. 2.0. If a copy of the MPL was not distributed with this
++  file, You can obtain one at https://mozilla.org/MPL/2.0/.
++
++If it is not possible or desirable to put the notice in a particular
++file, then You may include the notice in a location (such as a LICENSE
++file in a relevant directory) where a recipient would be likely to look
++for such a notice.
++
++You may add additional accurate notices of copyright ownership.
++
++Exhibit B - "Incompatible With Secondary Licenses" Notice
++---------------------------------------------------------
++
++  This Source Code Form is "Incompatible With Secondary Licenses", as
++  defined by the Mozilla Public License, v. 2.0.
+diff --git a/SNOWLARK-PATCHES.md b/SNOWLARK-PATCHES.md
+new file mode 100644
+index 00000000..0779de79
+--- /dev/null
++++ b/SNOWLARK-PATCHES.md
+@@ -0,0 +1,406 @@
++# stylo 0.22.0, patched for Snowlark
 +
 +This is stylo 0.22.0 from crates.io (the first commit that adds this directory is the unmodified release),
-+used through `[patch.crates-io]` in the workspace `Cargo.toml`. Every change is marked `Osmium patch` in
++used through `[patch.crates-io]` in the workspace `Cargo.toml`. Every change is marked `Snowlark patch` in
 +the source; `git log -p vendor/stylo` shows the diff.
 +
 +1. **`@container` in the servo build** (`stylesheets/rule_parser.rs`): upstream parses `@container` only
 +   with the `gecko` feature, although the servo build has the container query evaluation, the
 +   `container-type`/`container-name` properties and the `TElement::query_container_size` hook. The rule
-+   now also parses when the `layout.container-queries.enabled` preference is on (osmium-style's
++   now also parses when the `layout.container-queries.enabled` preference is on (snowlark-style's
 +   `prefs::init` turns it on).
 +
 +2. **Used color scheme** (CSS Color Adjust 1 §2): `device/servo.rs` gets the page color scheme (the
-+   HTML `<meta name=color-scheme>`, set by osmium-style through `Device::set_page_color_scheme`) and
++   HTML `<meta name=color-scheme>`, set by snowlark-style through `Device::set_page_color_scheme`) and
 +   `used_color_scheme_is_dark`, which `is_dark_color_scheme` (system colors, `light-dark()`) now uses:
 +   `normal` takes the page color scheme and, without one, the UA default light (upstream used the
 +   preferred scheme); one listed scheme is used; both listed follow the preferred one. Every built
@@ -38,7 +417,7 @@ index 00000000..9f961ddf
 +   `layout.container-queries.enabled` preference as `@container`; the servo build already resolves them
 +   against the query container (`Context::get_container_size_query`, the small viewport as fallback).
 +6. **`CalcLengthPercentage::node`** (`values/computed/length_percentage.rs`): a public accessor for the
-+   computed `calc()` tree, so osmium-render maps `min()`/`max()`/`clamp()` mixing lengths and
++   computed `calc()` tree, so snowlark-render maps `min()`/`max()`/`clamp()` mixing lengths and
 +   percentages to layout's bounded linear form instead of approximating them as a line.
 +7. **`contain-intrinsic-*` in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`):
 +   `contain-intrinsic-width`/`-height`/`-inline-size`/`-block-size` and the `contain-intrinsic-size`
@@ -59,9 +438,9 @@ index 00000000..9f961ddf
 +9. **`text-box-trim`, `text-box-edge` and the `text-box` shorthand in the servo build**
 +   (`properties/longhands.toml`, `properties/shorthands.toml`, `properties/shorthands.rs`): upstream
 +   declares them for the gecko engine only, though their value types are engine-neutral. CSS Inline 3
-+   §6; osmium-layout implements them.
++   §6; snowlark-layout implements them.
 +10. **`background-attachment: local` in the servo build** (`properties/longhands.toml`): upstream parses
-+   `local` for gecko only; CSS Backgrounds 3 §3.5 defines it and osmium-layout paints it.
++   `local` for gecko only; CSS Backgrounds 3 §3.5 defines it and snowlark-layout paints it.
 +11. **Legacy line clamping in the servo build** (CSS Overflow 4 §5.2): `display: -webkit-box` and
 +    `-webkit-inline-box` and the `Display::FlowRoot` constant are no longer Gecko-only
 +    (`values/specified/box.rs`); the `line-clamp` longhand exists in the servo build behind
@@ -74,7 +453,7 @@ index 00000000..9f961ddf
 +    `CSSStyleSheet` is adopted only into the cascade of the document whose lock it was parsed under.
 +13. **Unclamped `calc()` resolution** (`values/computed/length_percentage.rs`):
 +   `LengthPercentage::resolve_unclamped`. A computed `calc()` clamps its result to the property's
-+   range, so osmium-render, which takes a linear `calc()` apart into a length and a percentage by
++   range, so snowlark-render, which takes a linear `calc()` apart into a length and a percentage by
 +   resolving it at two bases, read `calc(50% - 10px)` in `width` as 49% (the value at base 0 clamped
 +   to zero).
 +14. **Pseudo-elements after `::slotted()`** (`servo/selector_parser.rs`): the servo build's
@@ -103,13 +482,13 @@ index 00000000..9f961ddf
 +25. **`sideways-rl`, `sideways-lr` and `text-orientation` in the servo build** (`logical_geometry.rs`):
 +    upstream declares the sideways writing modes, and sets the writing mode's `UPRIGHT`/`TEXT_SIDEWAYS`
 +    flags from `text-orientation` (with `upright` forcing a used `direction: ltr`, CSS Writing Modes 4
-+    §5.1), for the gecko build only. osmium-layout lays out all four vertical writing modes.
++    §5.1), for the gecko build only. snowlark-layout lays out all four vertical writing modes.
 +    `text-combine-upright` is a longhand of the servo build too (`properties/longhands.toml`, behind
-+    `layout.unimplemented`); osmium-layout combines the text, so the gecko-only style adjustment that
++    `layout.unimplemented`); snowlark-layout combines the text, so the gecko-only style adjustment that
 +    turns a text frame horizontal stays off.
 +
 +26. **`:dir()` in the servo build** (`servo/selector_parser.rs`): `NonTSPseudoClass::Dir`, parsed and serialized like `:lang()`;
-+    osmium-style's `match_non_ts_pseudo_class` works out the element's directionality. No element state
++    snowlark-style's `match_non_ts_pseudo_class` works out the element's directionality. No element state
 +    bit, so a `dir` change on an ancestor does not invalidate `:dir()` in its descendants.
 +
 +17. **SVG 2's properties in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`):
@@ -129,7 +508,7 @@ index 00000000..9f961ddf
 +    `overflow-block`, `overflow-inline`, `update`, `scripting` and `-webkit-transform-3d`, with what a
 +    desktop browser window on a standard display reports (8-bit sRGB, standard dynamic range, no
 +    user preference, `display-mode: browser`; print pages and does not update). `scripting` reads
-+    `Device::scripting_enabled` (set by osmium-style from `DeviceConfig::scripting`). The list is a
++    `Device::scripting_enabled` (set by snowlark-style from `DeviceConfig::scripting`). The list is a
 +    `LazyLock` because the new names are not static atoms of the servo build.
 +18. **calc() precision** (`values/specified/length.rs`, `values/specified/calc.rs`): absolute
 +    lengths convert to px in double precision, rounded once (`12cm` and `round(10cm, 6cm)` are
@@ -141,9 +520,9 @@ index 00000000..9f961ddf
 +    `pow(±1, ±infinity)` and `log()` with a base of 1 or below 0; a zero `log()` is 0⁺.
 +20. **`@supports font-format()`/`font-tech()` and `@font-face` `tech()` in the servo build**
 +    (`stylesheets/supports_rule.rs`): the servo evaluators answered false for everything; they now
-+    answer for what Osmium loads and renders (OpenType, TrueType, collections, WOFF, WOFF2;
++    answer for what Snowlark loads and renders (OpenType, TrueType, collections, WOFF, WOFF2;
 +    OpenType features, variations, COLRv0, SVG and bitmap color glyphs). `eval_font_tech` is
-+    public so osmium-style skips `@font-face` sources needing a technology it lacks (CSS Fonts 4
++    public so snowlark-style skips `@font-face` sources needing a technology it lacks (CSS Fonts 4
 +    §4.3.1).
 +21. **The `container` shorthand in the servo build** (`properties/shorthands.toml`,
 +    `properties/shorthands.rs`), behind the container queries preference like its longhands.
@@ -153,28 +532,28 @@ index 00000000..9f961ddf
 +    once substituted) is unknown, so `((unknown) or (width))` does not match although Kleene `or`
 +    would make it true.
 +30. **`image-orientation` in the servo build** (`properties/longhands.toml`): upstream declares it for
-+   gecko only. CSS Images 3 §5.3 (`from-image` | `none`); osmium-paint applies EXIF orientation when
-+   decoding and osmium-render shows the stored pixels for `none` on same-origin images.
++   gecko only. CSS Images 3 §5.3 (`from-image` | `none`); snowlark-paint applies EXIF orientation when
++   decoding and snowlark-render shows the stored pixels for `none` on same-origin images.
 +
 +31. **`transform-box` in the servo build** (`properties/longhands.toml`): upstream declares it for
-+   gecko only. CSS Transforms 1 §6.2; osmium-render resolves an SVG element's transform against it
++   gecko only. CSS Transforms 1 §6.2; snowlark-render resolves an SVG element's transform against it
 +   when it serializes SVG documents (inline `svg`, SVG images).
 +   `all_transform_boxes_are_enabled` (`values/specified/transform.rs`) is true: `content-box` and `stroke-box` parse.
 +
 +32. **`object-view-box`** (`properties/longhands.toml`, `values/generics/basic_shape.rs`,
 +   `values/specified/basic_shape.rs`, `values/computed/basic_shape.rs`): a new longhand, `none |
 +   <basic-shape-rect>` computed as an `inset()` (CSS Images 5 §5.1); upstream has no such property.
-+   osmium-layout crops a replaced element's natural size to it.
++   snowlark-layout crops a replaced element's natural size to it.
 +
 +33. **`image-rendering` values** (`values/specified/image.rs`): `smooth`, `optimizeSpeed` and
 +   `optimizeQuality` parse in the servo build too, and `high-quality` (CSS Images 4 §5.4), which
-+   upstream lacks, in both; osmium-render draws `crisp-edges`, `pixelated` and `optimizeSpeed` with
++   upstream lacks, in both; snowlark-render draws `crisp-edges`, `pixelated` and `optimizeSpeed` with
 +   nearest-neighbour sampling and the rest smoothly.
 +
 +34. **`image()` with a source** (`values/generics/image.rs`, `values/specified/image.rs`,
 +   `values/computed/image.rs`): upstream parses only `image(<color>)`; the rest of CSS Images 4 §2.3,
 +   `image( <image-tags>? [ <image-src>? , <color>? ]! )`, is a new `Image::Fallback` variant, which
-+   osmium-render shows as its source once loaded, else its color. WPT's
++   snowlark-render shows as its source once loaded, else its color. WPT's
 +   `parsing/image-function-invalid.html` ("image(url(foo.png))") expects Chrome's `image(<color>)`
 +   only and fails against the grammar; `css-image-fallbacks-and-annotations003/004.html` use CSS
 +   Images 3's list of sources, which the grammar dropped. The tags parse and serialize but do not
@@ -193,7 +572,7 @@ index 00000000..9f961ddf
 +37. **CSS Motion Path in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`, `properties/shorthands.rs`):
 +   `offset-anchor`, `offset-distance`, `offset-position`, `offset-rotate` and the `offset` shorthand were
 +   gecko-only; they parse and compute behind `layout.unimplemented` as `offset-path` already did. Motion
-+   Path 1; osmium-render's `motion.rs` applies them. `has_transform_or_perspective`
++   Path 1; snowlark-render's `motion.rs` applies them. `has_transform_or_perspective`
 +   (`servo/restyle_damage.rs`) counts `offset-path`, which makes a containing block as a transform does.
 +
 +38. **`polygon(round <length>)` and fill rules of outlines** (`values/generics/basic_shape.rs`,
@@ -213,16 +592,16 @@ index 00000000..9f961ddf
 +
 +40. **`ComputedValues::longhand_equals`** (`properties/properties.mako.rs`): whether two styles have the
 +   same computed value of a longhand (the same style struct, or the longhand's `_equals`), for any
-+   non-logical longhand. osmium-style's `computed::same_computed_value` uses it, so that the inline
++   non-logical longhand. snowlark-style's `computed::same_computed_value` uses it, so that the inline
 +   SVG writer skips a property equal to its parent's or the initial value without serializing it.
 +
 +41. **`Animation::properties_changed()`** (`servo/animation.rs`): the properties a CSS animation
-+   changes, read-only, so that osmium-style can tell which elements have a transform or opacity
++   changes, read-only, so that snowlark-style can tell which elements have a transform or opacity
 +   animation in effect (Blink's `UpdateAnimationFlagsForEffect`, the compositor's layers).
 +
 +42. **`Animation::property_keyframes()` and `Transition::parts()`** (`servo/animation.rs`): a CSS
 +   animation's keyframes for one property (offset, value, timing function) and a transition's start
-+   and end values and timing function, read-only, so that osmium-render can hand transform and opacity
++   and end values and timing function, read-only, so that snowlark-render can hand transform and opacity
 +   animations to the compositor (`docs/compositor-animations.md`, S2; Blink's
 +   `CompositorAnimations::StartAnimationOnCompositor`).
 +
@@ -286,7 +665,7 @@ index 00000000..9f961ddf
 +53. **Inert subtrees in the servo build** (`properties/longhands.toml`, `servo/selector_parser.rs`): HTML
 +   §6.3. The internal inherited `-moz-inert` property (UA sheets only) is built for servo too, and the
 +   servo parser takes `:-moz-inert` and `:-moz-topmost-modal` in UA sheets only, matched by the `INERT`
-+   and `TOPMOST_MODAL` element states. Osmium's UA sheet sets the property from the `inert` attribute,
++   and `TOPMOST_MODAL` element states. Snowlark's UA sheet sets the property from the `inert` attribute,
 +   the root of a document blocked by a modal dialog (`INERT`) and the blocking dialog (`TOPMOST_MODAL`),
 +   so inertness follows the flat tree; hit testing and selection read it.
 +54. **Hyphenation and `text-wrap` in the servo build** (`properties/longhands.toml`,
@@ -294,11 +673,11 @@ index 00000000..9f961ddf
 +   `hyphenate-character`, `hyphenate-limit-chars`, `text-wrap-style` and the `text-wrap` shorthand
 +   for the gecko engine only, though their value types are engine-neutral (CSS Text 3 and 4).
 +   `text-wrap-style` also takes `pretty` (CSS Text 4), which upstream lacks. `hyphens` drops Gecko's `-moz-`
-+   alias (the bindings expose no `-moz-` name, so `CSS.supports` must not take one). osmium-layout reads `hyphens` and `hyphenate-character` (a line broken at a soft hyphen
++   alias (the bindings expose no `-moz-` name, so `CSS.supports` must not take one). snowlark-layout reads `hyphens` and `hyphenate-character` (a line broken at a soft hyphen
 +   ends with the hyphenation character).
 +55. **`text-indent` keywords and `text-align-last: match-parent`** (`values/specified/text.rs`): the
 +   servo build parsed `text-indent`'s `hanging` and `each-line` (CSS Text 3 §7.1) as errors;
-+   osmium-layout implements them. `TextAlignLast` gets `match-parent` (CSS Text 3 §7.3), which
++   snowlark-layout implements them. `TextAlignLast` gets `match-parent` (CSS Text 3 §7.3), which
 +   computes like `text-align`'s: the parent's value, with `start` and `end` resolved against the
 +   parent's direction to `left` or `right`.
 +56. **Column rules and `column-fill` in the servo build** (`properties/longhands.toml`,
@@ -310,7 +689,7 @@ index 00000000..9f961ddf
 +57. **`column-height` and `column-wrap`** (`properties/longhands.toml`, `properties/shorthands.toml`,
 +   `properties/shorthands.rs`): CSS Multi-column Layout 2, which upstream lacks. `columns` takes
 +   `[ <'column-width'> || <'column-count'> ] [ / <'column-height'> ]?` and resets `column-wrap`; it
-+   serializes as the empty string while `column-wrap` is not `auto`. Osmium does not lay out
++   serializes as the empty string while `column-wrap` is not `auto`. Snowlark does not lay out
 +   multi-column containers yet, so neither property changes layout.
 +58. **Breaks, orphans and widows in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`,
 +   `values/specified/box.rs`): upstream declares `break-before`, `break-after`, `break-inside` and the legacy
@@ -346,7 +725,7 @@ index 00000000..9f961ddf
 +   omitted). It interpolates as `palette-mix(in oklab, A (1-p), B p)` between the end points (equal values
 +   and progress outside (0, 1) give an end point; addition is not defined). `HueInterpolationMethod` and
 +   `ColorInterpolationMethod` derive `Serialize` and `Deserialize`, as the servo font struct needs.
-+   `@font-palette-values` needs the `layout.css.font-palette.enabled` preference (osmium-style turns it on).
++   `@font-palette-values` needs the `layout.css.font-palette.enabled` preference (snowlark-style turns it on).
 +63. **`font-variant-emoji` in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`,
 +   `properties/shorthands.rs`): upstream declares it (CSS Fonts 4 §6.13: `normal | text | emoji | unicode`) for
 +   the gecko engine only. It is now a longhand of `font-variant` (which parses and serializes it) and is reset
@@ -357,8 +736,8 @@ index 00000000..9f961ddf
 +   -0.8333333333333334, 1, -0.8333333333333334)`: 14.4999998, rounded to 14 instead of 15). The value is
 +   rounded to `f32` first (below 2^24, where `f32` holds every integer), as `Animate for f32` does.
 +66. **Computed styles kept across restyles** (`rule_cache.rs` `MatchedPropertiesCache`, `style_resolver.rs`,
-+   `context.rs`, `driver.rs`, `device/mod.rs` `osmium_root_and_viewport`, `properties.mako.rs`
-+   `osmium_inherits_equal`): the rule cache lives for one traversal and keeps only reset structs, so an element
++   `context.rs`, `driver.rs`, `device/mod.rs` `snowlark_root_and_viewport`, `properties.mako.rs`
++   `snowlark_inherits_equal`): the rule cache lives for one traversal and keeps only reset structs, so an element
 +   inserted in a later restyle cascaded again whatever matched it before. The embedder now owns a cache from
 +   rule node to whole styles, with the element's name, its parent's inherited values and its layout parent's
 +   display and writing mode; a cascade with all of them equal returns a copy of the kept style instead (its
@@ -379,19 +758,47 @@ index 00000000..9f961ddf
 +   its validation data. The cached class lists and presentational hints are compared before the checks
 +   that query both elements again per candidate (state, link, shadow roots, slots, animations, id rules,
 +   style attribute); the checks are all required, so their order changes no outcome.
++68. **No sharing lookup for presentational hints of an element's own** (`dom.rs`
++   `TElement::has_unshared_presentational_hints`, `sharing/mod.rs` `share_style_if_possible`,
++   `lookup_by_rules`): hint blocks compare by identity, and an SVG chart's shapes each have a block no
++   other element holds (their own `d`, `x`, `y`), yet every one tested the 25-31 candidates of the cache
++   at its depth. The embedder says when an element's block is its alone; neither lookup is made for it
++   (it is still inserted, for an element given its block later). No style changes: a lookup that
++   cannot hit is skipped.
++69. **No cascade for a `::before` or `::after` its rules cannot generate** (`style_resolver.rs`
++   `before_or_after_may_be_generated`, `resolve_pseudo_style`, `cascade_styles_with_default_parents`):
++   a rule such as `*, ::before, ::after { box-sizing: border-box }` matches both pseudo-elements of
++   every element, and each was cascaded only to be dropped (`content` computes to `normal`). Unless
++   the styles are forced, an eager `::before` or `::after` is cascaded only when a rule matched for
++   it (normal or visited) declares `content` (`all` included), or declares `display` with
++   something other than a plain value (`inherit`, `var()`: such styles are kept whatever their
++   `content`). No style changes: only styles that were dropped are not computed.
++70. **The parts of `progress` and `meter`** (`servo/selector_parser.rs`): the lazily cascaded
++   pseudo-elements `::-webkit-progress-inner-element`, `::-webkit-progress-bar`,
++   `::-webkit-progress-value`, `::-webkit-meter-inner-element`, `::-webkit-meter-bar`,
++   `::-webkit-meter-optimum-value`, `::-webkit-meter-suboptimum-value` and
++   `::-webkit-meter-even-less-good-value`, which pages style and the embedder lays out as the parts of
++   an element with `appearance: none`.
++71. **The caller styles the top of a parallel traversal** (`driver.rs`, `scoped_tls.rs`): a traversal
++   started from a thread outside the pool ran entirely on a worker (`spawn_fifo` of the whole
++   closure) while the caller only waited, so every traversal given the pool paid a worker's wake-up
++   and the caller's own wake-up at the end. The closure now runs in place on the caller, which has
++   a slot of its own in `ScopedTLS` (one more than the pool's threads) and the workers' local queue
++   size; work goes to the pool only when a level of the tree has enough elements to share, as the
++   traversal does on a thread of the pool. The embedder can then offer the pool to every restyle.
 +
 +To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
-+still lacks, and run `cargo test -p osmium-style`.
++still lacks, and run `cargo test -p snowlark-style`.
 diff --git a/color/mix.rs b/color/mix.rs
-index aede32e8..3f51c1f6 100644
+index aede32e8..3c0caf97 100644
 --- a/color/mix.rs
 +++ b/color/mix.rs
 @@ -16,14 +16,18 @@ use style_traits::{CssWriter, ParseError, ToCss};
  /// A hue-interpolation-method as defined in [1].
  ///
  /// [1]: https://drafts.csswg.org/css-color-4/#typedef-hue-interpolation-method
-+// Osmium patch: Serialize and Deserialize, for `font-palette`'s palette-mix() in the servo font
-+// struct (OSMIUM-PATCHES.md 62).
++// Snowlark patch: Serialize and Deserialize, for `font-palette`'s palette-mix() in the servo font
++// struct (SNOWLARK-PATCHES.md 62).
  #[derive(
      Clone,
      Copy,
@@ -409,7 +816,7 @@ index aede32e8..3f51c1f6 100644
  }
  
  /// https://drafts.csswg.org/css-color-4/#color-interpolation-method
-+// Osmium patch: Serialize and Deserialize (OSMIUM-PATCHES.md 62).
++// Snowlark patch: Serialize and Deserialize (SNOWLARK-PATCHES.md 62).
  #[derive(
      Clone,
      Copy,
@@ -551,7 +958,7 @@ index aede32e8..3f51c1f6 100644
      hue_interpolation: HueInterpolationMethod,
      outcomes: &[ComponentMixOutcome; 4],
 diff --git a/context.rs b/context.rs
-index 83b89b21..4f17ee10 100644
+index 83b89b21..7e25bd29 100644
 --- a/context.rs
 +++ b/context.rs
 @@ -156,6 +156,16 @@ pub struct SharedStyleContext<'a> {
@@ -559,11 +966,11 @@ index 83b89b21..4f17ee10 100644
      #[cfg(feature = "servo")]
      pub registered_speculative_painters: &'a dyn RegisteredSpeculativePainters,
 +
-+    /// Osmium patch 66: styles kept from earlier restyles, which a cascade may reuse.
++    /// Snowlark patch 66: styles kept from earlier restyles, which a cascade may reuse.
 +    #[cfg(feature = "servo")]
 +    pub matched_properties: Option<&'a crate::rule_cache::MatchedPropertiesCache>,
 +
-+    /// Osmium patch 66: where a traversal leaves the styles its threads kept, for the owner of
++    /// Snowlark patch 66: where a traversal leaves the styles its threads kept, for the owner of
 +    /// `matched_properties` to move there once it ends (`driver::traverse_dom`).
 +    #[cfg(feature = "servo")]
 +    pub matched_properties_sink:
@@ -575,7 +982,7 @@ index 83b89b21..4f17ee10 100644
      pub selector_caches: SelectorCaches,
      /// Caches for speeding up tree-counting function evaluations.
      pub tree_counting_caches: TreeCountingCaches,
-+    /// Osmium patch 66: the styles this thread kept for `SharedStyleContext::matched_properties`.
++    /// Snowlark patch 66: the styles this thread kept for `SharedStyleContext::matched_properties`.
 +    #[cfg(feature = "servo")]
 +    pub matched_properties: crate::rule_cache::MatchedPropertiesCache,
  }
@@ -591,18 +998,18 @@ index 83b89b21..4f17ee10 100644
          }
      }
 diff --git a/device/mod.rs b/device/mod.rs
-index 8c818b96..6042062e 100644
+index 8c818b96..10475975 100644
 --- a/device/mod.rs
 +++ b/device/mod.rs
 @@ -108,6 +108,26 @@ impl Device {
          &self.default_values
      }
  
-+    /// Osmium patch 66: what a computed style may read from this device besides its media
++    /// Snowlark patch 66: what a computed style may read from this device besides its media
 +    /// features: the root element's font size, line height and font metrics, the viewport size and
 +    /// the body text color, without marking any of them used.
 +    #[cfg(feature = "servo")]
-+    pub fn osmium_root_and_viewport(&self) -> ([u32; 6], [i32; 2], AbsoluteColor) {
++    pub fn snowlark_root_and_viewport(&self) -> ([u32; 6], [i32; 2], AbsoluteColor) {
 +        let viewport = self.au_viewport_size();
 +        (
 +            [
@@ -622,14 +1029,14 @@ index 8c818b96..6042062e 100644
      /// calculation of root font-relative metrics.
      pub fn set_root_style(&self, style: &Arc<ComputedValues>) {
 diff --git a/device/servo.rs b/device/servo.rs
-index a8f94bf8..fb4265ff 100644
+index a8f94bf8..48f92ad0 100644
 --- a/device/servo.rs
 +++ b/device/servo.rs
 @@ -69,6 +69,11 @@ pub(super) struct ExtraDeviceData {
      /// Whether the user prefers light mode or dark mode
      #[ignore_malloc_size_of = "Pure stack type"]
      prefers_color_scheme: PrefersColorScheme,
-+    /// Osmium patch: the page color scheme (CSS Color Adjust 1 §2.1, set in HTML by the
++    /// Snowlark patch: the page color scheme (CSS Color Adjust 1 §2.1, set in HTML by the
 +    /// `color-scheme` `<meta>`), which elements whose `color-scheme` is `normal` use. Empty when the
 +    /// page sets none.
 +    #[ignore_malloc_size_of = "Pure stack type"]
@@ -641,7 +1048,7 @@ index a8f94bf8..fb4265ff 100644
      /// An implementation of a trait which implements support for querying font metrics.
      #[ignore_malloc_size_of = "Owned by embedder"]
      font_metrics_provider: Box<dyn FontMetricsProvider>,
-+    /// Osmium patch: whether scripting is enabled for the document (the `scripting` media
++    /// Snowlark patch: whether scripting is enabled for the document (the `scripting` media
 +    /// feature, Media Queries 5 §8.1).
 +    scripting: bool,
  }
@@ -663,12 +1070,12 @@ index a8f94bf8..fb4265ff 100644
          self.extra.media_type = media_type;
      }
  
-+    /// Osmium patch: whether scripting is enabled for the document (`@media (scripting)`).
++    /// Snowlark patch: whether scripting is enabled for the document (`@media (scripting)`).
 +    pub fn scripting_enabled(&self) -> bool {
 +        self.extra.scripting
 +    }
 +
-+    /// Osmium patch: sets whether scripting is enabled for the document.
++    /// Snowlark patch: sets whether scripting is enabled for the document.
 +    pub fn set_scripting_enabled(&mut self, enabled: bool) {
 +        self.extra.scripting = enabled;
 +    }
@@ -680,14 +1087,14 @@ index a8f94bf8..fb4265ff 100644
          self.extra.prefers_color_scheme
      }
  
-+    /// Osmium patch: sets the page color scheme (the `color-scheme` value of the page's
++    /// Snowlark patch: sets the page color scheme (the `color-scheme` value of the page's
 +    /// `<meta name=color-scheme>`, HTML §4.2.5.1; empty for none). Like the preferred color scheme,
 +    /// changing it requires restyling the whole document.
 +    pub fn set_page_color_scheme(&mut self, flags: ColorSchemeFlags) {
 +        self.extra.page_color_scheme = flags;
 +    }
 +
-+    /// Osmium patch: the page color scheme.
++    /// Snowlark patch: the page color scheme.
 +    pub fn page_color_scheme(&self) -> ColorSchemeFlags {
 +        self.extra.page_color_scheme
 +    }
@@ -713,7 +1120,7 @@ index a8f94bf8..fb4265ff 100644
 -        // If either both or none are supported, then use the preferred color scheme
 -        // to determine whether the user wants dark mode.
 -        return self.color_scheme() == PrefersColorScheme::Dark;
-+    /// Osmium patch: whether an element whose `color-scheme` computes to `color_scheme_flags` has
++    /// Snowlark patch: whether an element whose `color-scheme` computes to `color_scheme_flags` has
 +    /// a dark used color scheme (see [`used_color_scheme_is_dark`]).
 +    pub fn is_dark_color_scheme(&self, color_scheme_flags: ColorSchemeFlags) -> bool {
 +        used_color_scheme_is_dark(
@@ -728,7 +1135,7 @@ index a8f94bf8..fb4265ff 100644
                  | SystemColor::Threedhighlight
                  | SystemColor::Threedlightshadow => srgb(107, 107, 107),
                  SystemColor::Buttontext => srgb(245, 245, 245),
-+                // Osmium patch: Canvas, CanvasText, Field and FieldText take Chrome's dark values
++                // Snowlark patch: Canvas, CanvasText, Field and FieldText take Chrome's dark values
 +                // (the canvas surface the shell clears to is the same #121212).
                  SystemColor::Canvas
                  // Deprecated system colors (CSS Color 4) mapped to Canvas.
@@ -758,7 +1165,7 @@ index a8f94bf8..fb4265ff 100644
      }
  }
 +
-+/// Osmium patch: CSS Color Adjust 1 §2.3 "determine the used color scheme" for the light and dark
++/// Snowlark patch: CSS Color Adjust 1 §2.3 "determine the used color scheme" for the light and dark
 +/// schemes this user agent supports, as a dark/light answer. `element` is the element's computed
 +/// `color-scheme` (empty bits: `normal`, or only schemes the UA does not know), `page` the page
 +/// color scheme (empty: none), `preferred` the user's preferred scheme.
@@ -786,21 +1193,21 @@ index a8f94bf8..fb4265ff 100644
 +    }
 +}
 diff --git a/dom.rs b/dom.rs
-index 6561ec69..85485b2f 100644
+index 6561ec69..22babd64 100644
 --- a/dom.rs
 +++ b/dom.rs
 @@ -565,6 +565,25 @@ pub trait TElement:
          context: &SharedStyleContext,
      ) -> Option<Arc<Locked<PropertyDeclarationBlock>>>;
  
-+    /// Osmium patch: whether a script animation (Web Animations) in effect on this element animates
++    /// Snowlark patch: whether a script animation (Web Animations) in effect on this element animates
 +    /// `property`.
 +    #[cfg(feature = "servo")]
 +    fn animated_by_script(&self, _property: crate::properties::PropertyDeclarationId) -> bool {
 +        false
 +    }
 +
-+    /// Osmium patch: computes the keyframes of the script animations (Web Animations) targeting this
++    /// Snowlark patch: computes the keyframes of the script animations (Web Animations) targeting this
 +    /// element against its new style, when that style without animations changed. Returns whether
 +    /// its animation rule changed, so the element is cascaded again with it.
 +    #[cfg(feature = "servo")]
@@ -815,15 +1222,47 @@ index 6561ec69..85485b2f 100644
      /// Get this element's state, for non-tree-structural pseudos.
      fn state(&self) -> ElementState;
  
+@@ -944,6 +963,14 @@ pub trait TElement:
+     ) where
+         V: Push<ApplicableDeclarationBlock>;
+ 
++    /// Snowlark patch 68: whether the declaration block of this element's presentational hints
++    /// is held by no other element. Blocks compare by identity, so no style sharing candidate
++    /// can have the same hints (nor the same rule node), and the sharing cache is not searched.
++    #[inline]
++    fn has_unshared_presentational_hints(&self) -> bool {
++        false
++    }
++
+     /// Generate the proper applicable declarations due to view transition dynamic rules, and
+     /// insert them into `rules`.
+     /// https://drafts.csswg.org/css-view-transitions-1/#document-dynamic-view-transition-style-sheet
 diff --git a/driver.rs b/driver.rs
-index 38ab1ebc..3a223b04 100644
+index 38ab1ebc..988c94bd 100644
 --- a/driver.rs
 +++ b/driver.rs
+@@ -62,11 +62,11 @@ fn with_pool_in_place_scope<'scope>(
+                 Some(0),
+                 "Main thread should be the first thread"
+             );
+-            if cfg!(feature = "gecko") || pool.current_thread_index().is_some() {
+-                closure(Some(scope));
+-            } else {
+-                scope.spawn_fifo(|scope| closure(Some(scope)));
+-            }
++            // Snowlark patch 71: the calling thread styles the traversal's top itself, in its own
++            // slot of the scoped TLS when it is not one of the pool's threads, and shares a level
++            // with the pool once it is wide enough. Handing the whole traversal to a worker made
++            // the caller wait for a worker to wake for every traversal, however small.
++            closure(Some(scope));
+         });
+     }
+ }
 @@ -145,6 +145,17 @@ where
          );
      });
  
-+    // Osmium patch 66: hand the styles the threads kept to the cache's owner.
++    // Snowlark patch 66: hand the styles the threads kept to the cache's owner.
 +    #[cfg(feature = "servo")]
 +    if let Some(sink) = traversal.shared_context().matched_properties_sink {
 +        let mut sink = sink.lock().unwrap_or_else(|e| e.into_inner());
@@ -838,14 +1277,14 @@ index 38ab1ebc..3a223b04 100644
      if dump_stats || report_stats {
          let mut aggregate = PerThreadTraversalStatistics::default();
 diff --git a/font_face.rs b/font_face.rs
-index b9f16f3b..fee8195a 100644
+index b9f16f3b..a59e4e99 100644
 --- a/font_face.rs
 +++ b/font_face.rs
 @@ -298,15 +298,20 @@ pub enum FontDisplay {
      Optional,
  }
  
-+// Osmium patch: the `font-weight` and `font-width` descriptors take `auto` (CSS Fonts 4 §4.4, their
++// Snowlark patch: the `font-weight` and `font-width` descriptors take `auto` (CSS Fonts 4 §4.4, their
 +// initial value: selected as `normal`, with no clamping of variation axes).
  macro_rules! impl_range {
      ($range:ident, $component:ident) => {
@@ -937,7 +1376,7 @@ index b9f16f3b..fee8195a 100644
  #[derive(Clone, Debug, MallocSizeOf, PartialEq, ToShmem)]
  #[allow(missing_docs)]
  pub enum FontStyleRange {
-+    /// Osmium patch: `auto` (CSS Fonts 4 §4.4, the initial value), selected as `normal`.
++    /// Snowlark patch: `auto` (CSS Fonts 4 §4.4, the initial value), selected as `normal`.
 +    Auto,
      Italic,
      Oblique(Angle, Angle),
@@ -956,7 +1395,7 @@ index b9f16f3b..fee8195a 100644
      where
          W: fmt::Write,
      {
-+        // Osmium patch: an angle written as zero in any unit (`0rad`, `0turn`), though not a
++        // Snowlark patch: an angle written as zero in any unit (`0rad`, `0turn`), though not a
 +        // `calc()` that computes to zero, is `normal` (CSS Fonts 4 §4.4: `oblique 0deg` is `normal`).
 +        fn is_literal_zero(angle: &Angle) -> bool {
 +            angle.as_no_calc().is_some_and(|a| a.degrees() == 0.0)
@@ -981,7 +1420,7 @@ index b9f16f3b..fee8195a 100644
              Self::Oblique(ref first, ref second) => {
                  let (min, max) = sort_range(first.degrees()?, second.degrees()?);
 diff --git a/logical_geometry.rs b/logical_geometry.rs
-index e247eb91..f4cbbb38 100644
+index e247eb91..b56cb878 100644
 --- a/logical_geometry.rs
 +++ b/logical_geometry.rs
 @@ -50,9 +50,8 @@ pub enum WritingModeProperty {
@@ -989,7 +1428,7 @@ index e247eb91..f4cbbb38 100644
      VerticalRl,
      VerticalLr,
 -    #[cfg(feature = "gecko")]
-+    // Osmium patch: `sideways-rl` and `sideways-lr` in the servo build too (CSS Writing Modes 4).
++    // Snowlark patch: `sideways-rl` and `sideways-lr` in the servo build too (CSS Writing Modes 4).
      SidewaysRl,
 -    #[cfg(feature = "gecko")]
      SidewaysLr,
@@ -1015,12 +1454,12 @@ index e247eb91..f4cbbb38 100644
          }
  
 -        #[cfg(feature = "gecko")]
-+        // Osmium patch: `text-orientation` sets its flags in the servo build too.
++        // Snowlark patch: `text-orientation` sets its flags in the servo build too.
          {
              use crate::properties::longhands::text_orientation::computed_value::T as TextOrientation;
  
 diff --git a/matching.rs b/matching.rs
-index 4aae362a..94ddf1a8 100644
+index 4aae362a..c1168a28 100644
 --- a/matching.rs
 +++ b/matching.rs
 @@ -547,37 +547,36 @@ trait PrivateMatchMethods: TElement {
@@ -1037,7 +1476,7 @@ index 4aae362a..94ddf1a8 100644
              new_resolved_styles.primary_style_mut(),
              /* pseudo_element = */ None,
          );
-+        // Osmium patch: script animations' keyframes computed against the new style.
++        // Snowlark patch: script animations' keyframes computed against the new style.
 +        let new_primary = new_resolved_styles.primary_style().clone();
 +        style_changed |= self.process_script_animations(context, &new_primary);
  
@@ -1050,7 +1489,7 @@ index 4aae362a..94ddf1a8 100644
 -                context.shared.current_time_for_animations,
 -                self.as_node().owner_doc().shared_lock(),
 -            );
-+            // Osmium patch: the element's own rules, which add script animations to the CSS
++            // Snowlark patch: the element's own rules, which add script animations to the CSS
 +            // animations of `get_all_declarations`.
 +            let transitions = self.transition_rule(&context.shared);
 +            let animations = self.animation_rule(&context.shared);
@@ -1075,7 +1514,7 @@ index 4aae362a..94ddf1a8 100644
              old_values.as_ref(),
              after_change_style.as_ref().unwrap_or(new_values),
          );
-+        // Osmium patch: a property a script animation animates does not transition (its animated
++        // Snowlark patch: a property a script animation animates does not transition (its animated
 +        // value covers both the before-change and the after-change style).
 +        if key.pseudo_element.is_none() {
 +            animation_set.transitions.retain(|t| {
@@ -1088,7 +1527,7 @@ index 4aae362a..94ddf1a8 100644
          // This should change the computed values in the style, so we don't need
          // to mark this set as dirty.
 diff --git a/properties/computed_value_flags.rs b/properties/computed_value_flags.rs
-index 80944d87..265adc5d 100644
+index 80944d87..f235f81b 100644
 --- a/properties/computed_value_flags.rs
 +++ b/properties/computed_value_flags.rs
 @@ -137,6 +137,11 @@ bitflags! {
@@ -1096,7 +1535,7 @@ index 80944d87..265adc5d 100644
          /// Whether this style uses `sibling-index()`.
          const USES_SIBLING_INDEX = 1 << 27;
 +
-+        /// Osmium patch: the element's used color scheme (CSS Color Adjust 1 §2.3) is dark.
++        /// Snowlark patch: the element's used color scheme (CSS Color Adjust 1 §2.3) is dark.
 +        /// Computed for every style from its `color-scheme`, the page color scheme and the
 +        /// preferred one (`Device::is_dark_color_scheme`); not inherited as a flag.
 +        const USED_DARK_COLOR_SCHEME = 1 << 28;
@@ -1104,7 +1543,7 @@ index 80944d87..265adc5d 100644
  }
  
 diff --git a/properties/counted_unknown_properties.py b/properties/counted_unknown_properties.py
-index 7b5c8a80..7b55ba2c 100644
+index 7b5c8a80..c7f99612 100644
 --- a/properties/counted_unknown_properties.py
 +++ b/properties/counted_unknown_properties.py
 @@ -7,8 +7,7 @@ COUNTED_UNKNOWN_PROPERTIES = [
@@ -1113,12 +1552,12 @@ index 7b5c8a80..7b55ba2c 100644
      "-webkit-user-drag",
 -    "orphans",
 -    "widows",
-+    # Osmium patch (OSMIUM-PATCHES.md 58): `orphans` and `widows` are known properties here.
++    # Snowlark patch (SNOWLARK-PATCHES.md 58): `orphans` and `widows` are known properties here.
      "-webkit-user-modify",
      "-webkit-margin-before",
      "-webkit-margin-after",
 diff --git a/properties/helpers.mako.rs b/properties/helpers.mako.rs
-index b8014cb8..b32abc29 100644
+index b8014cb8..3e6091d3 100644
 --- a/properties/helpers.mako.rs
 +++ b/properties/helpers.mako.rs
 @@ -55,6 +55,14 @@ pub mod ${property.ident} {
@@ -1126,7 +1565,7 @@ index b8014cb8..b32abc29 100644
                          % if not property.style_struct.inherited:
                              declaration.debug_crash("Unexpected initial or unset for non-inherited property");
 +                        % elif property.ident == "color" and engine == "servo":
-+                            // Osmium patch: CSS Color 4 §3.1: the initial value of `color` is
++                            // Snowlark patch: CSS Color 4 §3.1: the initial value of `color` is
 +                            // `CanvasText`, resolved for the element's used color scheme.
 +                            let canvas_text = context.device().system_color(
 +                                crate::values::specified::color::SystemColor::Canvastext,
@@ -1137,14 +1576,14 @@ index b8014cb8..b32abc29 100644
                              context.builder.reset_${property.ident}();
                          % endif
 diff --git a/properties/helpers/animated_properties.mako.rs b/properties/helpers/animated_properties.mako.rs
-index 0f528db5..e597c83e 100644
+index 0f528db5..5effa830 100644
 --- a/properties/helpers/animated_properties.mako.rs
 +++ b/properties/helpers/animated_properties.mako.rs
 @@ -477,6 +477,86 @@ impl AnimationValue {
          })
      }
  
-+    /// Osmium patch 39: whether `property` (a physical longhand) has the same animated value in
++    /// Snowlark patch 39: whether `property` (a physical longhand) has the same animated value in
 +    /// both styles, decided from their computed values without building either `AnimationValue`,
 +    /// as Blink's `CSSAnimations` compares the before-change and after-change styles
 +    /// (`ComputedTransitionValuesEqual`, `CSSPropertyEquality::PropertiesEqual`) before it makes
@@ -1178,7 +1617,7 @@ index 0f528db5..e597c83e 100644
 +        }
 +    }
 +
-+    /// Osmium patch 49: for `transition-property: all`, calls `f` with each physical animatable
++    /// Snowlark patch 49: for `transition-property: all`, calls `f` with each physical animatable
 +    /// longhand of `all` whose transition can start or change between `a` and `b`, in the reverse
 +    /// of `all`'s order (the order `start_transitions_if_applicable` takes them in): the longhands
 +    /// of the style structs that differ (an unchanged struct holds equal values, as
@@ -1228,7 +1667,7 @@ index 0f528db5..e597c83e 100644
      ///
      /// SERVO ONLY: This doesn't properly handle things like updating 'em' units
 diff --git a/properties/longhands.toml b/properties/longhands.toml
-index 830a44d2..46e3ee07 100644
+index 830a44d2..83a00f77 100644
 --- a/properties/longhands.toml
 +++ b/properties/longhands.toml
 @@ -101,7 +101,9 @@ type = "LineClamp"
@@ -1236,7 +1675,7 @@ index 830a44d2..46e3ee07 100644
  struct = "box"
  boxed = true
 -engine = "gecko"
-+# Osmium patch: in the servo build too, behind its preference (osmium-style turns it on), for the
++# Snowlark patch: in the servo build too, behind its preference (snowlark-style turns it on), for the
 +# legacy `-webkit-line-clamp` shorthand (CSS Overflow 4 §5.2).
 +servo_pref = "layout.css.line-clamp.enabled"
  gecko_pref = "layout.css.line-clamp.enabled"
@@ -1247,7 +1686,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::BreakBetween::Auto"
  struct = "box"
 -engine = "gecko"
-+# Osmium patch (OSMIUM-PATCHES.md 58): in the servo build too.
++# Snowlark patch (SNOWLARK-PATCHES.md 58): in the servo build too.
  spec = "https://drafts.csswg.org/css-break/#propdef-break-after"
  animation_type = "discrete"
  affects = "layout"
@@ -1256,7 +1695,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::BreakBetween::Auto"
  struct = "box"
 -engine = "gecko"
-+# Osmium patch (OSMIUM-PATCHES.md 58): in the servo build too.
++# Snowlark patch (SNOWLARK-PATCHES.md 58): in the servo build too.
  spec = "https://drafts.csswg.org/css-break/#propdef-break-before"
  animation_type = "discrete"
  affects = "layout"
@@ -1265,12 +1704,12 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::BreakWithin::Auto"
  struct = "box"
 -engine = "gecko"
-+# Osmium patch (OSMIUM-PATCHES.md 58): in the servo build too.
++# Snowlark patch (SNOWLARK-PATCHES.md 58): in the servo build too.
  spec = "https://drafts.csswg.org/css-break/#propdef-break-inside"
  animation_type = "discrete"
  affects = "layout"
  
-+# Osmium patch (OSMIUM-PATCHES.md 58): CSS Fragmentation 3 §3.3, which upstream lacks.
++# Snowlark patch (SNOWLARK-PATCHES.md 58): CSS Fragmentation 3 §3.3, which upstream lacks.
 +[orphans]
 +type = "PositiveInteger"
 +initial = "computed::PositiveInteger::from(2)"
@@ -1279,7 +1718,7 @@ index 830a44d2..46e3ee07 100644
 +spec = "https://drafts.csswg.org/css-break/#widows-orphans"
 +affects = "layout"
 +
-+# Osmium patch (OSMIUM-PATCHES.md 58): CSS Fragmentation 3 §3.3, which upstream lacks.
++# Snowlark patch (SNOWLARK-PATCHES.md 58): CSS Fragmentation 3 §3.3, which upstream lacks.
 +[widows]
 +type = "PositiveInteger"
 +initial = "computed::PositiveInteger::from(2)"
@@ -1296,7 +1735,7 @@ index 830a44d2..46e3ee07 100644
  initial = "Default::default()"
  struct = "inherited_svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/masking.html#ClipRuleProperty"
@@ -1306,7 +1745,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed_value::T::currentcolor()"
  struct = "column"
 -engine = "gecko"
-+# Osmium patch: also the servo build, OSMIUM-PATCHES.md 56.
++# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
  ignored_when_colors_disabled = true
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-color"
  affects = "paint"
@@ -1315,7 +1754,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::BorderStyle::None"
  struct = "column"
 -engine = "gecko"
-+# Osmium patch: also the servo build, OSMIUM-PATCHES.md 56.
++# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-style"
  affects = "paint"
@@ -1324,7 +1763,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::BorderSideWidth::medium()"
  struct = "column"
 -engine = "gecko"
-+# Osmium patch: also the servo build, OSMIUM-PATCHES.md 56.
++# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
  initial_specified_value = "specified::BorderSideWidth::medium()"
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-width"
  affects = "layout"
@@ -1332,7 +1771,7 @@ index 830a44d2..46e3ee07 100644
  servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
-+# Osmium patch (OSMIUM-PATCHES.md 57): CSS Multi-column Layout 2.
++# Snowlark patch (SNOWLARK-PATCHES.md 57): CSS Multi-column Layout 2.
 +[column-height]
 +type = "length::NonNegativeLengthOrAuto"
 +initial = "computed::length::NonNegativeLengthOrAuto::auto()"
@@ -1342,7 +1781,7 @@ index 830a44d2..46e3ee07 100644
 +servo_restyle_damage = "rebuild_box"
 +affects = "layout"
 +
-+# Osmium patch (OSMIUM-PATCHES.md 57): CSS Multi-column Layout 2.
++# Snowlark patch (SNOWLARK-PATCHES.md 57): CSS Multi-column Layout 2.
 +[column-wrap]
 +struct = "column"
 +spec = "https://drafts.csswg.org/css-multicol-2/#cwr"
@@ -1359,7 +1798,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below).
++# Snowlark patch: also the servo build (behind the preference below).
 +servo_pref = "layout.unimplemented"
  logical_group = "contain-intrinsic-size"
  logical = true
@@ -1369,7 +1808,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below).
++# Snowlark patch: also the servo build (behind the preference below).
 +servo_pref = "layout.unimplemented"
  logical_group = "contain-intrinsic-size"
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
@@ -1379,7 +1818,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below).
++# Snowlark patch: also the servo build (behind the preference below).
 +servo_pref = "layout.unimplemented"
  logical_group = "contain-intrinsic-size"
  logical = true
@@ -1389,7 +1828,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below).
++# Snowlark patch: also the servo build (behind the preference below).
 +servo_pref = "layout.unimplemented"
  logical_group = "contain-intrinsic-size"
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
@@ -1399,7 +1838,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::ContentVisibility::Visible"
  struct = "box"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16, and
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16, and
 +# animated discretely there (gecko's interpolation of its `visible` end is not built for servo).
 +servo_pref = "layout.unimplemented"
 +animation_type = "discrete"
@@ -1411,7 +1850,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Color::BLACK"
  struct = "svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://drafts.fxtf.org/filter-effects-1/#FloodColorProperty"
  affects = "paint"
@@ -1421,7 +1860,7 @@ index 830a44d2..46e3ee07 100644
  initial = "1.0"
  struct = "svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://drafts.fxtf.org/filter-effects-1/#FloodOpacityProperty"
  affects = "paint"
@@ -1430,7 +1869,7 @@ index 830a44d2..46e3ee07 100644
  spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font-language-override"
  affects = "layout"
  
-+# Osmium patch: in the servo build too, and interpolable (OSMIUM-PATCHES.md 62).
++# Snowlark patch: in the servo build too, and interpolable (SNOWLARK-PATCHES.md 62).
  [font-palette]
  type = "FontPalette"
  initial = "computed::FontPalette::normal()"
@@ -1444,7 +1883,7 @@ index 830a44d2..46e3ee07 100644
  servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 60).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 60).
  [font-synthesis-position]
  type = "FontSynthesis"
  initial = "computed::FontSynthesis::Auto"
@@ -1455,7 +1894,7 @@ index 830a44d2..46e3ee07 100644
  spec = "https://drafts.csswg.org/css-fonts-4/#font-synthesis-position"
  affects = "layout"
  
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 60).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 60).
  [font-synthesis-small-caps]
  type = "FontSynthesis"
  initial = "computed::FontSynthesis::Auto"
@@ -1466,7 +1905,7 @@ index 830a44d2..46e3ee07 100644
  spec = "https://drafts.csswg.org/css-fonts-4/#font-synthesis-small-caps"
  affects = "layout"
  
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 60).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 60).
  [font-synthesis-style]
  type = "FontSynthesisStyle"
  initial = "computed::FontSynthesisStyle::Auto"
@@ -1480,7 +1919,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Color::WHITE"
  struct = "svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://drafts.fxtf.org/filter-effects-1#LightingColorProperty"
  affects = "paint"
@@ -1490,7 +1929,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::url::UrlOrNone::none()"
  struct = "inherited_svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
@@ -1500,7 +1939,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::url::UrlOrNone::none()"
  struct = "inherited_svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
@@ -1510,7 +1949,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::url::UrlOrNone::none()"
  struct = "inherited_svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
@@ -1519,7 +1958,7 @@ index 830a44d2..46e3ee07 100644
  servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
-+# Osmium patch: `object-view-box` (CSS Images 5 §5.1), which upstream does not have.
++# Snowlark patch: `object-view-box` (CSS Images 5 §5.1), which upstream does not have.
 +[object-view-box]
 +type = "ObjectViewBox"
 +initial = "computed::ObjectViewBox::none()"
@@ -1571,7 +2010,7 @@ index 830a44d2..46e3ee07 100644
  type = "OverflowClipMargin"
  initial = "computed::OverflowClipMargin::zero()"
  struct = "margin"
-+# Osmium patch (OSMIUM-PATCHES.md 16): not interpolated (css/css-overflow/overflow-no-interpolation.html).
++# Snowlark patch (SNOWLARK-PATCHES.md 16): not interpolated (css/css-overflow/overflow-no-interpolation.html).
 +animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-overflow/#propdef-overflow-clip-margin"
  affects = "overflow"
@@ -1581,7 +2020,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::SVGPaintOrder::normal()"
  struct = "inherited_svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#PaintOrder"
@@ -1595,7 +2034,7 @@ index 830a44d2..46e3ee07 100644
  animation_type = "discrete"
  enabled_in = "ua"
  spec = "Nonstandard (https://html.spec.whatwg.org/multipage/#inert-subtrees)"
-+# Osmium patch 53: also in the servo build (inert subtrees in hit testing and selection).
++# Snowlark patch 53: also in the servo build (inert subtrees in hit testing and selection).
 +servo_restyle_damage = "repaint"
  affects = "paint"
  
@@ -1605,7 +2044,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::ScrollbarGutter::AUTO"
  struct = "box"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-overflow-3/#scrollbar-gutter-property"
@@ -1615,7 +2054,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Color::BLACK"
  struct = "svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://svgwg.org/svg2-draft/pservers.html#StopColorProperties"
  affects = "paint"
@@ -1625,7 +2064,7 @@ index 830a44d2..46e3ee07 100644
  initial = "1.0"
  struct = "svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://svgwg.org/svg2-draft/pservers.html#StopOpacityProperty"
  affects = "paint"
@@ -1635,7 +2074,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::TransformBox::ViewBox"
  struct = "box"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://drafts.csswg.org/css-transforms/#transform-box"
  animation_type = "discrete"
@@ -1645,7 +2084,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::VectorEffect::none()"
  struct = "svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/coords.html#VectorEffects"
@@ -1655,7 +2094,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::HyphenateCharacter::Auto"
  struct = "inherited_text"
 -engine = "gecko"
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 54).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
  animation_type = "discrete"
  spec = "https://www.w3.org/TR/css-text-4/#hyphenate-character"
  affects = "layout"
@@ -1664,7 +2103,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::HyphenateLimitChars::auto()"
  struct = "inherited_text"
 -engine = "gecko"
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 54).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
  spec = "https://drafts.csswg.org/css-text-4/#hyphenate-char-limits"
  affects = "layout"
  boxed = true
@@ -1673,7 +2112,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::TextBoxEdge::Auto"
  struct = "inherited_text"
 -engine = "gecko"
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 4).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
  animation_type = "discrete"
  gecko_pref = "layout.css.text-box.enabled"
  has_effect_on_gecko_scrollbars = false
@@ -1682,7 +2121,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::TextBoxTrim::none()"
  struct = "text"
 -engine = "gecko"
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 4).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
  animation_type = "discrete"
  gecko_pref = "layout.css.text-box.enabled"
  has_effect_on_gecko_scrollbars = false
@@ -1691,7 +2130,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Length::zero()"
  struct = "margin"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.0"
@@ -1701,7 +2140,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Length::zero()"
  struct = "margin"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.1"
@@ -1711,7 +2150,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Length::zero()"
  struct = "margin"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.2"
@@ -1721,7 +2160,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Length::zero()"
  struct = "margin"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.3"
@@ -1731,7 +2170,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Length::zero()"
  struct = "margin"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical = true
  logical_group = "scroll-margin"
@@ -1741,7 +2180,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Length::zero()"
  struct = "margin"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical = true
  logical_group = "scroll-margin"
@@ -1751,7 +2190,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Length::zero()"
  struct = "margin"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical = true
  logical_group = "scroll-margin"
@@ -1761,7 +2200,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::Length::zero()"
  struct = "margin"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical = true
  logical_group = "scroll-margin"
@@ -1771,7 +2210,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.0"
@@ -1781,7 +2220,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.1"
@@ -1791,7 +2230,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.2"
@@ -1801,7 +2240,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.3"
@@ -1811,7 +2250,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical = true
  logical_group = "scroll-padding"
@@ -1821,7 +2260,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical = true
  logical_group = "scroll-padding"
@@ -1831,7 +2270,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical = true
  logical_group = "scroll-padding"
@@ -1841,7 +2280,7 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  logical = true
  logical_group = "scroll-padding"
@@ -1851,7 +2290,7 @@ index 830a44d2..46e3ee07 100644
  servo_restyle_damage = "repaint"
  vector = {}
 -keyword = { values = ["scroll", "fixed"], extra_gecko_values = ["local"], gecko_enum_prefix = "StyleImageLayerAttachment" }
-+# Osmium patch: `local` in the servo build too (CSS Backgrounds 3 §3.5); upstream has it for gecko only.
++# Snowlark patch: `local` in the servo build too (CSS Backgrounds 3 §3.5); upstream has it for gecko only.
 +keyword = { values = ["scroll", "fixed", "local"], gecko_enum_prefix = "StyleImageLayerAttachment" }
  
  [background-clip]
@@ -1861,7 +2300,7 @@ index 830a44d2..46e3ee07 100644
  [column-fill]
  struct = "column"
 -engine = "gecko"
-+# Osmium patch: also the servo build, OSMIUM-PATCHES.md 56.
++# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-fill"
  animation_type = "discrete"
  affects = "layout"
@@ -1879,7 +2318,7 @@ index 830a44d2..46e3ee07 100644
  gecko_ffi_name = "mFont.kerning"
  keyword = { values = ["auto", "none", "normal"], gecko_constant_prefix = "NS_FONT_KERNING" }
  
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 63).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 63).
  [font-variant-emoji]
  struct = "font"
 -engine = "gecko"
@@ -1896,7 +2335,7 @@ index 830a44d2..46e3ee07 100644
  [image-orientation]
  struct = "inherited_box"
 -engine = "gecko"
-+# Osmium patch: in the servo build too (CSS Images 3 §5.3); upstream has it for gecko only.
++# Snowlark patch: in the servo build too (CSS Images 3 §5.3); upstream has it for gecko only.
  spec = "https://drafts.csswg.org/css-images/#propdef-image-orientation"
  animation_type = "discrete"
  affects = "layout"
@@ -1905,7 +2344,7 @@ index 830a44d2..46e3ee07 100644
  [text-anchor]
  struct = "inherited_svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://svgwg.org/svg2-draft/text.html#TextAnchorProperty"
  animation_type = "discrete"
@@ -1915,7 +2354,7 @@ index 830a44d2..46e3ee07 100644
  [color-interpolation]
  struct = "inherited_svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationProperty"
  animation_type = "discrete"
@@ -1925,7 +2364,7 @@ index 830a44d2..46e3ee07 100644
  [color-interpolation-filters]
  struct = "inherited_svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationFiltersProperty"
  animation_type = "discrete"
@@ -1935,7 +2374,7 @@ index 830a44d2..46e3ee07 100644
  [shape-rendering]
  struct = "inherited_svg"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  spec = "https://svgwg.org/svg2-draft/painting.html#ShapeRenderingProperty"
  animation_type = "discrete"
@@ -1945,7 +2384,7 @@ index 830a44d2..46e3ee07 100644
  [hyphens]
  struct = "inherited_text"
 -engine = "gecko"
-+# Osmium patch: in the servo build too, without Gecko's -moz- alias (OSMIUM-PATCHES.md 54).
++# Snowlark patch: in the servo build too, without Gecko's -moz- alias (SNOWLARK-PATCHES.md 54).
  spec = "https://drafts.csswg.org/css-text/#propdef-hyphens"
  animation_type = "discrete"
  affects = "layout"
@@ -1967,7 +2406,7 @@ index 830a44d2..46e3ee07 100644
  [text-wrap-style]
  struct = "inherited_text"
 -engine = "gecko"
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 54).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
  spec = "https://drafts.csswg.org/css-text-4/#text-wrap-style"
  animation_type = "discrete"
  affects = "layout"
@@ -1980,7 +2419,7 @@ index 830a44d2..46e3ee07 100644
  aliases = ["-webkit-box-orient"]
  keyword = { values = ["horizontal", "vertical"], gecko_aliases = ["inline-axis=horizontal", "block-axis=vertical"] }
  
-+# Osmium patch: `-webkit-box-orient` in the servo build (Gecko has it as an alias of
++# Snowlark patch: `-webkit-box-orient` in the servo build (Gecko has it as an alias of
 +# `-moz-box-orient` in its XUL struct), for the legacy `-webkit-line-clamp` (CSS Overflow 4 §5.2).
 +[-webkit-box-orient]
 +struct = "box"
@@ -1998,20 +2437,20 @@ index 830a44d2..46e3ee07 100644
  initial = "computed::DominantBaseline::Auto"
  struct = "inherited_box"
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-inline-3/#dominant-baseline-property"
  affects = "layout"
 diff --git a/properties/mod.rs b/properties/mod.rs
-index dd241194..fe7b5273 100644
+index dd241194..08ae70c5 100644
 --- a/properties/mod.rs
 +++ b/properties/mod.rs
 @@ -1491,8 +1491,9 @@ pub struct SourcePropertyDeclaration {
  // we only pass `&mut SourcePropertyDeclaration` references around.
  #[cfg(feature = "gecko")]
  size_of_test!(SourcePropertyDeclaration, 632);
-+// Osmium patch: one declaration more, `font` resets `font-variant-emoji` (OSMIUM-PATCHES.md 63).
++// Snowlark patch: one declaration more, `font` resets `font-variant-emoji` (SNOWLARK-PATCHES.md 63).
  #[cfg(feature = "servo")]
 -size_of_test!(SourcePropertyDeclaration, 568);
 +size_of_test!(SourcePropertyDeclaration, 600);
@@ -2019,14 +2458,14 @@ index dd241194..fe7b5273 100644
  impl SourcePropertyDeclaration {
      /// Create one with a single PropertyDeclaration.
 diff --git a/properties/properties.mako.rs b/properties/properties.mako.rs
-index 1c9033fb..63089689 100644
+index 1c9033fb..3a626a68 100644
 --- a/properties/properties.mako.rs
 +++ b/properties/properties.mako.rs
 @@ -1693,6 +1693,24 @@ impl ComputedValues {
  % endif
  % endfor
  
-+    /// Osmium patch 40: whether `self` and `other` have the same computed value of `id` (the same
++    /// Snowlark patch 40: whether `self` and `other` have the same computed value of `id` (the same
 +    /// style struct, or the longhand's `_equals`). A logical longhand compares as unequal.
 +    pub fn longhand_equals(&self, other: &Self, id: LonghandId) -> bool {
 +        match id {
@@ -2051,9 +2490,9 @@ index 1c9033fb..63089689 100644
          }
      % endfor
  
-+    /// Osmium patch 66: whether a child would inherit the same from this style as from `other`:
++    /// Snowlark patch 66: whether a child would inherit the same from this style as from `other`:
 +    /// the inherited style structs, custom properties, writing mode, zoom and inherited flags.
-+    pub fn osmium_inherits_equal(&self, other: &Self) -> bool {
++    pub fn snowlark_inherits_equal(&self, other: &Self) -> bool {
 +        % for style_struct in data.active_style_structs():
 +        % if style_struct.inherited:
 +        if !(Arc::ptr_eq(&self.${style_struct.ident}, &other.${style_struct.ident})
@@ -2079,7 +2518,7 @@ index 1c9033fb..63089689 100644
 +        #[allow(unused_mut)]
 +        let mut flags = self.flags.get();
 +        % if engine == "servo":
-+        // Osmium patch: record the used color scheme (scroll bars, form controls and the canvas
++        // Snowlark patch: record the used color scheme (scroll bars, form controls and the canvas
 +        // follow it).
 +        flags.set(
 +            ComputedValueFlags::USED_DARK_COLOR_SCHEME,
@@ -2098,7 +2537,7 @@ index 1c9033fb..63089689 100644
              self.visited_style,
              % for style_struct in data.active_style_structs():
 diff --git a/properties/shorthands.rs b/properties/shorthands.rs
-index 30196e39..dee7828f 100644
+index 30196e39..2dd0b5c1 100644
 --- a/properties/shorthands.rs
 +++ b/properties/shorthands.rs
 @@ -545,7 +545,7 @@ pub mod border {
@@ -2106,7 +2545,7 @@ index 30196e39..dee7828f 100644
  }
  
 -#[cfg(feature = "gecko")]
-+// Osmium patch: in the servo build too.
++// Snowlark patch: in the servo build too.
  pub mod container {
      use super::*;
      pub use crate::properties::generated::shorthands::container::*;
@@ -2139,7 +2578,7 @@ index 30196e39..dee7828f 100644
 -            })
 +            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
          }
-+        // Osmium patch (OSMIUM-PATCHES.md 57): CSS Multi-column Layout 2,
++        // Snowlark patch (SNOWLARK-PATCHES.md 57): CSS Multi-column Layout 2,
 +        // `[ <'column-width'> || <'column-count'> ] [ / <'column-height'> ]?`; `column-wrap` is
 +        // reset to its initial value.
 +        let column_height = if input.try_parse(|input| input.expect_delim('/')).is_ok() {
@@ -2188,7 +2627,7 @@ index 30196e39..dee7828f 100644
  }
  
 -#[cfg(feature = "gecko")]
-+// Osmium patch (OSMIUM-PATCHES.md 56): in the servo build too.
++// Snowlark patch (SNOWLARK-PATCHES.md 56): in the servo build too.
  pub mod column_rule {
      pub use crate::properties::generated::shorthands::column_rule::*;
  
@@ -2197,7 +2636,7 @@ index 30196e39..dee7828f 100644
          })
      }
 +
-+    // Osmium patch (OSMIUM-PATCHES.md 56): CSSOM's shortest serialization, width, style, color
++    // Snowlark patch (SNOWLARK-PATCHES.md 56): CSSOM's shortest serialization, width, style, color
 +    // order, leaving out the longhands at their initial values (all three initial: `medium`).
 +    impl<'a> ToCss for LonghandsToSerialize<'a> {
 +        fn to_css<W>(&self, dest: &mut CssWriter<W>) -> fmt::Result
@@ -2223,7 +2662,7 @@ index 30196e39..dee7828f 100644
  }
  
 -#[cfg(feature = "gecko")]
-+// Osmium patch (OSMIUM-PATCHES.md 54): in the servo build too.
++// Snowlark patch (SNOWLARK-PATCHES.md 54): in the servo build too.
  pub mod text_wrap {
      pub use crate::properties::generated::shorthands::text_wrap::*;
  
@@ -2232,7 +2671,7 @@ index 30196e39..dee7828f 100644
  }
  
 -#[cfg(feature = "gecko")]
-+// Osmium patch (OSMIUM-PATCHES.md 17): in the servo build too.
++// Snowlark patch (SNOWLARK-PATCHES.md 17): in the servo build too.
  pub mod marker {
      pub use crate::properties::generated::shorthands::marker::*;
  
@@ -2244,7 +2683,7 @@ index 30196e39..dee7828f 100644
 -        font_family, font_size, font_size_adjust, font_variant_emoji,
 -    };
 +    use crate::properties::longhands::font_size_adjust;
-+    // Osmium patch: font-variant-emoji in the servo build (OSMIUM-PATCHES.md 63).
++    // Snowlark patch: font-variant-emoji in the servo build (SNOWLARK-PATCHES.md 63).
 +    use crate::properties::longhands::font_variant_emoji;
 +    use crate::properties::longhands::{font_family, font_size};
      use crate::properties::longhands::{
@@ -2330,7 +2769,7 @@ index 30196e39..dee7828f 100644
  
      use super::*;
 -    #[cfg(feature = "gecko")]
-+    // Osmium patch: font-variant-emoji in the servo build (OSMIUM-PATCHES.md 63).
++    // Snowlark patch: font-variant-emoji in the servo build (SNOWLARK-PATCHES.md 63).
      use crate::properties::longhands::font_variant_emoji;
      use crate::properties::longhands::{
          font_variant_alternates, font_variant_caps, font_variant_east_asian,
@@ -2413,12 +2852,12 @@ index 30196e39..dee7828f 100644
  }
  
 -#[cfg(feature = "gecko")]
-+// Osmium patch: in the servo build too (OSMIUM-PATCHES.md 4).
++// Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
  pub mod text_box {
      pub use crate::properties::generated::shorthands::text_box::*;
  
 diff --git a/properties/shorthands.toml b/properties/shorthands.toml
-index bd1c5ddd..1905b333 100644
+index bd1c5ddd..d5c2721e 100644
 --- a/properties/shorthands.toml
 +++ b/properties/shorthands.toml
 @@ -19,19 +19,22 @@ rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
@@ -2426,7 +2865,7 @@ index bd1c5ddd..1905b333 100644
  
  [scroll-margin]
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  sub_properties = ["scroll-margin-top", "scroll-margin-right", "scroll-margin-bottom", "scroll-margin-left"]
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin"
@@ -2434,7 +2873,7 @@ index bd1c5ddd..1905b333 100644
  
  [scroll-margin-block]
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  sub_properties = ["scroll-margin-block-start", "scroll-margin-block-end"]
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-block"
@@ -2442,7 +2881,7 @@ index bd1c5ddd..1905b333 100644
  
  [scroll-margin-inline]
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  sub_properties = ["scroll-margin-inline-start", "scroll-margin-inline-end"]
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-inline"
@@ -2452,7 +2891,7 @@ index bd1c5ddd..1905b333 100644
  
  [scroll-padding]
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  sub_properties = ["scroll-padding-top", "scroll-padding-right", "scroll-padding-bottom", "scroll-padding-left"]
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding"
@@ -2460,7 +2899,7 @@ index bd1c5ddd..1905b333 100644
  
  [scroll-padding-block]
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  sub_properties = ["scroll-padding-block-start", "scroll-padding-block-end"]
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-block"
@@ -2468,7 +2907,7 @@ index bd1c5ddd..1905b333 100644
  
  [scroll-padding-inline]
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 +servo_pref = "layout.unimplemented"
  sub_properties = ["scroll-padding-inline-start", "scroll-padding-inline-end"]
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-inline"
@@ -2478,7 +2917,7 @@ index bd1c5ddd..1905b333 100644
  
  [container]
 -engine = "gecko"
-+# Osmium patch: in the servo build too, behind the container queries preference.
++# Snowlark patch: in the servo build too, behind the container queries preference.
 +servo_pref = "layout.container-queries.enabled"
  sub_properties = ["container-name", "container-type"]
  spec = "https://drafts.csswg.org/css-contain-3/#container-shorthand"
@@ -2488,21 +2927,21 @@ index bd1c5ddd..1905b333 100644
  
  [page-break-before]
 -engine = "gecko"
-+# Osmium patch (OSMIUM-PATCHES.md 58): in the servo build too.
++# Snowlark patch (SNOWLARK-PATCHES.md 58): in the servo build too.
  flags = "IS_LEGACY_SHORTHAND"
  sub_properties = ["break-before"]
  spec = "https://drafts.csswg.org/css-break-3/#page-break-properties"
  
  [page-break-after]
 -engine = "gecko"
-+# Osmium patch (OSMIUM-PATCHES.md 58): in the servo build too.
++# Snowlark patch (SNOWLARK-PATCHES.md 58): in the servo build too.
  flags = "IS_LEGACY_SHORTHAND"
  sub_properties = ["break-after"]
  spec = "https://drafts.csswg.org/css-break-3/#page-break-properties"
  
  [page-break-inside]
 -engine = "gecko"
-+# Osmium patch (OSMIUM-PATCHES.md 58): in the servo build too.
++# Snowlark patch (SNOWLARK-PATCHES.md 58): in the servo build too.
  flags = "IS_LEGACY_SHORTHAND"
  sub_properties = ["break-inside"]
  spec = "https://drafts.csswg.org/css-break-3/#page-break-properties"
@@ -2518,7 +2957,7 @@ index bd1c5ddd..1905b333 100644
  
  [contain-intrinsic-size]
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below).
++# Snowlark patch: also the servo build (behind the preference below).
 +servo_pref = "layout.unimplemented"
  sub_properties = ["contain-intrinsic-width", "contain-intrinsic-height"]
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
@@ -2528,7 +2967,7 @@ index bd1c5ddd..1905b333 100644
  
  [marker]
 -engine = "gecko"
-+# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
++# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 +servo_pref = "layout.unimplemented"
  sub_properties = ["marker-start", "marker-end", "marker-mid"]
  spec = "https://svgwg.org/svg2-draft/painting.html#MarkerShorthand"
@@ -2538,14 +2977,14 @@ index bd1c5ddd..1905b333 100644
  
  [columns]
 -sub_properties = ["column-width", "column-count"]
-+# Osmium patch (OSMIUM-PATCHES.md 57): with Multicol 2's column-height and column-wrap.
++# Snowlark patch (SNOWLARK-PATCHES.md 57): with Multicol 2's column-height and column-wrap.
 +sub_properties = ["column-width", "column-count", "column-height", "column-wrap"]
  spec = "https://drafts.csswg.org/css-multicol/#propdef-columns"
  servo_pref = "layout.columns.enabled"
  
  [column-rule]
 -engine = "gecko"
-+# Osmium patch: also the servo build, OSMIUM-PATCHES.md 56.
++# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
  sub_properties = ["column-rule-width", "column-rule-style", "column-rule-color"]
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule"
 -derive_serialize = true
@@ -2575,7 +3014,7 @@ index bd1c5ddd..1905b333 100644
 -extra_gecko_sub_properties = ["font-variant-emoji"]
  spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font-variant"
  
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 60).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 60).
  [font-synthesis]
 -engine = "gecko"
  sub_properties = ["font-synthesis-weight", "font-synthesis-style", "font-synthesis-small-caps", "font-synthesis-position"]
@@ -2584,7 +3023,7 @@ index bd1c5ddd..1905b333 100644
  
  [text-box]
 -engine = "gecko"
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 4).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
  sub_properties = ["text-box-trim", "text-box-edge"]
  spec = "https://drafts.csswg.org/css-inline/#text-box-shorthand"
  gecko_pref = "layout.css.text-box.enabled"
@@ -2593,7 +3032,7 @@ index bd1c5ddd..1905b333 100644
  
  [text-wrap]
 -engine = "gecko"
-+# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 54).
++# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
  sub_properties = ["text-wrap-mode", "text-wrap-style"]
  spec = "https://www.w3.org/TR/css-text-4/#text-wrap"
  
@@ -2602,7 +3041,7 @@ index bd1c5ddd..1905b333 100644
  
  [-webkit-line-clamp]
 -engine = "gecko"
-+# Osmium patch: in the servo build too.
++# Snowlark patch: in the servo build too.
  flags = "IS_LEGACY_SHORTHAND ALLOWS_DISABLED_SUBPROPERTIES"
  sub_properties = ["line-clamp"]
  spec = "https://drafts.csswg.org/css-overflow-4/#webkit-line-clamp"
@@ -2620,7 +3059,7 @@ index aa8c324f..f7482f1f 100644
          F: FnMut(&Self),
      {
 diff --git a/queries/feature_expression.rs b/queries/feature_expression.rs
-index 16e64897..be348eb9 100644
+index 16e64897..558f5e46 100644
 --- a/queries/feature_expression.rs
 +++ b/queries/feature_expression.rs
 @@ -52,7 +52,8 @@ impl FeatureType {
@@ -2628,21 +3067,21 @@ index 16e64897..be348eb9 100644
  
          match *self {
 -            FeatureType::Media => &MEDIA_FEATURES,
-+            // Osmium patch: the servo list is built on first use (its names are dynamic atoms).
++            // Snowlark patch: the servo list is built on first use (its names are dynamic atoms).
 +            FeatureType::Media => &*MEDIA_FEATURES,
              FeatureType::Container => &CONTAINER_FEATURES,
          }
      }
 diff --git a/rule_cache.rs b/rule_cache.rs
-index 206cd0a5..d4e2268e 100644
+index 206cd0a5..9ccdb0ed 100644
 --- a/rule_cache.rs
 +++ b/rule_cache.rs
 @@ -120,6 +120,209 @@ impl CachedConditions {
      }
  }
  
-+/// Osmium patch 66: what a computed style read from the device at the time it was kept by a
-+/// [`MatchedPropertiesCache`] (`Device::osmium_root_and_viewport`).
++/// Snowlark patch 66: what a computed style read from the device at the time it was kept by a
++/// [`MatchedPropertiesCache`] (`Device::snowlark_root_and_viewport`).
 +#[cfg(feature = "servo")]
 +type DeviceState = ([u32; 6], [i32; 2], crate::color::AbsoluteColor);
 +
@@ -2656,7 +3095,7 @@ index 206cd0a5..d4e2268e 100644
 +type ElementNamespace =
 +    <crate::selector_parser::SelectorImpl as selectors::parser::SelectorImpl>::BorrowedNamespaceUrl;
 +
-+/// Osmium patch 66: whole computed styles kept across restyles, by the rules matched and what
++/// Snowlark patch 66: whole computed styles kept across restyles, by the rules matched and what
 +/// else the cascade read: the element's name, its parent's inherited values and its layout
 +/// parent's display and writing mode. An element whose rules, name and parent all equal a kept
 +/// one's gets that element's style (the same `Arc`) without a cascade.
@@ -2763,7 +3202,7 @@ index 206cd0a5..d4e2268e 100644
 +        layout_parent: &ComputedValues,
 +    ) -> Option<&Arc<ComputedValues>> {
 +        let entries = self.map.get(rules)?;
-+        if self.device.as_ref() != Some(&device.osmium_root_and_viewport()) {
++        if self.device.as_ref() != Some(&device.snowlark_root_and_viewport()) {
 +            return None;
 +        }
 +        let layout = Self::layout_parent_key(parent, layout_parent);
@@ -2774,7 +3213,7 @@ index 206cd0a5..d4e2268e 100644
 +                    && e.namespace == *namespace
 +                    && e.input_flags == input_flags
 +                    && e.layout_parent == layout
-+                    && e.parent.osmium_inherits_equal(parent)
++                    && e.parent.snowlark_inherits_equal(parent)
 +            })
 +            .map(|e| &e.style)
 +    }
@@ -2800,7 +3239,7 @@ index 206cd0a5..d4e2268e 100644
 +        {
 +            return;
 +        }
-+        let state = device.osmium_root_and_viewport();
++        let state = device.snowlark_root_and_viewport();
 +        if self.device.as_ref() != Some(&state) || self.map.len() >= Self::MAX {
 +            self.map.clear();
 +            self.device = Some(state);
@@ -2847,8 +3286,38 @@ index 206cd0a5..d4e2268e 100644
  /// A TLS cache from rules matched to computed values.
  pub struct RuleCache {
      // FIXME(emilio): Consider using LRUCache or something like that?
+diff --git a/scoped_tls.rs b/scoped_tls.rs
+index 0b1cd33f..27205a6d 100644
+--- a/scoped_tls.rs
++++ b/scoped_tls.rs
+@@ -20,9 +20,14 @@ use std::ops::DerefMut;
+ /// the Send bound.
+ pub struct ScopedTLS<'scope, T: Send> {
+     pool: Option<&'scope rayon::ThreadPool>,
+-    slots: [RefCell<Option<T>>; STYLO_MAX_THREADS],
++    // Snowlark patch 71: one slot more than the pool's threads, for the thread that started the
++    // traversal when it is not one of the pool's (it styles the traversal's top in place).
++    slots: [RefCell<Option<T>>; STYLO_MAX_THREADS + 1],
+ }
+ 
++/// The slot of the thread that started a traversal from outside the pool (Snowlark patch 71).
++pub const CALLER_SLOT: usize = STYLO_MAX_THREADS;
++
+ /// The scoped TLS is `Sync` because no more than one worker thread can access a
+ /// given slot.
+ unsafe impl<'scope, T: Send> Sync for ScopedTLS<'scope, T> {}
+@@ -41,7 +46,8 @@ impl<'scope, T: Send> ScopedTLS<'scope, T> {
+     /// Returns the index corresponding to the calling thread in the thread pool.
+     #[inline]
+     pub fn current_thread_index(&self) -> usize {
+-        self.pool.map_or(0, |p| p.current_thread_index().unwrap())
++        self.pool
++            .map_or(0, |p| p.current_thread_index().unwrap_or(CALLER_SLOT))
+     }
+ 
+     /// Return an immutable reference to the `Option<T>` that this thread owns.
 diff --git a/servo/animation.rs b/servo/animation.rs
-index 8376bd75..c3bb3c0d 100644
+index 8376bd75..31493128 100644
 --- a/servo/animation.rs
 +++ b/servo/animation.rs
 @@ -38,7 +38,7 @@ use servo_arc::Arc;
@@ -2865,7 +3334,7 @@ index 8376bd75..c3bb3c0d 100644
      /// The duration of this `PropertyAnimation` in seconds.
      pub duration: f64,
 +
-+    /// Osmium patch 48: the last value calculated, with the progress it was calculated at. A
++    /// Snowlark patch 48: the last value calculated, with the progress it was calculated at. A
 +    /// restyle asks for a running transition's value up to three times (its cascade, its
 +    /// before-change style, the traversal's animation rules) at the timeline's time, which does not
 +    /// move within a task.
@@ -2918,12 +3387,12 @@ index 8376bd75..c3bb3c0d 100644
          new_ui.animation_duration_mod(index).seconds() == 0.
      }
  
-+    /// The properties that change in this animation (Osmium patch 41).
++    /// The properties that change in this animation (Snowlark patch 41).
 +    pub fn properties_changed(&self) -> &PropertyDeclarationIdSet {
 +        &self.properties_changed
 +    }
 +
-+    /// Osmium patch: the keyframes that declare `id`, in order, as (offset, value, the timing
++    /// Snowlark patch: the keyframes that declare `id`, in order, as (offset, value, the timing
 +    /// function to the next one): the property-specific keyframes a compositor samples.
 +    pub fn property_keyframes(
 +        &self,
@@ -2952,7 +3421,7 @@ index 8376bd75..c3bb3c0d 100644
 -            let direction_aware_prev_keyframe_start_percentage = match self.current_direction {
 -                AnimationDirection::Normal => previous_keyframe.start_percentage,
 -                AnimationDirection::Reverse => 1. - previous_keyframe.start_percentage,
-+            // Osmium patch (Web Animations 1 §5.3.4, "the effect value of a keyframe effect"): the
++            // Snowlark patch (Web Animations 1 §5.3.4, "the effect value of a keyframe effect"): the
 +            // interval is chosen by the directed progress, and the easing of its first keyframe (by
 +            // offset) applies to the distance from it, in either direction. In a reversed iteration
 +            // that is the keyframe the iteration reaches last, interpolated towards the one it left
@@ -2989,7 +3458,7 @@ index 8376bd75..c3bb3c0d 100644
      /// timeline when this transition was created plus any animation delay.
      pub start_time: f64,
  
-+    /// Osmium patch: `start_time` as it was when the transition was created (script may move
++    /// Snowlark patch: `start_time` as it was when the transition was created (script may move
 +    /// `start_time` later), which identifies the transition.
 +    pub created_at: f64,
 +
@@ -3012,7 +3481,7 @@ index 8376bd75..c3bb3c0d 100644
              Ok(new_start) => self.property_animation.from = new_start,
              Err(..) => {},
          }
-+        // (Osmium patch 48: its start value and duration changed)
++        // (Snowlark patch 48: its start value and duration changed)
 +        *self.property_animation.last.get_mut() = None;
      }
  
@@ -3021,7 +3490,7 @@ index 8376bd75..c3bb3c0d 100644
          time >= self.start_time + (self.property_animation.duration)
      }
  
-+    /// Osmium patch: its start and end values and timing function, for a compositor.
++    /// Snowlark patch: its start and end values and timing function, for a compositor.
 +    pub fn parts(&self) -> (&AnimationValue, &AnimationValue, &TimingFunction) {
 +        let p = &self.property_animation;
 +        (&p.from, &p.to, &p.timing_function)
@@ -3034,7 +3503,7 @@ index 8376bd75..c3bb3c0d 100644
      }
  }
  
-+/// Osmium patch 49: whether `style`'s `transition-property` is `all` alone.
++/// Snowlark patch 49: whether `style`'s `transition-property` is `all` alone.
 +fn is_sole_transition_all(style: &ComputedValues) -> bool {
 +    use crate::properties::ShorthandId;
 +    use crate::values::computed::TransitionProperty;
@@ -3053,7 +3522,7 @@ index 8376bd75..c3bb3c0d 100644
      // Reversing the transition order here means that transitions defined later in the list
      // have preference, in accordance with the specification.
      //
-+    // Osmium patch 49: `transition-property: all` alone (as `transition: all 0.3s`) takes the
++    // Snowlark patch 49: `transition-property: all` alone (as `transition: all 0.3s`) takes the
 +    // longhands of `all` a style struct at a time: the structs the two styles share hold equal
 +    // values, which start nothing for a property with no transition (see patch 39 below), so only
 +    // the changed structs' longhands and the element's transitions' properties are looked at, in
@@ -3096,7 +3565,7 @@ index 8376bd75..c3bb3c0d 100644
          }
  
          properties_that_transition.insert(physical_property);
-+        // Osmium patch 39: with no transition for the property, equal before-change and
++        // Snowlark patch 39: with no transition for the property, equal before-change and
 +        // after-change values start none (step 1 needs them to differ; steps 2 to 4 need an
 +        // existing transition), so skip building both values, as Blink does
 +        // (`CSSAnimations::CalculateTransitionUpdateForPropertyHandle`). This is most of the
@@ -3126,7 +3595,7 @@ index 8376bd75..c3bb3c0d 100644
          };
  
 diff --git a/servo/media_features.rs b/servo/media_features.rs
-index 9e5a77e8..c9f27267 100644
+index 9e5a77e8..d9cc7865 100644
 --- a/servo/media_features.rs
 +++ b/servo/media_features.rs
 @@ -5,10 +5,14 @@
@@ -3148,7 +3617,7 @@ index 9e5a77e8..c9f27267 100644
      Ratio::new(size.width.0 as f32, size.height.0 as f32)
  }
  
-+// Osmium patch: the Media Queries 4/5 features the servo build lacked, with what a desktop
++// Snowlark patch: the Media Queries 4/5 features the servo build lacked, with what a desktop
 +// browser window on a standard display reports.
 +
 +/// https://drafts.csswg.org/mediaqueries-4/#device-aspect-ratio
@@ -3491,15 +3960,46 @@ index dc4aaec6..43f9f8a0 100644
              || self.transform_style == TransformStyle::Preserve3d
      }
 diff --git a/servo/selector_parser.rs b/servo/selector_parser.rs
-index 8db71357..aa24c93e 100644
+index 8db71357..3ba3f5c5 100644
 --- a/servo/selector_parser.rs
 +++ b/servo/selector_parser.rs
-@@ -122,6 +122,29 @@ impl ::selectors::parser::PseudoElement for PseudoElement {
+@@ -68,6 +68,15 @@ pub enum PseudoElement {
+     SliderThumb,
+     SliderTrack,
+     MozProgressBar,
++    // Snowlark patch: the parts of a `progress` and a `meter` element's internal tree.
++    WebkitProgressInnerElement,
++    WebkitProgressBar,
++    WebkitProgressValue,
++    WebkitMeterInnerElement,
++    WebkitMeterBar,
++    WebkitMeterOptimumValue,
++    WebkitMeterSuboptimumValue,
++    WebkitMeterEvenLessGoodValue,
+ 
+     // Private, Servo-specific implemented pseudos. Only matchable in UA sheet.
+     ServoTextControlInnerContainer,
+@@ -106,6 +115,14 @@ impl ToCss for PseudoElement {
+             SliderTrack => "::slider-track",
+             SliderThumb => "::slider-thumb",
+             MozProgressBar => "::-moz-progress-bar",
++            WebkitProgressInnerElement => "::-webkit-progress-inner-element",
++            WebkitProgressBar => "::-webkit-progress-bar",
++            WebkitProgressValue => "::-webkit-progress-value",
++            WebkitMeterInnerElement => "::-webkit-meter-inner-element",
++            WebkitMeterBar => "::-webkit-meter-bar",
++            WebkitMeterOptimumValue => "::-webkit-meter-optimum-value",
++            WebkitMeterSuboptimumValue => "::-webkit-meter-suboptimum-value",
++            WebkitMeterEvenLessGoodValue => "::-webkit-meter-even-less-good-value",
+             ServoTextControlInnerContainer => "::-servo-text-control-inner-container",
+             ServoTextControlInnerEditor => "::-servo-text-control-inner-editor",
+             ServoAnonymousBox => "::-servo-anonymous-box",
+@@ -122,6 +139,29 @@ impl ::selectors::parser::PseudoElement for PseudoElement {
      fn parses_as_element_backed(&self) -> bool {
          matches!(self, Self::DetailsContent)
      }
 +
-+    /// Osmium patch: CSS Scoping 1 §3.2.2 / CSS Pseudo 4: `::slotted()` can be followed by the
++    /// Snowlark patch: CSS Scoping 1 §3.2.2 / CSS Pseudo 4: `::slotted()` can be followed by the
 +    /// tree-abiding pseudo-elements and the element-backed ones of the slotted element.
 +    fn valid_after_slotted(&self) -> bool {
 +        matches!(
@@ -3513,7 +4013,7 @@ index 8db71357..aa24c93e 100644
 +        )
 +    }
 +
-+    /// Osmium patch: CSS Pseudo 4 §4: `::before::marker` and `::after::marker`.
++    /// Snowlark patch: CSS Pseudo 4 §4: `::before::marker` and `::after::marker`.
 +    fn valid_after_before_or_after(&self) -> bool {
 +        matches!(self, Self::Marker)
 +    }
@@ -3524,7 +4024,37 @@ index 8db71357..aa24c93e 100644
  }
  
  /// The number of eager pseudo-elements. Keep this in sync with cascade_type.
-@@ -386,16 +409,22 @@ pub enum NonTSPseudoClass {
+@@ -265,6 +305,14 @@ impl PseudoElement {
+             | PseudoElement::SliderThumb
+             | PseudoElement::SliderTrack
+             | PseudoElement::MozProgressBar
++            | PseudoElement::WebkitProgressInnerElement
++            | PseudoElement::WebkitProgressBar
++            | PseudoElement::WebkitProgressValue
++            | PseudoElement::WebkitMeterInnerElement
++            | PseudoElement::WebkitMeterBar
++            | PseudoElement::WebkitMeterOptimumValue
++            | PseudoElement::WebkitMeterSuboptimumValue
++            | PseudoElement::WebkitMeterEvenLessGoodValue
+             | PseudoElement::ServoTextControlInnerContainer
+             | PseudoElement::ServoTextControlInnerEditor => PseudoElementCascadeType::Lazy,
+             PseudoElement::ServoAnonymousBox
+@@ -354,6 +402,14 @@ impl PseudoElement {
+                     | Self::SliderThumb
+                     | Self::SliderTrack
+                     | Self::MozProgressBar
++                    | Self::WebkitProgressInnerElement
++                    | Self::WebkitProgressBar
++                    | Self::WebkitProgressValue
++                    | Self::WebkitMeterInnerElement
++                    | Self::WebkitMeterBar
++                    | Self::WebkitMeterOptimumValue
++                    | Self::WebkitMeterSuboptimumValue
++                    | Self::WebkitMeterEvenLessGoodValue
+                     | Self::ServoTextControlInnerContainer
+                     | Self::ServoTextControlInnerEditor,
+             )
+@@ -386,16 +442,22 @@ pub enum NonTSPseudoClass {
      FocusWithin,
      FocusVisible,
      Fullscreen,
@@ -3537,17 +4067,17 @@ index 8db71357..aa24c93e 100644
 +    Dir(Lang),
      Link,
      Modal,
-+    /// Osmium patch 53: an inert root other than an `inert` attribute (UA sheets only).
++    /// Snowlark patch 53: an inert root other than an `inert` attribute (UA sheets only).
 +    MozInert,
      MozMeterOptimum,
      MozMeterSubOptimum,
      MozMeterSubSubOptimum,
-+    /// Osmium patch 53: the modal dialog that blocks its document (UA sheets only).
++    /// Snowlark patch 53: the modal dialog that blocks its document (UA sheets only).
 +    MozTopmostModal,
      Open,
      Optional,
      OutOfRange,
-@@ -442,6 +471,11 @@ impl ToCss for NonTSPseudoClass {
+@@ -442,6 +504,11 @@ impl ToCss for NonTSPseudoClass {
              serialize_identifier(lang, dest)?;
              return dest.write_char(')');
          }
@@ -3559,7 +4089,7 @@ index 8db71357..aa24c93e 100644
  
          dest.write_str(match *self {
              Self::Active => ":active",
-@@ -461,15 +495,18 @@ impl ToCss for NonTSPseudoClass {
+@@ -461,15 +528,18 @@ impl ToCss for NonTSPseudoClass {
              Self::FocusVisible => ":focus-visible",
              Self::FocusWithin => ":focus-within",
              Self::Fullscreen => ":fullscreen",
@@ -3578,7 +4108,7 @@ index 8db71357..aa24c93e 100644
              Self::Open => ":open",
              Self::Optional => ":optional",
              Self::OutOfRange => ":out-of-range",
-@@ -484,7 +521,7 @@ impl ToCss for NonTSPseudoClass {
+@@ -484,7 +554,7 @@ impl ToCss for NonTSPseudoClass {
              Self::UserValid => ":user-valid",
              Self::Valid => ":valid",
              Self::Visited => ":visited",
@@ -3587,7 +4117,7 @@ index 8db71357..aa24c93e 100644
          })
      }
  }
-@@ -506,15 +543,18 @@ impl NonTSPseudoClass {
+@@ -506,15 +576,18 @@ impl NonTSPseudoClass {
              Self::FocusVisible => ElementState::FOCUSRING,
              Self::FocusWithin => ElementState::FOCUS_WITHIN,
              Self::Fullscreen => ElementState::FULLSCREEN,
@@ -3606,7 +4136,7 @@ index 8db71357..aa24c93e 100644
              Self::Open => ElementState::OPEN,
              Self::Optional => ElementState::OPTIONAL_,
              Self::OutOfRange => ElementState::OUTOFRANGE,
-@@ -528,7 +568,7 @@ impl NonTSPseudoClass {
+@@ -528,7 +601,7 @@ impl NonTSPseudoClass {
              Self::UserValid => ElementState::USER_VALID,
              Self::Valid => ElementState::VALID,
              Self::Visited => ElementState::VISITED,
@@ -3615,7 +4145,7 @@ index 8db71357..aa24c93e 100644
                  ElementState::empty()
              },
          }
-@@ -631,7 +671,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+@@ -631,7 +704,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
              "focus-visible" => NonTSPseudoClass::FocusVisible,
              "focus-within" => NonTSPseudoClass::FocusWithin,
              "fullscreen" => NonTSPseudoClass::Fullscreen,
@@ -3625,7 +4155,7 @@ index 8db71357..aa24c93e 100644
              "indeterminate" => NonTSPseudoClass::Indeterminate,
              "invalid" => NonTSPseudoClass::Invalid,
              "link" => NonTSPseudoClass::Link,
-@@ -652,6 +694,18 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+@@ -652,6 +727,18 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
              "-moz-meter-optimum" => NonTSPseudoClass::MozMeterOptimum,
              "-moz-meter-sub-optimum" => NonTSPseudoClass::MozMeterSubOptimum,
              "-moz-meter-sub-sub-optimum" => NonTSPseudoClass::MozMeterSubSubOptimum,
@@ -3644,7 +4174,7 @@ index 8db71357..aa24c93e 100644
              "-servo-nonzero-border" => {
                  if !self.in_user_agent_stylesheet() {
                      return Err(ParseError::custom(
-@@ -676,6 +730,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+@@ -676,6 +763,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
              "lang" if !after_part => {
                  NonTSPseudoClass::Lang(parser.expect_ident_or_string()?.as_ref().into())
              },
@@ -3654,15 +4184,30 @@ index 8db71357..aa24c93e 100644
              "state" => {
                  let result = AtomIdent::from(parser.expect_ident()?.as_ref());
                  NonTSPseudoClass::CustomState(CustomState(result))
+@@ -715,6 +805,14 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+             "slider-thumb" => SliderThumb,
+             "slider-track" => SliderTrack,
+             "-moz-progress-bar" => MozProgressBar,
++            "-webkit-progress-inner-element" => WebkitProgressInnerElement,
++            "-webkit-progress-bar" => WebkitProgressBar,
++            "-webkit-progress-value" => WebkitProgressValue,
++            "-webkit-meter-inner-element" => WebkitMeterInnerElement,
++            "-webkit-meter-bar" => WebkitMeterBar,
++            "-webkit-meter-optimum-value" => WebkitMeterOptimumValue,
++            "-webkit-meter-suboptimum-value" => WebkitMeterSuboptimumValue,
++            "-webkit-meter-even-less-good-value" => WebkitMeterEvenLessGoodValue,
+             "-servo-anonymous-box" => {
+                 if !self.in_user_agent_stylesheet() {
+                     return Err(ParseError::custom(SelectorParseErrorKind::UnexpectedIdent))
 diff --git a/shared_lock.rs b/shared_lock.rs
-index af0ef122..2818efdf 100644
+index af0ef122..9d9bfa9d 100644
 --- a/shared_lock.rs
 +++ b/shared_lock.rs
 @@ -77,6 +77,12 @@ impl SharedRwLock {
              .unwrap_or(ptr::null())
      }
  
-+    /// Osmium patch: whether `other` is this lock (a sheet parsed under one lock can join a
++    /// Snowlark patch: whether `other` is this lock (a sheet parsed under one lock can join a
 +    /// cascade read under the other).
 +    pub fn same_lock(&self, other: &SharedRwLock) -> bool {
 +        self.ptr() == other.ptr()
@@ -3672,7 +4217,7 @@ index af0ef122..2818efdf 100644
      pub fn wrap<T>(&self, data: T) -> Locked<T> {
          Locked {
 diff --git a/sharing/checks.rs b/sharing/checks.rs
-index 59025863..fc1e5ee0 100644
+index 59025863..c9ec1716 100644
 --- a/sharing/checks.rs
 +++ b/sharing/checks.rs
 @@ -25,13 +25,15 @@ where
@@ -3680,7 +4225,7 @@ index 59025863..fc1e5ee0 100644
      // If the identity of the parent style isn't equal, we can't share. We check
      // this first, because the result is cached.
 -    if target.parent_style_identity() != candidate.parent_style_identity() {
-+    // (Osmium patch 67: the parents and whether they allow cousins to share are cached with it.)
++    // (Snowlark patch 67: the parents and whether they allow cousins to share are cached with it.)
 +    let (identity, parent, parent_allows_cousins) = target.parent();
 +    let (candidate_identity, candidate_parent, candidate_parent_allows_cousins) =
 +        candidate.parent();
@@ -3710,7 +4255,7 @@ index 59025863..fc1e5ee0 100644
  
  /// Whether two elements have the same style attribute.
 diff --git a/sharing/mod.rs b/sharing/mod.rs
-index ef4c5f94..363f2131 100644
+index ef4c5f94..122b5e80 100644
 --- a/sharing/mod.rs
 +++ b/sharing/mod.rs
 @@ -68,7 +68,7 @@ use crate::applicable_declarations::ApplicableDeclarationBlock;
@@ -3729,7 +4274,7 @@ index ef4c5f94..363f2131 100644
 -    /// The pointer identity of the parent ComputedValues.
 -    parent_style_identity: Option<OpaqueComputedValues>,
 +    /// The pointer identity of the parent ComputedValues, the parent, and whether the parent lets
-+    /// its children share styles with cousins (Osmium patch 67: found once per element, not once
++    /// its children share styles with cousins (Snowlark patch 67: found once per element, not once
 +    /// per candidate tested; the parent is styled before its children and stays as it is for the
 +    /// rest of the traversal, which is as long as a candidate lives).
 +    parent: Option<(OpaqueComputedValues, OpaqueNode, bool)>,
@@ -3790,11 +4335,27 @@ index ef4c5f94..363f2131 100644
      }
  
      fn revalidation_match_results(
-@@ -774,6 +781,19 @@ impl<E: TElement> StyleSharingCache<E> {
+@@ -708,6 +715,15 @@ impl<E: TElement> StyleSharingCache<E> {
              return None;
          }
  
-+        // (Osmium patch 67: the class lists and presentational hints, kept with each element once
++        // (Snowlark patch 68: hints no other element holds match no candidate's)
++        if target.element.has_unshared_presentational_hints() {
++            debug!(
++                "{:?} Cannot share style: presentational hints of its own",
++                target.element
++            );
++            return None;
++        }
++
+         if target.inheritance_parent().is_none() {
+             debug!(
+                 "{:?} Cannot share style: element has no parent",
+@@ -774,6 +790,19 @@ impl<E: TElement> StyleSharingCache<E> {
+             return None;
+         }
+ 
++        // (Snowlark patch 67: the class lists and presentational hints, kept with each element once
 +        // found, reject most candidates; they go before the checks that ask the elements again for
 +        // each candidate.)
 +        if !checks::have_same_class(target, candidate) {
@@ -3810,7 +4371,7 @@ index ef4c5f94..363f2131 100644
          // We do not ignore visited state here, because Gecko needs to store
          // extra bits on visited styles, so these contexts cannot be shared.
          if target.element.state() != candidate.state() {
-@@ -847,16 +867,6 @@ impl<E: TElement> StyleSharingCache<E> {
+@@ -847,16 +876,6 @@ impl<E: TElement> StyleSharingCache<E> {
              return None;
          }
  
@@ -3827,7 +4388,19 @@ index ef4c5f94..363f2131 100644
          if !checks::have_same_parts(target, candidate) {
              trace!("Miss: Shadow parts");
              return None;
-@@ -918,7 +928,7 @@ impl<E: TElement> StyleSharingCache<E> {
+@@ -907,7 +926,10 @@ impl<E: TElement> StyleSharingCache<E> {
+         dom_depth: usize,
+     ) -> Option<PrimaryStyle> {
+         debug_assert_eq!(target.as_node().depth(), dom_depth);
+-        if shared_context.options.disable_style_sharing_cache {
++        // (Snowlark patch 68: a block no other element holds is in no other rule node)
++        if shared_context.options.disable_style_sharing_cache
++            || target.has_unshared_presentational_hints()
++        {
+             return None;
+         }
+ 
+@@ -918,7 +940,7 @@ impl<E: TElement> StyleSharingCache<E> {
  
          cache.entries.lookup(|candidate| {
              debug_assert_ne!(candidate.element, target);
@@ -3837,7 +4410,7 @@ index ef4c5f94..363f2131 100644
              }
              let data = candidate.element.borrow_data().unwrap();
 diff --git a/style_adjuster.rs b/style_adjuster.rs
-index c14a93fb..a2a40839 100644
+index c14a93fb..d794718a 100644
 --- a/style_adjuster.rs
 +++ b/style_adjuster.rs
 @@ -161,9 +161,13 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
@@ -3846,7 +4419,7 @@ index c14a93fb..a2a40839 100644
      /// https://bugzilla.mozilla.org/show_bug.cgi?id=1786147#c10
 -    #[cfg(feature = "gecko")]
 +    ///
-+    /// Osmium patch: in the servo build too, with its `-webkit-box-orient`.
++    /// Snowlark patch: in the servo build too, with its `-webkit-box-orient`.
      fn adjust_for_webkit_line_clamp(&mut self) {
 +        #[cfg(feature = "gecko")]
          use crate::properties::longhands::_moz_box_orient::computed_value::T as BoxOrient;
@@ -3874,7 +4447,7 @@ index c14a93fb..a2a40839 100644
              return; // optimization for the common case
          }
  
-+        // Osmium patch (OSMIUM-PATCHES.md 16): CSS Overflow 3 §3.1, `visible` computes to `auto`
++        // Snowlark patch (SNOWLARK-PATCHES.md 16): CSS Overflow 3 §3.1, `visible` computes to `auto`
 +        // when the other axis is neither `visible` nor `clip`; `clip` stays `clip` (upstream also
 +        // turned it into `hidden`, as an older draft said).
          if overflow_x.is_scrollable() != overflow_y.is_scrollable() {
@@ -3899,14 +4472,51 @@ index c14a93fb..a2a40839 100644
          self.adjust_for_position();
          self.adjust_for_overflow();
 diff --git a/style_resolver.rs b/style_resolver.rs
-index 0cc0c379..2f0cb322 100644
+index 0cc0c379..3b0da60b 100644
 --- a/style_resolver.rs
 +++ b/style_resolver.rs
-@@ -382,6 +382,64 @@ where
+@@ -160,6 +160,36 @@ fn eager_pseudo_is_definitely_not_generated(
+     style.get_box().clone_display() == Display::None || style.ineffective_content_property()
+ }
+ 
++/// Snowlark patch 69: whether a `::before` or `::after` whose rules are `rules` (and `visited`) can
++/// be generated, as far as its rules tell. Only a `content` declaration gives it content (the
++/// property is not inherited; `all` declares it too); and its style is kept whatever its `content`
++/// when `display` or `content` depends on the element's style (`inherit`, `var()`: see
++/// `DISPLAY_OR_CONTENT_DEPEND_ON_INHERITED_STYLE`). Without either, `content` computes to `normal`
++/// and `eager_pseudo_is_definitely_not_generated` drops the style, so it is not cascaded at all
++/// (a rule such as `*, ::before, ::after { box-sizing: border-box }` matches every element's).
++fn before_or_after_may_be_generated(
++    rules: &StrongRuleNode,
++    visited: Option<&StrongRuleNode>,
++    guards: &crate::shared_lock::StylesheetGuards,
++) -> bool {
++    use crate::properties::{LonghandId, PropertyDeclaration, PropertyDeclarationId};
++    let content = PropertyDeclarationId::Longhand(LonghandId::Content);
++    let display = PropertyDeclarationId::Longhand(LonghandId::Display);
++    std::iter::once(rules).chain(visited).any(|rules| {
++        rules.self_and_ancestors().any(|node| {
++            let Some(source) = node.style_source() else {
++                return false;
++            };
++            let block = source.read(node.cascade_level().guard(guards));
++            block.contains(content)
++                || (block.contains(display)
++                    && block.declarations().iter().any(|d| {
++                        d.id() == display && !matches!(d, PropertyDeclaration::Display(_))
++                    }))
++        })
++    })
++}
++
+ impl<'a, 'ctx, 'le, E> StyleResolverForElement<'a, 'ctx, 'le, E>
+ where
+     'ctx: 'a,
+@@ -382,6 +412,64 @@ where
      ) -> ResolvedStyle {
          debug_assert!(pseudo.is_none_or(|p| p.is_eager()));
  
-+        // Osmium patch 66: an element whose rules, name and parents equal those of an element styled
++        // Snowlark patch 66: an element whose rules, name and parents equal those of an element styled
 +        // in an earlier restyle gets its style (`MatchedPropertiesCache`).
 +        #[cfg(feature = "servo")]
 +        let keep = match (parent_style, &inputs.rules) {
@@ -3967,7 +4577,7 @@ index 0cc0c379..2f0cb322 100644
          let mut conditions = Default::default();
          let values = self.context.shared.stylist.cascade_style_and_visited(
              Some(self.element),
-@@ -405,6 +463,20 @@ where
+@@ -405,6 +493,20 @@ where
              &conditions,
          );
  
@@ -3988,15 +4598,55 @@ index 0cc0c379..2f0cb322 100644
          ResolvedStyle(values)
      }
  
+@@ -430,6 +532,20 @@ where
+                     if let Some(inputs) = inputs.take() {
+                         let pseudo = PseudoElement::from_eager_index(i);
+ 
++                        // Snowlark patch 69: a style that would be dropped is not cascaded.
++                        if !matches!(self.pseudo_resolution, PseudoElementResolution::Force)
++                            && pseudo.is_before_or_after()
++                            && inputs.rules.as_ref().is_some_and(|rules| {
++                                !before_or_after_may_be_generated(
++                                    rules,
++                                    inputs.visited_rules.as_ref(),
++                                    &self.context.shared.guards,
++                                )
++                            })
++                        {
++                            continue;
++                        }
++
+                         let style = self.cascade_style_and_visited(
+                             inputs,
+                             Some(primary_style.style()),
+@@ -484,6 +600,18 @@ where
+                 });
+         }
+ 
++        // Snowlark patch 69: a style that would be dropped is not cascaded.
++        if !matches!(self.pseudo_resolution, PseudoElementResolution::Force)
++            && pseudo.is_before_or_after()
++            && !before_or_after_may_be_generated(
++                &rule_node,
++                visited_rules.as_ref(),
++                &self.context.shared.guards,
++            )
++        {
++            return None;
++        }
++
+         Some(self.cascade_style_and_visited(
+             CascadeInputs {
+                 rules: Some(rule_node),
 diff --git a/stylesheets/container_rule.rs b/stylesheets/container_rule.rs
-index 977cf71e..e04841a6 100644
+index 977cf71e..13172709 100644
 --- a/stylesheets/container_rule.rs
 +++ b/stylesheets/container_rule.rs
 @@ -133,6 +133,10 @@ pub struct ContainerCondition {
      flags: FeatureFlags,
      #[css(skip)]
      attributes_referenced: AttrReferenceSet,
-+    /// Osmium patch: whether the query has an unknown feature (see `matches`), found when parsing
++    /// Snowlark patch: whether the query has an unknown feature (see `matches`), found when parsing
 +    /// because `matches` runs per element.
 +    #[css(skip)]
 +    has_unknown: bool,
@@ -4007,7 +4657,7 @@ index 977cf71e..e04841a6 100644
          let flags = condition
              .as_ref()
              .map_or(FeatureFlags::empty(), |c| c.cumulative_flags());
-+        // Osmium patch: CSS Conditional 5 §5.4: a <general-enclosed> with a substitution function is
++        // Snowlark patch: CSS Conditional 5 §5.4: a <general-enclosed> with a substitution function is
 +        // not known to be unknown: it is parsed again once substituted.
 +        let mut has_unknown = false;
 +        if let Some(c) = condition.as_ref() {
@@ -4033,7 +4683,7 @@ index 977cf71e..e04841a6 100644
                  return KleeneValue::from(result.is_some());
              },
          };
-+        // Osmium patch: CSS Conditional 5 §5.4: a <container-query> with unknown features
++        // Snowlark patch: CSS Conditional 5 §5.4: a <container-query> with unknown features
 +        // selects no query container, so its condition is unknown whatever else it says
 +        // (`((unknown) or (width))` does not match).
 +        if self.has_unknown {
@@ -4043,7 +4693,7 @@ index 977cf71e..e04841a6 100644
          // query matching may return early if we cannot find a suitable
          // container element right now. However, we must also consider the case
 diff --git a/stylesheets/rule_parser.rs b/stylesheets/rule_parser.rs
-index 0d83dcfe..fd729069 100644
+index 0d83dcfe..ee98640f 100644
 --- a/stylesheets/rule_parser.rs
 +++ b/stylesheets/rule_parser.rs
 @@ -282,7 +282,9 @@ impl AtRuleType {
@@ -4051,14 +4701,14 @@ index 0d83dcfe..fd729069 100644
              "media" => Self::Media,
              "custom-media" if crate::pref!("layout.css.custom-media.enabled") => Self::CustomMedia,
 -            "container" if cfg!(feature = "gecko") => Self::Container,
-+            // Osmium patch: container queries for the servo build too (gated by the
++            // Snowlark patch: container queries for the servo build too (gated by the
 +            // `layout.container-queries.enabled` preference instead of the gecko feature).
 +            "container" if cfg!(feature = "gecko") || crate::pref!("layout.container-queries.enabled") => Self::Container,
              "supports" => Self::Supports,
              "keyframes" => Self::Keyframes(None),
              "-webkit-keyframes" => Self::Keyframes(Some(VendorPrefix::WebKit)),
 diff --git a/stylesheets/stylesheet.rs b/stylesheets/stylesheet.rs
-index 7c064fd4..b0d24666 100644
+index 7c064fd4..eb99e5b7 100644
 --- a/stylesheets/stylesheet.rs
 +++ b/stylesheets/stylesheet.rs
 @@ -229,6 +229,13 @@ pub struct Stylesheet {
@@ -4068,7 +4718,7 @@ index 7c064fd4..b0d24666 100644
 +    /// The scoping root of its `@scope` rules without a `<scope-start>` (CSS Cascade 6 §2.1.1),
 +    /// which the embedder sets from the sheet's owner node.
 +    pub implicit_scope_root: std::sync::Mutex<Option<ImplicitScopeRoot>>,
-+    /// Osmium patch: `contents` may be shared with other stylesheets (the embedder's cache of parsed
++    /// Snowlark patch: `contents` may be shared with other stylesheets (the embedder's cache of parsed
 +    /// `style` element text), so the embedder gives this sheet a copy of its own before the CSSOM
 +    /// reaches its rules.
 +    pub shared_contents: AtomicBool,
@@ -4113,7 +4763,7 @@ index 7c064fd4..b0d24666 100644
      }
  }
 diff --git a/stylesheets/supports_rule.rs b/stylesheets/supports_rule.rs
-index 2b14775f..a364b0d9 100644
+index 2b14775f..62635823 100644
 --- a/stylesheets/supports_rule.rs
 +++ b/stylesheets/supports_rule.rs
 @@ -236,19 +236,33 @@ fn eval_font_format(kw: &FontFaceSourceFormatKeyword) -> bool {
@@ -4126,7 +4776,7 @@ index 2b14775f..a364b0d9 100644
      unsafe { bindings::Gecko_IsFontTechSupported(*flag) }
  }
  
-+/// Osmium patch: the font formats Osmium loads (DirectWrite reads OpenType, TrueType and
++/// Snowlark patch: the font formats Snowlark loads (DirectWrite reads OpenType, TrueType and
 +/// collections; WOFF and WOFF2 are decoded to them).
  #[cfg(feature = "servo")]
 -fn eval_font_format(_: &FontFaceSourceFormatKeyword) -> bool {
@@ -4139,7 +4789,7 @@ index 2b14775f..a364b0d9 100644
 +    )
  }
  
-+/// Osmium patch: the font technologies Osmium renders (DirectWrite shaping with OpenType
++/// Snowlark patch: the font technologies Snowlark renders (DirectWrite shaping with OpenType
 +/// features and variations; COLRv0, SVG and bitmap color glyphs through its color glyph runs).
  #[cfg(feature = "servo")]
 -fn eval_font_tech(_: &FontFaceSourceTechFlags) -> bool {
@@ -4156,14 +4806,14 @@ index 2b14775f..a364b0d9 100644
  
  /// supports_condition | declaration
 diff --git a/stylist.rs b/stylist.rs
-index c70dd85a..78dccf8f 100644
+index c70dd85a..aba4a2e3 100644
 --- a/stylist.rs
 +++ b/stylist.rs
 @@ -1825,6 +1825,54 @@ impl Stylist {
          self.lookup_element_dependent_at_rule(element, |data| data.animations.get(name))
      }
  
-+    /// The `@keyframes` rule `name` refers to for `element` styled `style` (OSMIUM PATCH 51):
++    /// The `@keyframes` rule `name` refers to for `element` styled `style` (SNOWLARK PATCH 51):
 +    /// CSS Scoping 1 §3.5 tree-scoped references. The name is looked up from the tree of the
 +    /// declaration that set `animation-name` (a shadow tree's sheets, then those of each tree
 +    /// around it out to the document's), then in the user and user-agent sheets. Without such a
@@ -4365,7 +5015,7 @@ index 83047197..928df026 100644
  }
  
 diff --git a/values/computed/basic_shape.rs b/values/computed/basic_shape.rs
-index 555a5b75..8f87059b 100644
+index 555a5b75..b1e0af2f 100644
 --- a/values/computed/basic_shape.rs
 +++ b/values/computed/basic_shape.rs
 @@ -265,3 +265,14 @@ impl From<&generic::ArcRadii<CSSFloat>> for generic::ArcRadii<LengthPercentage>
@@ -4373,7 +5023,7 @@ index 555a5b75..8f87059b 100644
      }
  }
 +
-+/// Osmium patch: the computed value of `object-view-box` (an `inset()`).
++/// Snowlark patch: the computed value of `object-view-box` (an `inset()`).
 +pub type ObjectViewBox = generic::GenericObjectViewBox<InsetRect>;
 +
 +impl ObjectViewBox {
@@ -4384,7 +5034,7 @@ index 555a5b75..8f87059b 100644
 +    }
 +}
 diff --git a/values/computed/box.rs b/values/computed/box.rs
-index 2b0fe062..f8c5f083 100644
+index 2b0fe062..a6c69140 100644
 --- a/values/computed/box.rs
 +++ b/values/computed/box.rs
 @@ -6,7 +6,7 @@
@@ -4401,7 +5051,7 @@ index 2b0fe062..f8c5f083 100644
  
  /// A computed value for the `overflow-clip-margin` property.
 -pub type OverflowClipMargin = GenericOverflowClipMargin<NonNegativeLength>;
-+// Osmium patch (OSMIUM-PATCHES.md 16): a negative length is allowed.
++// Snowlark patch (SNOWLARK-PATCHES.md 16): a negative length is allowed.
 +pub type OverflowClipMargin = GenericOverflowClipMargin<Length>;
  
  /// A computed value for the `-moz-scrollbar-inset-block` / `-inline` properties.
@@ -4437,7 +5087,7 @@ index 8aa92bbb..2e4e3873 100644
  /// A computed value for the `drop-shadow()` filter.
  pub type SimpleShadow = GenericSimpleShadow<Color, Length, NonNegativeLength>;
 diff --git a/values/computed/font.rs b/values/computed/font.rs
-index a913963e..f595733f 100644
+index a913963e..865453af 100644
 --- a/values/computed/font.rs
 +++ b/values/computed/font.rs
 @@ -33,7 +33,7 @@ use thin_vec::ThinVec;
@@ -4462,7 +5112,7 @@ index a913963e..f595733f 100644
      }
  }
 +
-+// Osmium patch: `font-palette` with `palette-mix()` (CSS Fonts 4 §9.1-9.2; OSMIUM-PATCHES.md 62).
++// Snowlark patch: `font-palette` with `palette-mix()` (CSS Fonts 4 §9.1-9.2; SNOWLARK-PATCHES.md 62).
 +/// A computed `font-palette`: every percentage of a `palette-mix()` resolved and filled in.
 +pub type FontPalette = generics::GenericFontPalette<crate::values::computed::Percentage>;
 +
@@ -4533,14 +5183,14 @@ index c06b6dbc..00edb056 100644
          }
      }
 diff --git a/values/computed/length_percentage.rs b/values/computed/length_percentage.rs
-index da529868..b9f055a0 100644
+index da529868..f9958f5e 100644
 --- a/values/computed/length_percentage.rs
 +++ b/values/computed/length_percentage.rs
 @@ -324,6 +324,18 @@ impl LengthPercentage {
          }
      }
  
-+    /// Osmium patch: resolves the percentage without the clamp of the property's range (a `calc()`
++    /// Snowlark patch: resolves the percentage without the clamp of the property's range (a `calc()`
 +    /// in a non-negative property clamps its result at zero, CSS Values 4 §10.12), so that a linear
 +    /// `calc()` can be taken apart into its length and percentage.
 +    #[inline]
@@ -4559,7 +5209,7 @@ index da529868..b9f055a0 100644
  }
  
  impl CalcLengthPercentage {
-+    /// Osmium patch: the expression tree, so an embedder can map `min()`/`max()`/`clamp()` of
++    /// Snowlark patch: the expression tree, so an embedder can map `min()`/`max()`/`clamp()` of
 +    /// lengths and percentages to its own layout representation.
 +    #[inline]
 +    pub fn node(&self) -> &CalcNode {
@@ -4573,7 +5223,7 @@ index da529868..b9f055a0 100644
          }
      }
  
-+    /// Osmium patch: `resolve` without the final clamp to the property's range.
++    /// Snowlark patch: `resolve` without the final clamp to the property's range.
 +    #[inline]
 +    pub fn resolve_unclamped(&self, basis: Length) -> Length {
 +        if let ComputedLeaf::Length(px) = self
@@ -4610,7 +5260,7 @@ index 12e39ea4..5322e57d 100644
      BorderCornerRadius, BorderImageRepeat, BorderImageSideWidth, BorderImageSlice,
      BorderImageWidth, BorderRadius, BorderSideOffset, BorderSideWidth, BorderSpacing, LineWidth,
 diff --git a/values/generics/basic_shape.rs b/values/generics/basic_shape.rs
-index 70386d67..0cc820e1 100644
+index 70386d67..63203dd9 100644
 --- a/values/generics/basic_shape.rs
 +++ b/values/generics/basic_shape.rs
 @@ -208,7 +208,7 @@ pub enum GenericBasicShape<Angle, Position, LengthPercentage, BasicShapeRect> {
@@ -4634,7 +5284,7 @@ index 70386d67..0cc820e1 100644
      /// The filling rule for a polygon.
      #[css(skip_if = "is_default")]
      pub fill: FillRule,
-+    /// Osmium patch: `round <length>`, the radius of the corners (`None` for none or zero).
++    /// Snowlark patch: `round <length>`, the radius of the corners (`None` for none or zero).
 +    pub round: Option<LengthPercentage>,
      /// A collection of (x, y) coordinates to draw the polygon.
      #[css(iterable)]
@@ -4708,7 +5358,7 @@ index 70386d67..0cc820e1 100644
      }
  }
 +
-+/// Osmium patch: a value of `object-view-box` (CSS Images 5 §5.1): `none | <basic-shape-rect>`.
++/// Snowlark patch: a value of `object-view-box` (CSS Images 5 §5.1): `none | <basic-shape-rect>`.
 +#[allow(missing_docs)]
 +#[derive(
 +    Animate,
@@ -4742,14 +5392,14 @@ index 70386d67..0cc820e1 100644
 +
 +pub use self::GenericObjectViewBox as ObjectViewBox;
 diff --git a/values/generics/calc.rs b/values/generics/calc.rs
-index 1aace385..cb83f204 100644
+index 1aace385..c924247f 100644
 --- a/values/generics/calc.rs
 +++ b/values/generics/calc.rs
 @@ -67,8 +67,41 @@ pub enum ModRemOp {
      Rem,
  }
  
-+/// Osmium patch: CSS Values 4 §10.5.1 `pow(A, B)` with the rules of §10.9.2 that override IEEE
++/// Snowlark patch: CSS Values 4 §10.5.1 `pow(A, B)` with the rules of §10.9.2 that override IEEE
 +/// 754 `pow`: any NaN argument gives NaN (`pow(NaN, 0)`), and so does an infinite exponent on a
 +/// base of magnitude 1 (`pow(1, infinity)`, `pow(-1, -infinity)`).
 +pub fn css_pow(a: f32, b: f32) -> f32 {
@@ -4759,7 +5409,7 @@ index 1aace385..cb83f204 100644
 +    a.powf(b)
 +}
 +
-+/// Osmium patch: CSS Values 4 §10.5.1 `log(A, B)`: a base of 1 or below 0 gives NaN (IEEE 754
++/// Snowlark patch: CSS Values 4 §10.5.1 `log(A, B)`: a base of 1 or below 0 gives NaN (IEEE 754
 +/// `log(2)/log(1)` would be infinite), any NaN argument gives NaN, and a zero result is 0⁺.
 +pub fn css_log(a: f32, b: Option<f32>) -> f32 {
 +    let r = match b {
@@ -4780,7 +5430,7 @@ index 1aace385..cb83f204 100644
 +
  impl ModRemOp {
      fn apply(self, dividend: f32, divisor: f32) -> f32 {
-+        // Osmium patch: any NaN argument gives NaN (CSS Values 4 §10.9.2).
++        // Snowlark patch: any NaN argument gives NaN (CSS Values 4 §10.9.2).
 +        if dividend.is_nan() || divisor.is_nan() {
 +            return f32::NAN;
 +        }
@@ -4791,7 +5441,7 @@ index 1aace385..cb83f204 100644
  
                  let step = step.abs();
  
-+                // Osmium patch: any NaN argument gives NaN (CSS Values 4 §10.9.2).
++                // Snowlark patch: any NaN argument gives NaN (CSS Values 4 §10.9.2).
 +                if value.is_nan() || step.is_nan() {
 +                    return Ok((f32::NAN, ty));
 +                }
@@ -4825,7 +5475,7 @@ index 1aace385..cb83f204 100644
                  ref mut step,
              } => {
 -                if value_or_stop!(step.is_zero_leaf()) {
-+                // Osmium patch: a NaN step gives NaN (CSS Values 4 §10.9.2).
++                // Snowlark patch: a NaN step gives NaN (CSS Values 4 §10.9.2).
 +                if value_or_stop!(step.is_zero_leaf()) || value_or_stop!(step.is_nan_leaf()) {
                      value_or_stop!(value.coerce_to_value(f32::NAN));
                      replace_self_with!(&mut **value);
@@ -4855,7 +5505,7 @@ index 1aace385..cb83f204 100644
                          if let Some(number) = folded {
                              let mut result = Self::Leaf(L::new_number(number));
 diff --git a/values/generics/font.rs b/values/generics/font.rs
-index 67c32023..52e3b6db 100644
+index 67c32023..054104dc 100644
 --- a/values/generics/font.rs
 +++ b/values/generics/font.rs
 @@ -374,3 +374,148 @@ impl<N, L> LineHeight<N, L> {
@@ -4863,7 +5513,7 @@ index 67c32023..52e3b6db 100644
      }
  }
 +
-+// Osmium patch: `font-palette` with `palette-mix()` (CSS Fonts 4 §9.1-9.2; OSMIUM-PATCHES.md 62).
++// Snowlark patch: `font-palette` with `palette-mix()` (CSS Fonts 4 §9.1-9.2; SNOWLARK-PATCHES.md 62).
 +
 +/// One `<palette-identifier> <percentage>?` component of a `palette-mix()`.
 +#[derive(
@@ -5008,7 +5658,7 @@ index 67c32023..52e3b6db 100644
 +    }
 +}
 diff --git a/values/generics/image.rs b/values/generics/image.rs
-index b4098f09..c682067b 100644
+index b4098f09..677f3387 100644
 --- a/values/generics/image.rs
 +++ b/values/generics/image.rs
 @@ -64,6 +64,57 @@ pub enum GenericImage<G, ImageUrl, Color, Percentage, Resolution> {
@@ -5016,11 +5666,11 @@ index b4098f09..c682067b 100644
      #[css(function)]
      Image(#[value_info(skip)] Box<Color>),
 +
-+    /// Osmium patch: an `image()` function beyond `image(<color>)` (CSS Images 4 §2.3).
++    /// Snowlark patch: an `image()` function beyond `image(<color>)` (CSS Images 4 §2.3).
 +    Fallback(#[value_info(skip)] Box<GenericImageFallback<Self, Color>>),
 +}
 +
-+/// Osmium patch: `<image-tags>` (CSS Images 4 §2.3), the directionality an image was made for.
++/// Snowlark patch: `<image-tags>` (CSS Images 4 §2.3), the directionality an image was made for.
 +#[derive(
 +    Clone, Copy, Debug, MallocSizeOf, PartialEq, ToComputedValue, ToCss, ToResolvedValue, ToShmem,
 +)]
@@ -5032,7 +5682,7 @@ index b4098f09..c682067b 100644
 +    Rtl,
 +}
 +
-+/// Osmium patch: `image( <image-tags>? [ <image-src>? , <color>? ]! )`: its source when available,
++/// Snowlark patch: `image( <image-tags>? [ <image-src>? , <color>? ]! )`: its source when available,
 +/// else the color (transparent without one).
 +#[derive(Clone, Debug, MallocSizeOf, PartialEq, ToComputedValue, ToResolvedValue, ToShmem)]
 +#[repr(C)]
@@ -5075,7 +5725,7 @@ index b4098f09..c682067b 100644
  pub struct GenericCrossFadeElement<Image, Color, Percentage> {
 -    /// The percent of the final image that `image` will be.
 -    pub percent: Optional<Percentage>,
-+    // Osmium patch: the image before its percentage, which serializes them in CSS Images 4's
++    // Snowlark patch: the image before its percentage, which serializes them in CSS Images 4's
 +    // canonical order (`<image> <percentage>?`).
      /// A color or image that will be blended when cross-fade is
      /// evaluated.
@@ -5094,20 +5744,20 @@ index b4098f09..c682067b 100644
          }
      }
 diff --git a/values/generics/mod.rs b/values/generics/mod.rs
-index c7d678eb..e7c841a9 100644
+index c7d678eb..584923e8 100644
 --- a/values/generics/mod.rs
 +++ b/values/generics/mod.rs
 @@ -110,6 +110,8 @@ impl<T: Zero> Zero for NonNegative<T> {
      ToCss,
      ToResolvedValue,
      ToShmem,
-+    // Osmium patch (OSMIUM-PATCHES.md 58): `orphans` and `widows` are of this type.
++    // Snowlark patch (SNOWLARK-PATCHES.md 58): `orphans` and `widows` are of this type.
 +    ToTyped,
  )]
  #[repr(transparent)]
  pub struct GreaterThanOrEqualToOne<T>(pub T);
 diff --git a/values/specified/basic_shape.rs b/values/specified/basic_shape.rs
-index bdedc609..b02b6411 100644
+index bdedc609..d9aaae3c 100644
 --- a/values/specified/basic_shape.rs
 +++ b/values/specified/basic_shape.rs
 @@ -486,7 +486,21 @@ impl Polygon {
@@ -5115,7 +5765,7 @@ index bdedc609..b02b6411 100644
          shape_type: ShapeType,
      ) -> Result<Self, ParseError> {
 -        let fill = parse_fill_rule(input, shape_type, true /* has comma */);
-+        // Osmium patch: polygon( <fill-rule>? [ round <length> ]?, ... ) (CSS Shapes 2), the fill rule
++        // Snowlark patch: polygon( <fill-rule>? [ round <length> ]?, ... ) (CSS Shapes 2), the fill rule
 +        // kept for outlines too, as `offset-path`'s tests have it.
 +        let _ = shape_type;
 +        let fill = input.try_parse(FillRule::parse).ok();
@@ -5151,7 +5801,7 @@ index bdedc609..b02b6411 100644
          shape_type: ShapeType,
      ) -> Result<Self, ParseError> {
 -        let fill = parse_fill_rule(input, shape_type, false /* no following comma */);
-+        // (Osmium patch: kept for outlines too, as `offset-path`'s tests have it)
++        // (Snowlark patch: kept for outlines too, as `offset-path`'s tests have it)
 +        let _ = shape_type;
 +        let fill = parse_fill_rule(input, ShapeType::Filled, false /* no following comma */);
  
@@ -5162,7 +5812,7 @@ index bdedc609..b02b6411 100644
      }
  }
 +
-+/// Osmium patch: the specified value of `object-view-box`.
++/// Snowlark patch: the specified value of `object-view-box`.
 +pub type ObjectViewBox = generic::GenericObjectViewBox<BasicShapeRect>;
 +
 +impl Parse for ObjectViewBox {
@@ -5182,7 +5832,7 @@ index bdedc609..b02b6411 100644
 +    }
 +}
 diff --git a/values/specified/box.rs b/values/specified/box.rs
-index 1e4fb978..9b5bfd91 100644
+index 1e4fb978..c34fa6c9 100644
 --- a/values/specified/box.rs
 +++ b/values/specified/box.rs
 @@ -14,7 +14,7 @@ use crate::values::generics::box_::{
@@ -5199,7 +5849,7 @@ index 1e4fb978..9b5bfd91 100644
  
  /// The specified value of `overflow-clip-margin`.
 -pub type OverflowClipMargin = GenericOverflowClipMargin<NonNegativeLength>;
-+// Osmium patch (OSMIUM-PATCHES.md 16): the length may be negative, as WPT's
++// Snowlark patch (SNOWLARK-PATCHES.md 16): the length may be negative, as WPT's
 +// css/css-overflow/parsing/overflow-clip-margin*.html test it.
 +pub type OverflowClipMargin = GenericOverflowClipMargin<Length>;
  
@@ -5230,7 +5880,7 @@ index 1e4fb978..9b5bfd91 100644
      #[cfg(feature = "gecko")]
      RubyTextContainer,
 -    #[cfg(feature = "gecko")]
-+    // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
++    // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
      WebkitBox,
  }
  
@@ -5239,7 +5889,7 @@ index 1e4fb978..9b5bfd91 100644
      pub const Block: Self =
          Self(((DisplayOutside::Block as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::Flow as u16);
 -    #[cfg(feature = "gecko")]
-+    // Osmium patch: `flow-root` as a constant in the servo build too (legacy line clamping).
++    // Snowlark patch: `flow-root` as a constant in the servo build too (legacy line clamping).
      pub const FlowRoot: Self = Self(
          ((DisplayOutside::Block as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::FlowRoot as u16,
      );
@@ -5248,12 +5898,12 @@ index 1e4fb978..9b5bfd91 100644
      pub const Ruby: Self =
          Self(((DisplayOutside::Inline as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::Ruby as u16);
 -    #[cfg(feature = "gecko")]
-+    // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
++    // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
      pub const WebkitBox: Self = Self(
          ((DisplayOutside::Block as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::WebkitBox as u16,
      );
 -    #[cfg(feature = "gecko")]
-+    // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
++    // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
      pub const WebkitInlineBox: Self = Self(
          ((DisplayOutside::Inline as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::WebkitBox as u16,
      );
@@ -5261,7 +5911,7 @@ index 1e4fb978..9b5bfd91 100644
          match self.inside() {
              DisplayInside::Flex => true,
              DisplayInside::Grid => true,
-+            // Osmium patch (OSMIUM-PATCHES.md 16): a `-webkit-box`'s children are flex items (CSS
++            // Snowlark patch (SNOWLARK-PATCHES.md 16): a `-webkit-box`'s children are flex items (CSS
 +            // Display 3 Appendix A: a legacy flex container).
 +            DisplayInside::WebkitBox => true,
              _ => false,
@@ -5272,10 +5922,10 @@ index 1e4fb978..9b5bfd91 100644
              #[cfg(feature = "gecko")]
              "ruby-text-container" => Full(Display::RubyTextContainer),
 -            #[cfg(feature = "gecko")]
-+            // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
++            // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
              "-webkit-box" => Full(Display::WebkitBox),
 -            #[cfg(feature = "gecko")]
-+            // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
++            // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
              "-webkit-inline-box" => Full(Display::WebkitInlineBox),
  
              /// <display-outside> = block | inline | run-in
@@ -5284,9 +5934,9 @@ index 1e4fb978..9b5bfd91 100644
              Display::Block | Display::Inline => outside.to_css(dest),
              Display::InlineBlock => dest.write_str("inline-block"),
 -            #[cfg(feature = "gecko")]
-+            // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
++            // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
              Display::WebkitInlineBox => dest.write_str("-webkit-inline-box"),
-+            // Osmium patch (OSMIUM-PATCHES.md 16): `-webkit-box` serializes as itself.
++            // Snowlark patch (SNOWLARK-PATCHES.md 16): `-webkit-box` serializes as itself.
 +            Display::WebkitBox => dest.write_str("-webkit-box"),
              Display::TableCaption => dest.write_str("table-caption"),
              _ => match (outside, inside) {
@@ -5298,7 +5948,7 @@ index 1e4fb978..9b5bfd91 100644
 -        LonghandId::Isolation | LonghandId::MaskImage => {
 -            WillChangeBits::STACKING_CONTEXT_UNCONDITIONAL
 +        LonghandId::Isolation => WillChangeBits::STACKING_CONTEXT_UNCONDITIONAL,
-+        // Osmium patch: a mask makes a backdrop root (Filter Effects 2 §3.1), and so does
++        // Snowlark patch: a mask makes a backdrop root (Filter Effects 2 §3.1), and so does
 +        // `will-change` naming it.
 +        LonghandId::MaskImage => {
 +            WillChangeBits::STACKING_CONTEXT_UNCONDITIONAL | WillChangeBits::BACKDROP_ROOT
@@ -5309,7 +5959,7 @@ index 1e4fb978..9b5bfd91 100644
      Avoid,
      Left,
      Right,
-+    // Osmium patch (OSMIUM-PATCHES.md 58): the other values of CSS Fragmentation 3 §3.1.
++    // Snowlark patch (SNOWLARK-PATCHES.md 58): the other values of CSS Fragmentation 3 §3.1.
 +    AvoidPage,
 +    Recto,
 +    Verso,
@@ -5349,14 +5999,14 @@ index 1e4fb978..9b5bfd91 100644
      }
  }
 diff --git a/values/specified/calc.rs b/values/specified/calc.rs
-index 4ac4b916..8372ae56 100644
+index 4ac4b916..d01cf34d 100644
 --- a/values/specified/calc.rs
 +++ b/values/specified/calc.rs
 @@ -140,6 +140,18 @@ impl ToTyped for Leaf {
      }
  }
  
-+/// Osmium patch: the sum of two percentages (stored as fractions, which a decimal percentage
++/// Snowlark patch: the sum of two percentages (stored as fractions, which a decimal percentage
 +/// is not exactly: 60% is 0.6000000238) to the seven significant digits single precision holds,
 +/// so `calc(60% - 50%)` is 10% and not 10.0000024%.
 +fn decimal_sum(a: f32, b: f32) -> f32 {
@@ -5453,7 +6103,7 @@ index 4420c335..30bed228 100644
          let function = match input.expect_function() {
              Ok(f) => f.clone(),
 diff --git a/values/specified/font.rs b/values/specified/font.rs
-index e63811ae..7476d8cc 100644
+index e63811ae..e38b4c9f 100644
 --- a/values/specified/font.rs
 +++ b/values/specified/font.rs
 @@ -19,11 +19,11 @@ use crate::values::generics::NonNegative;
@@ -5490,8 +6140,8 @@ index e63811ae..7476d8cc 100644
 -// littering a lot of code with `if engine == "gecko"` conditionals,
 -// we have a dummy system font module that does nothing
 -
-+/// The system font keywords of the `font` shorthand (CSS Fonts 4 §3.7.1). Osmium patch
-+/// (OSMIUM-PATCHES.md 61): servo resolves them when the longhands compute, from
++/// The system font keywords of the `font` shorthand (CSS Fonts 4 §3.7.1). Snowlark patch
++/// (SNOWLARK-PATCHES.md 61): servo resolves them when the longhands compute, from
 +/// [`SystemFont::resolve`], not from a cached platform font.
 +#[repr(u8)]
  #[derive(
@@ -5607,7 +6257,7 @@ index e63811ae..7476d8cc 100644
 -)]
 -#[repr(C)]
 -#[typed(todo_derive_fields)]
-+// Osmium patch: `palette-mix()` (CSS Fonts 4 §9.2; OSMIUM-PATCHES.md 62). Upstream's value is one
++// Snowlark patch: `palette-mix()` (CSS Fonts 4 §9.2; SNOWLARK-PATCHES.md 62). Upstream's value is one
 +// identifier.
  /// Allows authors to choose a palette from those supported by a color font
  /// (and potentially @font-palette-values overrides).
@@ -5775,7 +6425,7 @@ index e63811ae..7476d8cc 100644
  }
  
 diff --git a/values/specified/image.rs b/values/specified/image.rs
-index ac10b898..120bb729 100644
+index ac10b898..5a47d0f4 100644
 --- a/values/specified/image.rs
 +++ b/values/specified/image.rs
 @@ -91,7 +91,17 @@ type LengthPercentageItemList = crate::OwnedSlice<generic::GradientItem<Color, L
@@ -5783,7 +6433,7 @@ index ac10b898..120bb729 100644
      fn has_modern_syntax(&self) -> bool {
          match self {
 -            Self::Absolute(absolute) => !absolute.color.is_legacy_syntax(),
-+            // Osmium patch: a color with a missing component (`none`) is not a legacy sRGB color
++            // Snowlark patch: a color with a missing component (`none`) is not a legacy sRGB color
 +            // for the default interpolation space (CSS Color 4 §12.1; legacy syntax has no `none`).
 +            Self::Absolute(absolute) => {
 +                !absolute.color.is_legacy_syntax()
@@ -5801,7 +6451,7 @@ index ac10b898..120bb729 100644
  }
  
  impl Image {
-+    /// Osmium patch: `image()` (CSS Images 4 §2.3):
++    /// Snowlark patch: `image()` (CSS Images 4 §2.3):
 +    /// `image( <image-tags>? [ <image-src>? , <color>? ]! )`.
 +    fn parse_image_function(
 +        context: &ParserContext,
@@ -5878,7 +6528,7 @@ index ac10b898..120bb729 100644
  pub enum ImageRendering {
      Auto,
 -    #[cfg(feature = "gecko")]
-+    // Osmium patch: `smooth`, `high-quality` and the deprecated `optimizeSpeed`/`optimizeQuality`
++    // Snowlark patch: `smooth`, `high-quality` and the deprecated `optimizeSpeed`/`optimizeQuality`
 +    // in the servo build too (CSS Images 4 §5.4); upstream has all but `high-quality` for gecko only.
      Smooth,
 +    HighQuality,
@@ -5896,7 +6546,7 @@ index ac10b898..120bb729 100644
  }
  
 diff --git a/values/specified/length.rs b/values/specified/length.rs
-index 74908fe1..b8c83311 100644
+index 74908fe1..40f1d12f 100644
 --- a/values/specified/length.rs
 +++ b/values/specified/length.rs
 @@ -139,6 +139,8 @@ impl LengthUnit {
@@ -5918,7 +6568,7 @@ index 74908fe1..b8c83311 100644
 -            "cqb" if !in_page_rule && cfg!(feature = "gecko") => Self::Cqb,
 -            "cqmin" if !in_page_rule && cfg!(feature = "gecko") => Self::Cqmin,
 -            "cqmax" if !in_page_rule && cfg!(feature = "gecko") => Self::Cqmax,
-+            // Osmium patch: also in the servo build, with the `layout.container-queries.enabled`
++            // Snowlark patch: also in the servo build, with the `layout.container-queries.enabled`
 +            // preference (the servo build resolves them: `Context::get_container_size_query`).
 +            "cqw" if !in_page_rule && container_units => Self::Cqw,
 +            "cqh" if !in_page_rule && container_units => Self::Cqh,
@@ -5941,7 +6591,7 @@ index 74908fe1..b8c83311 100644
 -            LengthUnit::Q => PX_PER_Q,
 -            LengthUnit::Pt => PX_PER_PT,
 -            LengthUnit::Pc => PX_PER_PC,
-+        // Osmium patch: the conversion in double precision, rounded once (`12cm` and
++        // Snowlark patch: the conversion in double precision, rounded once (`12cm` and
 +        // `calc(2 * 6cm)` then compute to the same px, as in engines that convert in doubles).
 +        let factor: f64 = match self.unit {
 +            LengthUnit::Px => return Some(self.value),
@@ -5972,7 +6622,7 @@ index 5191f96e..af4b8417 100644
      BorderCornerRadius, BorderImageRepeat, BorderImageSideWidth, BorderImageSlice,
      BorderImageWidth, BorderRadius, BorderSideOffset, BorderSideWidth, BorderSpacing, BorderStyle,
 diff --git a/values/specified/text.rs b/values/specified/text.rs
-index c4284cb0..e6580a25 100644
+index c4284cb0..c2501904 100644
 --- a/values/specified/text.rs
 +++ b/values/specified/text.rs
 @@ -459,7 +459,6 @@ impl TextTransform {
@@ -5987,7 +6637,7 @@ index c4284cb0..e6580a25 100644
      Right,
      Center,
      Justify,
-+    /// Osmium patch (OSMIUM-PATCHES.md 55): `match-parent` (CSS Text 3 §7.3), a specified value
++    /// Snowlark patch (SNOWLARK-PATCHES.md 55): `match-parent` (CSS Text 3 §7.3), a specified value
 +    /// only: it computes to the parent's value, `start` and `end` resolved against the parent's
 +    /// direction.
 +    MatchParent,
@@ -6030,29 +6680,29 @@ index c4284cb0..e6580a25 100644
 -                break;
 -            }
 -
-+            // Osmium patch (OSMIUM-PATCHES.md 55): the keywords in the servo build too.
++            // Snowlark patch (SNOWLARK-PATCHES.md 55): the keywords in the servo build too.
              // Check for the keywords (boolean flags).
              try_match_ident_ignore_ascii_case! { input,
                  "hanging" if !hanging => hanging = true,
 diff --git a/values/specified/transform.rs b/values/specified/transform.rs
-index 63d1f483..a26aa852 100644
+index 63d1f483..04ae19c6 100644
 --- a/values/specified/transform.rs
 +++ b/values/specified/transform.rs
 @@ -42,9 +42,11 @@ fn all_transform_boxes_are_enabled(_context: &ParserContext) -> bool {
      true
  }
  
-+// Osmium patch (OSMIUM-PATCHES.md 17): the servo build has all of them too.
++// Snowlark patch (SNOWLARK-PATCHES.md 17): the servo build has all of them too.
  #[cfg(feature = "servo")]
  fn all_transform_boxes_are_enabled(_context: &ParserContext) -> bool {
 -    false
-+    // Osmium patch: `content-box` and `stroke-box` too (OSMIUM-PATCHES.md 31).
++    // Snowlark patch: `content-box` and `stroke-box` too (SNOWLARK-PATCHES.md 31).
 +    true
  }
  
  /// The specified value of `transform-box`.
 diff --git a/values/specified/ui.rs b/values/specified/ui.rs
-index f614764b..59858d2f 100644
+index f614764b..aacb6284 100644
 --- a/values/specified/ui.rs
 +++ b/values/specified/ui.rs
 @@ -274,22 +274,20 @@ pub enum MozTheme {
@@ -6060,7 +6710,7 @@ index f614764b..59858d2f 100644
      Auto,
      None,
 -    #[cfg(feature = "gecko")]
-+    // Osmium patch: SVG 2 §16.6's values parse in the servo build too (upstream: gecko only, so a
++    // Snowlark patch: SVG 2 §16.6's values parse in the servo build too (upstream: gecko only, so a
 +    // declaration such as `pointer-events: all` was dropped and the element kept an inherited
 +    // `none`); on elements other than SVG graphics they act as `auto`.
      Visiblepainted,
@@ -6078,7 +6728,7 @@ index f614764b..59858d2f 100644
      Stroke,
 -    #[cfg(feature = "gecko")]
      All,
-+    // Osmium patch: SVG 2 §16.6 `bounding-box` (the servo build only).
++    // Snowlark patch: SVG 2 §16.6 `bounding-box` (the servo build only).
 +    #[cfg(not(feature = "gecko"))]
 +    BoundingBox,
  }

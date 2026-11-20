@@ -553,7 +553,7 @@ trait PrivateMatchMethods: TElement {
             new_resolved_styles.primary_style_mut(),
             /* pseudo_element = */ None,
         );
-        // Osmium patch: script animations' keyframes computed against the new style.
+        // Snowlark patch: script animations' keyframes computed against the new style.
         let new_primary = new_resolved_styles.primary_style().clone();
         style_changed |= self.process_script_animations(context, &new_primary);
 
@@ -561,7 +561,7 @@ trait PrivateMatchMethods: TElement {
         if style_changed {
             let primary_style = new_resolved_styles.primary_style();
             let mut rule_node = primary_style.rules().clone();
-            // Osmium patch: the element's own rules, which add script animations to the CSS
+            // Snowlark patch: the element's own rules, which add script animations to the CSS
             // animations of `get_all_declarations`.
             let transitions = self.transition_rule(&context.shared);
             let animations = self.animation_rule(&context.shared);
@@ -760,7 +760,7 @@ trait PrivateMatchMethods: TElement {
             old_values.as_ref(),
             after_change_style.as_ref().unwrap_or(new_values),
         );
-        // Osmium patch: a property a script animation animates does not transition (its animated
+        // Snowlark patch: a property a script animation animates does not transition (its animated
         // value covers both the before-change and the after-change style).
         if key.pseudo_element.is_none() {
             animation_set.transitions.retain(|t| {

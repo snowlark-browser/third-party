@@ -474,7 +474,7 @@ pub enum TextAlignLast {
     Right,
     Center,
     Justify,
-    /// Osmium patch (OSMIUM-PATCHES.md 55): `match-parent` (CSS Text 3 §7.3), a specified value
+    /// Snowlark patch (SNOWLARK-PATCHES.md 55): `match-parent` (CSS Text 3 §7.3), a specified value
     /// only: it computes to the parent's value, `start` and `end` resolved against the parent's
     /// direction.
     MatchParent,
@@ -1026,7 +1026,7 @@ impl Parse for TextIndent {
                 }
             }
 
-            // Osmium patch (OSMIUM-PATCHES.md 55): the keywords in the servo build too.
+            // Snowlark patch (SNOWLARK-PATCHES.md 55): the keywords in the servo build too.
             // Check for the keywords (boolean flags).
             try_match_ident_ignore_ascii_case! { input,
                 "hanging" if !hanging => hanging = true,

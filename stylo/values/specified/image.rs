@@ -91,7 +91,7 @@ type LengthPercentageItemList = crate::OwnedSlice<generic::GradientItem<Color, L
 impl Color {
     fn has_modern_syntax(&self) -> bool {
         match self {
-            // Osmium patch: a color with a missing component (`none`) is not a legacy sRGB color
+            // Snowlark patch: a color with a missing component (`none`) is not a legacy sRGB color
             // for the default interpolation space (CSS Color 4 §12.1; legacy syntax has no `none`).
             Self::Absolute(absolute) => {
                 !absolute.color.is_legacy_syntax()
@@ -216,7 +216,7 @@ impl Parse for Image {
 }
 
 impl Image {
-    /// Osmium patch: `image()` (CSS Images 4 §2.3):
+    /// Snowlark patch: `image()` (CSS Images 4 §2.3):
     /// `image( <image-tags>? [ <image-src>? , <color>? ]! )`.
     fn parse_image_function(
         context: &ParserContext,
@@ -1390,7 +1390,7 @@ impl PaintWorklet {
 #[repr(u8)]
 pub enum ImageRendering {
     Auto,
-    // Osmium patch: `smooth`, `high-quality` and the deprecated `optimizeSpeed`/`optimizeQuality`
+    // Snowlark patch: `smooth`, `high-quality` and the deprecated `optimizeSpeed`/`optimizeQuality`
     // in the servo build too (CSS Images 4 §5.4); upstream has all but `high-quality` for gecko only.
     Smooth,
     HighQuality,

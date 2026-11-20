@@ -120,8 +120,8 @@ impl CachedConditions {
     }
 }
 
-/// Osmium patch 66: what a computed style read from the device at the time it was kept by a
-/// [`MatchedPropertiesCache`] (`Device::osmium_root_and_viewport`).
+/// Snowlark patch 66: what a computed style read from the device at the time it was kept by a
+/// [`MatchedPropertiesCache`] (`Device::snowlark_root_and_viewport`).
 #[cfg(feature = "servo")]
 type DeviceState = ([u32; 6], [i32; 2], crate::color::AbsoluteColor);
 
@@ -135,7 +135,7 @@ type ElementLocalName =
 type ElementNamespace =
     <crate::selector_parser::SelectorImpl as selectors::parser::SelectorImpl>::BorrowedNamespaceUrl;
 
-/// Osmium patch 66: whole computed styles kept across restyles, by the rules matched and what
+/// Snowlark patch 66: whole computed styles kept across restyles, by the rules matched and what
 /// else the cascade read: the element's name, its parent's inherited values and its layout
 /// parent's display and writing mode. An element whose rules, name and parent all equal a kept
 /// one's gets that element's style (the same `Arc`) without a cascade.
@@ -242,7 +242,7 @@ impl MatchedPropertiesCache {
         layout_parent: &ComputedValues,
     ) -> Option<&Arc<ComputedValues>> {
         let entries = self.map.get(rules)?;
-        if self.device.as_ref() != Some(&device.osmium_root_and_viewport()) {
+        if self.device.as_ref() != Some(&device.snowlark_root_and_viewport()) {
             return None;
         }
         let layout = Self::layout_parent_key(parent, layout_parent);
@@ -253,7 +253,7 @@ impl MatchedPropertiesCache {
                     && e.namespace == *namespace
                     && e.input_flags == input_flags
                     && e.layout_parent == layout
-                    && e.parent.osmium_inherits_equal(parent)
+                    && e.parent.snowlark_inherits_equal(parent)
             })
             .map(|e| &e.style)
     }
@@ -279,7 +279,7 @@ impl MatchedPropertiesCache {
         {
             return;
         }
-        let state = device.osmium_root_and_viewport();
+        let state = device.snowlark_root_and_viewport();
         if self.device.as_ref() != Some(&state) || self.map.len() >= Self::MAX {
             self.map.clear();
             self.device = Some(state);

@@ -101,7 +101,7 @@ type = "LineClamp"
 initial = "computed::LineClamp::none()"
 struct = "box"
 boxed = true
-# Osmium patch: in the servo build too, behind its preference (osmium-style turns it on), for the
+# Snowlark patch: in the servo build too, behind its preference (snowlark-style turns it on), for the
 # legacy `-webkit-line-clamp` shorthand (CSS Overflow 4 §5.2).
 servo_pref = "layout.css.line-clamp.enabled"
 gecko_pref = "layout.css.line-clamp.enabled"
@@ -478,7 +478,7 @@ affects = "overflow"
 type = "BreakBetween"
 initial = "computed::BreakBetween::Auto"
 struct = "box"
-# Osmium patch (OSMIUM-PATCHES.md 58): in the servo build too.
+# Snowlark patch (SNOWLARK-PATCHES.md 58): in the servo build too.
 spec = "https://drafts.csswg.org/css-break/#propdef-break-after"
 animation_type = "discrete"
 affects = "layout"
@@ -487,7 +487,7 @@ affects = "layout"
 type = "BreakBetween"
 initial = "computed::BreakBetween::Auto"
 struct = "box"
-# Osmium patch (OSMIUM-PATCHES.md 58): in the servo build too.
+# Snowlark patch (SNOWLARK-PATCHES.md 58): in the servo build too.
 spec = "https://drafts.csswg.org/css-break/#propdef-break-before"
 animation_type = "discrete"
 affects = "layout"
@@ -496,12 +496,12 @@ affects = "layout"
 type = "BreakWithin"
 initial = "computed::BreakWithin::Auto"
 struct = "box"
-# Osmium patch (OSMIUM-PATCHES.md 58): in the servo build too.
+# Snowlark patch (SNOWLARK-PATCHES.md 58): in the servo build too.
 spec = "https://drafts.csswg.org/css-break/#propdef-break-inside"
 animation_type = "discrete"
 affects = "layout"
 
-# Osmium patch (OSMIUM-PATCHES.md 58): CSS Fragmentation 3 §3.3, which upstream lacks.
+# Snowlark patch (SNOWLARK-PATCHES.md 58): CSS Fragmentation 3 §3.3, which upstream lacks.
 [orphans]
 type = "PositiveInteger"
 initial = "computed::PositiveInteger::from(2)"
@@ -510,7 +510,7 @@ engine = "servo"
 spec = "https://drafts.csswg.org/css-break/#widows-orphans"
 affects = "layout"
 
-# Osmium patch (OSMIUM-PATCHES.md 58): CSS Fragmentation 3 §3.3, which upstream lacks.
+# Snowlark patch (SNOWLARK-PATCHES.md 58): CSS Fragmentation 3 §3.3, which upstream lacks.
 [widows]
 type = "PositiveInteger"
 initial = "computed::PositiveInteger::from(2)"
@@ -568,7 +568,7 @@ servo_restyle_damage = "rebuild_stacking_context"
 type = "FillRule"
 initial = "Default::default()"
 struct = "inherited_svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/masking.html#ClipRuleProperty"
@@ -615,7 +615,7 @@ affects = "layout"
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "column"
-# Osmium patch: also the servo build, OSMIUM-PATCHES.md 56.
+# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
 ignored_when_colors_disabled = true
 spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-color"
 affects = "paint"
@@ -624,7 +624,7 @@ affects = "paint"
 type = "BorderStyle"
 initial = "computed::BorderStyle::None"
 struct = "column"
-# Osmium patch: also the servo build, OSMIUM-PATCHES.md 56.
+# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-style"
 affects = "paint"
@@ -633,7 +633,7 @@ affects = "paint"
 type = "BorderSideWidth"
 initial = "computed::BorderSideWidth::medium()"
 struct = "column"
-# Osmium patch: also the servo build, OSMIUM-PATCHES.md 56.
+# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
 initial_specified_value = "specified::BorderSideWidth::medium()"
 spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-width"
 affects = "layout"
@@ -647,7 +647,7 @@ spec = "https://drafts.csswg.org/css-multicol/#propdef-column-width"
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
-# Osmium patch (OSMIUM-PATCHES.md 57): CSS Multi-column Layout 2.
+# Snowlark patch (SNOWLARK-PATCHES.md 57): CSS Multi-column Layout 2.
 [column-height]
 type = "length::NonNegativeLengthOrAuto"
 initial = "computed::length::NonNegativeLengthOrAuto::auto()"
@@ -657,7 +657,7 @@ spec = "https://drafts.csswg.org/css-multicol-2/#ch"
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
-# Osmium patch (OSMIUM-PATCHES.md 57): CSS Multi-column Layout 2.
+# Snowlark patch (SNOWLARK-PATCHES.md 57): CSS Multi-column Layout 2.
 [column-wrap]
 struct = "column"
 spec = "https://drafts.csswg.org/css-multicol-2/#cwr"
@@ -679,7 +679,7 @@ affects = "layout"
 type = "ContainIntrinsicSize"
 initial = "computed::ContainIntrinsicSize::None"
 struct = "position"
-# Osmium patch: also the servo build (behind the preference below).
+# Snowlark patch: also the servo build (behind the preference below).
 servo_pref = "layout.unimplemented"
 logical_group = "contain-intrinsic-size"
 logical = true
@@ -690,7 +690,7 @@ affects = "layout"
 type = "ContainIntrinsicSize"
 initial = "computed::ContainIntrinsicSize::None"
 struct = "position"
-# Osmium patch: also the servo build (behind the preference below).
+# Snowlark patch: also the servo build (behind the preference below).
 servo_pref = "layout.unimplemented"
 logical_group = "contain-intrinsic-size"
 spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
@@ -700,7 +700,7 @@ affects = "layout"
 type = "ContainIntrinsicSize"
 initial = "computed::ContainIntrinsicSize::None"
 struct = "position"
-# Osmium patch: also the servo build (behind the preference below).
+# Snowlark patch: also the servo build (behind the preference below).
 servo_pref = "layout.unimplemented"
 logical_group = "contain-intrinsic-size"
 logical = true
@@ -711,7 +711,7 @@ affects = "layout"
 type = "ContainIntrinsicSize"
 initial = "computed::ContainIntrinsicSize::None"
 struct = "position"
-# Osmium patch: also the servo build (behind the preference below).
+# Snowlark patch: also the servo build (behind the preference below).
 servo_pref = "layout.unimplemented"
 logical_group = "contain-intrinsic-size"
 spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
@@ -748,7 +748,7 @@ affects = "layout"
 type = "ContentVisibility"
 initial = "computed::ContentVisibility::Visible"
 struct = "box"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16, and
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16, and
 # animated discretely there (gecko's interpolation of its `visible` end is not built for servo).
 servo_pref = "layout.unimplemented"
 animation_type = "discrete"
@@ -894,7 +894,7 @@ affects = "layout"
 type = "Color"
 initial = "computed::Color::BLACK"
 struct = "svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://drafts.fxtf.org/filter-effects-1/#FloodColorProperty"
 affects = "paint"
@@ -903,7 +903,7 @@ affects = "paint"
 type = "Opacity"
 initial = "1.0"
 struct = "svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://drafts.fxtf.org/filter-effects-1/#FloodOpacityProperty"
 affects = "paint"
@@ -937,7 +937,7 @@ extra_prefixes = ["moz:layout.css.prefixes.font-features"]
 spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font-language-override"
 affects = "layout"
 
-# Osmium patch: in the servo build too, and interpolable (OSMIUM-PATCHES.md 62).
+# Snowlark patch: in the servo build too, and interpolable (SNOWLARK-PATCHES.md 62).
 [font-palette]
 type = "FontPalette"
 initial = "computed::FontPalette::normal()"
@@ -984,7 +984,7 @@ gecko_ffi_name = "mFont.style"
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
-# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 60).
+# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 60).
 [font-synthesis-position]
 type = "FontSynthesis"
 initial = "computed::FontSynthesis::Auto"
@@ -994,7 +994,7 @@ animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-fonts-4/#font-synthesis-position"
 affects = "layout"
 
-# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 60).
+# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 60).
 [font-synthesis-small-caps]
 type = "FontSynthesis"
 initial = "computed::FontSynthesis::Auto"
@@ -1004,7 +1004,7 @@ animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-fonts-4/#font-synthesis-small-caps"
 affects = "layout"
 
-# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 60).
+# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 60).
 [font-synthesis-style]
 type = "FontSynthesisStyle"
 initial = "computed::FontSynthesisStyle::Auto"
@@ -1303,7 +1303,7 @@ affects = "layout"
 type = "Color"
 initial = "computed::Color::WHITE"
 struct = "svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://drafts.fxtf.org/filter-effects-1#LightingColorProperty"
 affects = "paint"
@@ -1348,7 +1348,7 @@ affects = "layout"
 type = "url::UrlOrNone"
 initial = "computed::url::UrlOrNone::none()"
 struct = "inherited_svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
@@ -1358,7 +1358,7 @@ affects = "layout"
 type = "url::UrlOrNone"
 initial = "computed::url::UrlOrNone::none()"
 struct = "inherited_svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
@@ -1368,7 +1368,7 @@ affects = "layout"
 type = "url::UrlOrNone"
 initial = "computed::url::UrlOrNone::none()"
 struct = "inherited_svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
@@ -1480,7 +1480,7 @@ rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
-# Osmium patch: `object-view-box` (CSS Images 5 §5.1), which upstream does not have.
+# Snowlark patch: `object-view-box` (CSS Images 5 §5.1), which upstream does not have.
 [object-view-box]
 type = "ObjectViewBox"
 initial = "computed::ObjectViewBox::none()"
@@ -1627,7 +1627,7 @@ affects = "layout"
 type = "OverflowClipMargin"
 initial = "computed::OverflowClipMargin::zero()"
 struct = "margin"
-# Osmium patch (OSMIUM-PATCHES.md 16): not interpolated (css/css-overflow/overflow-no-interpolation.html).
+# Snowlark patch (SNOWLARK-PATCHES.md 16): not interpolated (css/css-overflow/overflow-no-interpolation.html).
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-overflow/#propdef-overflow-clip-margin"
 affects = "overflow"
@@ -1738,7 +1738,7 @@ affects = "layout"
 type = "SVGPaintOrder"
 initial = "computed::SVGPaintOrder::normal()"
 struct = "inherited_svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/painting.html#PaintOrder"
@@ -1967,7 +1967,7 @@ gecko_ffi_name = "mInert"
 animation_type = "discrete"
 enabled_in = "ua"
 spec = "Nonstandard (https://html.spec.whatwg.org/multipage/#inert-subtrees)"
-# Osmium patch 53: also in the servo build (inert subtrees in hit testing and selection).
+# Snowlark patch 53: also in the servo build (inert subtrees in hit testing and selection).
 servo_restyle_damage = "repaint"
 affects = "paint"
 
@@ -1996,7 +1996,7 @@ affects = "paint"
 type = "ScrollbarGutter"
 initial = "computed::ScrollbarGutter::AUTO"
 struct = "box"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-overflow-3/#scrollbar-gutter-property"
@@ -2040,7 +2040,7 @@ affects = "layout"
 type = "Color"
 initial = "computed::Color::BLACK"
 struct = "svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/pservers.html#StopColorProperties"
 affects = "paint"
@@ -2049,7 +2049,7 @@ affects = "paint"
 type = "Opacity"
 initial = "1.0"
 struct = "svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/pservers.html#StopOpacityProperty"
 affects = "paint"
@@ -2184,7 +2184,7 @@ affects = "overflow"
 type = "TransformBox"
 initial = "computed::TransformBox::ViewBox"
 struct = "box"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://drafts.csswg.org/css-transforms/#transform-box"
 animation_type = "discrete"
@@ -2418,7 +2418,7 @@ affects = ""
 type = "VectorEffect"
 initial = "computed::VectorEffect::none()"
 struct = "svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/coords.html#VectorEffects"
@@ -2616,7 +2616,7 @@ affects = "paint"
 type = "HyphenateCharacter"
 initial = "computed::HyphenateCharacter::Auto"
 struct = "inherited_text"
-# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 54).
+# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
 animation_type = "discrete"
 spec = "https://www.w3.org/TR/css-text-4/#hyphenate-character"
 affects = "layout"
@@ -2625,7 +2625,7 @@ affects = "layout"
 type = "HyphenateLimitChars"
 initial = "computed::HyphenateLimitChars::auto()"
 struct = "inherited_text"
-# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 54).
+# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
 spec = "https://drafts.csswg.org/css-text-4/#hyphenate-char-limits"
 affects = "layout"
 boxed = true
@@ -2671,7 +2671,7 @@ affects = "layout"
 type = "TextBoxEdge"
 initial = "computed::TextBoxEdge::Auto"
 struct = "inherited_text"
-# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 4).
+# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
 animation_type = "discrete"
 gecko_pref = "layout.css.text-box.enabled"
 has_effect_on_gecko_scrollbars = false
@@ -2682,7 +2682,7 @@ affects = "layout"
 type = "TextBoxTrim"
 initial = "computed::TextBoxTrim::none()"
 struct = "text"
-# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 4).
+# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
 animation_type = "discrete"
 gecko_pref = "layout.css.text-box.enabled"
 has_effect_on_gecko_scrollbars = false
@@ -3452,7 +3452,7 @@ affects = "layout"
 type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.0"
@@ -3463,7 +3463,7 @@ affects = ""
 type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.1"
@@ -3474,7 +3474,7 @@ affects = ""
 type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.2"
@@ -3485,7 +3485,7 @@ affects = ""
 type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.3"
@@ -3496,7 +3496,7 @@ affects = ""
 type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-margin"
@@ -3508,7 +3508,7 @@ affects = ""
 type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-margin"
@@ -3520,7 +3520,7 @@ affects = ""
 type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-margin"
@@ -3532,7 +3532,7 @@ affects = ""
 type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-margin"
@@ -3634,7 +3634,7 @@ affects = "layout"
 type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.0"
@@ -3645,7 +3645,7 @@ affects = ""
 type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.1"
@@ -3656,7 +3656,7 @@ affects = ""
 type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.2"
@@ -3667,7 +3667,7 @@ affects = ""
 type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.3"
@@ -3678,7 +3678,7 @@ affects = ""
 type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-padding"
@@ -3690,7 +3690,7 @@ affects = ""
 type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-padding"
@@ -3702,7 +3702,7 @@ affects = ""
 type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-padding"
@@ -3714,7 +3714,7 @@ affects = ""
 type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 16.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
 servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-padding"
@@ -3729,7 +3729,7 @@ animation_type = "discrete"
 affects = "paint"
 servo_restyle_damage = "repaint"
 vector = {}
-# Osmium patch: `local` in the servo build too (CSS Backgrounds 3 §3.5); upstream has it for gecko only.
+# Snowlark patch: `local` in the servo build too (CSS Backgrounds 3 §3.5); upstream has it for gecko only.
 keyword = { values = ["scroll", "fixed", "local"], gecko_enum_prefix = "StyleImageLayerAttachment" }
 
 [background-clip]
@@ -3842,7 +3842,7 @@ keyword = { values = ["inline", "block", "horizontal", "vertical"] }
 
 [column-fill]
 struct = "column"
-# Osmium patch: also the servo build, OSMIUM-PATCHES.md 56.
+# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
 spec = "https://drafts.csswg.org/css-multicol/#propdef-column-fill"
 animation_type = "discrete"
 affects = "layout"
@@ -3876,7 +3876,7 @@ affects = "layout"
 gecko_ffi_name = "mFont.kerning"
 keyword = { values = ["auto", "none", "normal"], gecko_constant_prefix = "NS_FONT_KERNING" }
 
-# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 63).
+# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 63).
 [font-variant-emoji]
 struct = "font"
 spec = "https://drafts.csswg.org/css-fonts/#propdef-font-variant-emoji"
@@ -3964,7 +3964,7 @@ keyword = { values = ["mixed", "upright", "sideways"], gecko_aliases = ["sideway
 
 [image-orientation]
 struct = "inherited_box"
-# Osmium patch: in the servo build too (CSS Images 3 §5.3); upstream has it for gecko only.
+# Snowlark patch: in the servo build too (CSS Images 3 §5.3); upstream has it for gecko only.
 spec = "https://drafts.csswg.org/css-images/#propdef-image-orientation"
 animation_type = "discrete"
 affects = "layout"
@@ -3972,7 +3972,7 @@ keyword = { values = ["from-image", "none"] }
 
 [text-anchor]
 struct = "inherited_svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/text.html#TextAnchorProperty"
 animation_type = "discrete"
@@ -3981,7 +3981,7 @@ keyword = { values = ["start", "middle", "end"] }
 
 [color-interpolation]
 struct = "inherited_svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationProperty"
 animation_type = "discrete"
@@ -3990,7 +3990,7 @@ keyword = { values = ["srgb", "auto", "linearrgb"] }
 
 [color-interpolation-filters]
 struct = "inherited_svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationFiltersProperty"
 animation_type = "discrete"
@@ -3999,7 +3999,7 @@ keyword = { values = ["linearrgb", "auto", "srgb"], gecko_enum_prefix = "StyleCo
 
 [shape-rendering]
 struct = "inherited_svg"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/painting.html#ShapeRenderingProperty"
 animation_type = "discrete"
@@ -4038,7 +4038,7 @@ keyword = { values = ["show", "hide"] }
 
 [hyphens]
 struct = "inherited_text"
-# Osmium patch: in the servo build too, without Gecko's -moz- alias (OSMIUM-PATCHES.md 54).
+# Snowlark patch: in the servo build too, without Gecko's -moz- alias (SNOWLARK-PATCHES.md 54).
 spec = "https://drafts.csswg.org/css-text/#propdef-hyphens"
 animation_type = "discrete"
 affects = "layout"
@@ -4096,7 +4096,7 @@ keyword = { values = ["wrap", "nowrap"] }
 
 [text-wrap-style]
 struct = "inherited_text"
-# Osmium patch: in the servo build too (OSMIUM-PATCHES.md 54).
+# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
 spec = "https://drafts.csswg.org/css-text-4/#text-wrap-style"
 animation_type = "discrete"
 affects = "layout"
@@ -4319,7 +4319,7 @@ gecko_ffi_name = "mBoxOrient"
 aliases = ["-webkit-box-orient"]
 keyword = { values = ["horizontal", "vertical"], gecko_aliases = ["inline-axis=horizontal", "block-axis=vertical"] }
 
-# Osmium patch: `-webkit-box-orient` in the servo build (Gecko has it as an alias of
+# Snowlark patch: `-webkit-box-orient` in the servo build (Gecko has it as an alias of
 # `-moz-box-orient` in its XUL struct), for the legacy `-webkit-line-clamp` (CSS Overflow 4 §5.2).
 [-webkit-box-orient]
 struct = "box"
@@ -4351,7 +4351,7 @@ keyword = { values = ["normal", "multiply", "screen", "overlay", "darken", "ligh
 type = "DominantBaseline"
 initial = "computed::DominantBaseline::Auto"
 struct = "inherited_box"
-# Osmium patch: also the servo build (behind the preference below), OSMIUM-PATCHES.md 17.
+# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
 servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-inline-3/#dominant-baseline-property"

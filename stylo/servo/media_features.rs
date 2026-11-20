@@ -163,7 +163,7 @@ fn eval_aspect_ratio(context: &Context) -> Ratio {
     Ratio::new(size.width.0 as f32, size.height.0 as f32)
 }
 
-// Osmium patch: the Media Queries 4/5 features the servo build lacked, with what a desktop
+// Snowlark patch: the Media Queries 4/5 features the servo build lacked, with what a desktop
 // browser window on a standard display reports.
 
 /// https://drafts.csswg.org/mediaqueries-4/#device-aspect-ratio

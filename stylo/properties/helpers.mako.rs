@@ -56,7 +56,7 @@ pub mod ${property.ident} {
                         % if not property.style_struct.inherited:
                             declaration.debug_crash("Unexpected initial or unset for non-inherited property");
                         % elif property.ident == "color" and engine == "servo":
-                            // Osmium patch: CSS Color 4 §3.1: the initial value of `color` is
+                            // Snowlark patch: CSS Color 4 §3.1: the initial value of `color` is
                             // `CanvasText`, resolved for the element's used color scheme.
                             let canvas_text = context.device().system_color(
                                 crate::values::specified::color::SystemColor::Canvastext,

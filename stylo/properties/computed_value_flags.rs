@@ -138,7 +138,7 @@ bitflags! {
         /// Whether this style uses `sibling-index()`.
         const USES_SIBLING_INDEX = 1 << 27;
 
-        /// Osmium patch: the element's used color scheme (CSS Color Adjust 1 §2.3) is dark.
+        /// Snowlark patch: the element's used color scheme (CSS Color Adjust 1 §2.3) is dark.
         /// Computed for every style from its `color-scheme`, the page color scheme and the
         /// preferred one (`Device::is_dark_color_scheme`); not inherited as a flag.
         const USED_DARK_COLOR_SCHEME = 1 << 28;

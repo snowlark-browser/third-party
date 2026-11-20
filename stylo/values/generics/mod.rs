@@ -110,7 +110,7 @@ impl<T: Zero> Zero for NonNegative<T> {
     ToCss,
     ToResolvedValue,
     ToShmem,
-    // Osmium patch (OSMIUM-PATCHES.md 58): `orphans` and `widows` are of this type.
+    // Snowlark patch (SNOWLARK-PATCHES.md 58): `orphans` and `widows` are of this type.
     ToTyped,
 )]
 #[repr(transparent)]

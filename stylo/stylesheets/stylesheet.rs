@@ -232,7 +232,7 @@ pub struct Stylesheet {
     /// The scoping root of its `@scope` rules without a `<scope-start>` (CSS Cascade 6 §2.1.1),
     /// which the embedder sets from the sheet's owner node.
     pub implicit_scope_root: std::sync::Mutex<Option<ImplicitScopeRoot>>,
-    /// Osmium patch: `contents` may be shared with other stylesheets (the embedder's cache of parsed
+    /// Snowlark patch: `contents` may be shared with other stylesheets (the embedder's cache of parsed
     /// `style` element text), so the embedder gives this sheet a copy of its own before the CSSOM
     /// reaches its rules.
     pub shared_contents: AtomicBool,

@@ -160,6 +160,36 @@ fn eager_pseudo_is_definitely_not_generated(
     style.get_box().clone_display() == Display::None || style.ineffective_content_property()
 }
 
+/// Snowlark patch 69: whether a `::before` or `::after` whose rules are `rules` (and `visited`) can
+/// be generated, as far as its rules tell. Only a `content` declaration gives it content (the
+/// property is not inherited; `all` declares it too); and its style is kept whatever its `content`
+/// when `display` or `content` depends on the element's style (`inherit`, `var()`: see
+/// `DISPLAY_OR_CONTENT_DEPEND_ON_INHERITED_STYLE`). Without either, `content` computes to `normal`
+/// and `eager_pseudo_is_definitely_not_generated` drops the style, so it is not cascaded at all
+/// (a rule such as `*, ::before, ::after { box-sizing: border-box }` matches every element's).
+fn before_or_after_may_be_generated(
+    rules: &StrongRuleNode,
+    visited: Option<&StrongRuleNode>,
+    guards: &crate::shared_lock::StylesheetGuards,
+) -> bool {
+    use crate::properties::{LonghandId, PropertyDeclaration, PropertyDeclarationId};
+    let content = PropertyDeclarationId::Longhand(LonghandId::Content);
+    let display = PropertyDeclarationId::Longhand(LonghandId::Display);
+    std::iter::once(rules).chain(visited).any(|rules| {
+        rules.self_and_ancestors().any(|node| {
+            let Some(source) = node.style_source() else {
+                return false;
+            };
+            let block = source.read(node.cascade_level().guard(guards));
+            block.contains(content)
+                || (block.contains(display)
+                    && block.declarations().iter().any(|d| {
+                        d.id() == display && !matches!(d, PropertyDeclaration::Display(_))
+                    }))
+        })
+    })
+}
+
 impl<'a, 'ctx, 'le, E> StyleResolverForElement<'a, 'ctx, 'le, E>
 where
     'ctx: 'a,
@@ -382,7 +412,7 @@ where
     ) -> ResolvedStyle {
         debug_assert!(pseudo.is_none_or(|p| p.is_eager()));
 
-        // Osmium patch 66: an element whose rules, name and parents equal those of an element styled
+        // Snowlark patch 66: an element whose rules, name and parents equal those of an element styled
         // in an earlier restyle gets its style (`MatchedPropertiesCache`).
         #[cfg(feature = "servo")]
         let keep = match (parent_style, &inputs.rules) {
@@ -502,6 +532,20 @@ where
                     if let Some(inputs) = inputs.take() {
                         let pseudo = PseudoElement::from_eager_index(i);
 
+                        // Snowlark patch 69: a style that would be dropped is not cascaded.
+                        if !matches!(self.pseudo_resolution, PseudoElementResolution::Force)
+                            && pseudo.is_before_or_after()
+                            && inputs.rules.as_ref().is_some_and(|rules| {
+                                !before_or_after_may_be_generated(
+                                    rules,
+                                    inputs.visited_rules.as_ref(),
+                                    &self.context.shared.guards,
+                                )
+                            })
+                        {
+                            continue;
+                        }
+
                         let style = self.cascade_style_and_visited(
                             inputs,
                             Some(primary_style.style()),
@@ -554,6 +598,18 @@ where
                     flags |= results.flags;
                     results.rule_node
                 });
+        }
+
+        // Snowlark patch 69: a style that would be dropped is not cascaded.
+        if !matches!(self.pseudo_resolution, PseudoElementResolution::Force)
+            && pseudo.is_before_or_after()
+            && !before_or_after_may_be_generated(
+                &rule_node,
+                visited_rules.as_ref(),
+                &self.context.shared.guards,
+            )
+        {
+            return None;
         }
 
         Some(self.cascade_style_and_visited(

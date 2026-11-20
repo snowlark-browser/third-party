@@ -25,7 +25,7 @@ where
 {
     // If the identity of the parent style isn't equal, we can't share. We check
     // this first, because the result is cached.
-    // (Osmium patch 67: the parents and whether they allow cousins to share are cached with it.)
+    // (Snowlark patch 67: the parents and whether they allow cousins to share are cached with it.)
     let (identity, parent, parent_allows_cousins) = target.parent();
     let (candidate_identity, candidate_parent, candidate_parent_allows_cousins) =
         candidate.parent();

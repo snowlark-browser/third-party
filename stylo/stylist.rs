@@ -1825,7 +1825,7 @@ impl Stylist {
         self.lookup_element_dependent_at_rule(element, |data| data.animations.get(name))
     }
 
-    /// The `@keyframes` rule `name` refers to for `element` styled `style` (OSMIUM PATCH 51):
+    /// The `@keyframes` rule `name` refers to for `element` styled `style` (SNOWLARK PATCH 51):
     /// CSS Scoping 1 §3.5 tree-scoped references. The name is looked up from the tree of the
     /// declaration that set `animation-name` (a shadow tree's sheets, then those of each tree
     /// around it out to the document's), then in the user and user-agent sheets. Without such a

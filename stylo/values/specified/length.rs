@@ -190,7 +190,7 @@ impl LengthUnit {
             "dvi" if !in_page_rule => Self::Dvi,
             // Container query lengths. Inherit the limitation from viewport units since
             // we may fall back to them.
-            // Osmium patch: also in the servo build, with the `layout.container-queries.enabled`
+            // Snowlark patch: also in the servo build, with the `layout.container-queries.enabled`
             // preference (the servo build resolves them: `Context::get_container_size_query`).
             "cqw" if !in_page_rule && container_units => Self::Cqw,
             "cqh" if !in_page_rule && container_units => Self::Cqh,
@@ -654,7 +654,7 @@ impl NoCalcLength {
     /// Returns the value as a px-canonical length (absolute lengths only).
     #[inline]
     pub fn to_px_if_absolute(&self) -> Option<CSSFloat> {
-        // Osmium patch: the conversion in double precision, rounded once (`12cm` and
+        // Snowlark patch: the conversion in double precision, rounded once (`12cm` and
         // `calc(2 * 6cm)` then compute to the same px, as in engines that convert in doubles).
         let factor: f64 = match self.unit {
             LengthUnit::Px => return Some(self.value),

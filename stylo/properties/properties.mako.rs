@@ -1693,7 +1693,7 @@ impl ComputedValues {
 % endif
 % endfor
 
-    /// Osmium patch 40: whether `self` and `other` have the same computed value of `id` (the same
+    /// Snowlark patch 40: whether `self` and `other` have the same computed value of `id` (the same
     /// style struct, or the longhand's `_equals`). A logical longhand compares as unequal.
     pub fn longhand_equals(&self, other: &Self, id: LonghandId) -> bool {
         match id {
@@ -2042,9 +2042,9 @@ impl ComputedValuesInner {
         }
     % endfor
 
-    /// Osmium patch 66: whether a child would inherit the same from this style as from `other`:
+    /// Snowlark patch 66: whether a child would inherit the same from this style as from `other`:
     /// the inherited style structs, custom properties, writing mode, zoom and inherited flags.
-    pub fn osmium_inherits_equal(&self, other: &Self) -> bool {
+    pub fn snowlark_inherits_equal(&self, other: &Self) -> bool {
         % for style_struct in data.active_style_structs():
         % if style_struct.inherited:
         if !(Arc::ptr_eq(&self.${style_struct.ident}, &other.${style_struct.ident})
@@ -2658,7 +2658,7 @@ impl<'a> StyleBuilder<'a> {
         #[allow(unused_mut)]
         let mut flags = self.flags.get();
         % if engine == "servo":
-        // Osmium patch: record the used color scheme (scroll bars, form controls and the canvas
+        // Snowlark patch: record the used color scheme (scroll bars, form controls and the canvas
         // follow it).
         flags.set(
             ComputedValueFlags::USED_DARK_COLOR_SCHEME,

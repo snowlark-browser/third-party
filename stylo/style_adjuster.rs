@@ -162,7 +162,7 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
     /// implies, but it should be safe. It matches blink, see
     /// https://bugzilla.mozilla.org/show_bug.cgi?id=1786147#c10
     ///
-    /// Osmium patch: in the servo build too, with its `-webkit-box-orient`.
+    /// Snowlark patch: in the servo build too, with its `-webkit-box-orient`.
     fn adjust_for_webkit_line_clamp(&mut self) {
         #[cfg(feature = "gecko")]
         use crate::properties::longhands::_moz_box_orient::computed_value::T as BoxOrient;
@@ -431,7 +431,7 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
             return; // optimization for the common case
         }
 
-        // Osmium patch (OSMIUM-PATCHES.md 16): CSS Overflow 3 §3.1, `visible` computes to `auto`
+        // Snowlark patch (SNOWLARK-PATCHES.md 16): CSS Overflow 3 §3.1, `visible` computes to `auto`
         // when the other axis is neither `visible` nor `clip`; `clip` stays `clip` (upstream also
         // turned it into `hidden`, as an older draft said).
         if overflow_x.is_scrollable() != overflow_y.is_scrollable() {

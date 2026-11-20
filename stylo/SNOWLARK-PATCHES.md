@@ -1,17 +1,17 @@
-# stylo 0.22.0, patched for Osmium
+# stylo 0.22.0, patched for Snowlark
 
 This is stylo 0.22.0 from crates.io (the first commit that adds this directory is the unmodified release),
-used through `[patch.crates-io]` in the workspace `Cargo.toml`. Every change is marked `Osmium patch` in
+used through `[patch.crates-io]` in the workspace `Cargo.toml`. Every change is marked `Snowlark patch` in
 the source; `git log -p vendor/stylo` shows the diff.
 
 1. **`@container` in the servo build** (`stylesheets/rule_parser.rs`): upstream parses `@container` only
    with the `gecko` feature, although the servo build has the container query evaluation, the
    `container-type`/`container-name` properties and the `TElement::query_container_size` hook. The rule
-   now also parses when the `layout.container-queries.enabled` preference is on (osmium-style's
+   now also parses when the `layout.container-queries.enabled` preference is on (snowlark-style's
    `prefs::init` turns it on).
 
 2. **Used color scheme** (CSS Color Adjust 1 §2): `device/servo.rs` gets the page color scheme (the
-   HTML `<meta name=color-scheme>`, set by osmium-style through `Device::set_page_color_scheme`) and
+   HTML `<meta name=color-scheme>`, set by snowlark-style through `Device::set_page_color_scheme`) and
    `used_color_scheme_is_dark`, which `is_dark_color_scheme` (system colors, `light-dark()`) now uses:
    `normal` takes the page color scheme and, without one, the UA default light (upstream used the
    preferred scheme); one listed scheme is used; both listed follow the preferred one. Every built
@@ -32,7 +32,7 @@ the source; `git log -p vendor/stylo` shows the diff.
    `layout.container-queries.enabled` preference as `@container`; the servo build already resolves them
    against the query container (`Context::get_container_size_query`, the small viewport as fallback).
 6. **`CalcLengthPercentage::node`** (`values/computed/length_percentage.rs`): a public accessor for the
-   computed `calc()` tree, so osmium-render maps `min()`/`max()`/`clamp()` mixing lengths and
+   computed `calc()` tree, so snowlark-render maps `min()`/`max()`/`clamp()` mixing lengths and
    percentages to layout's bounded linear form instead of approximating them as a line.
 7. **`contain-intrinsic-*` in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`):
    `contain-intrinsic-width`/`-height`/`-inline-size`/`-block-size` and the `contain-intrinsic-size`
@@ -53,9 +53,9 @@ the source; `git log -p vendor/stylo` shows the diff.
 9. **`text-box-trim`, `text-box-edge` and the `text-box` shorthand in the servo build**
    (`properties/longhands.toml`, `properties/shorthands.toml`, `properties/shorthands.rs`): upstream
    declares them for the gecko engine only, though their value types are engine-neutral. CSS Inline 3
-   §6; osmium-layout implements them.
+   §6; snowlark-layout implements them.
 10. **`background-attachment: local` in the servo build** (`properties/longhands.toml`): upstream parses
-   `local` for gecko only; CSS Backgrounds 3 §3.5 defines it and osmium-layout paints it.
+   `local` for gecko only; CSS Backgrounds 3 §3.5 defines it and snowlark-layout paints it.
 11. **Legacy line clamping in the servo build** (CSS Overflow 4 §5.2): `display: -webkit-box` and
     `-webkit-inline-box` and the `Display::FlowRoot` constant are no longer Gecko-only
     (`values/specified/box.rs`); the `line-clamp` longhand exists in the servo build behind
@@ -68,7 +68,7 @@ the source; `git log -p vendor/stylo` shows the diff.
     `CSSStyleSheet` is adopted only into the cascade of the document whose lock it was parsed under.
 13. **Unclamped `calc()` resolution** (`values/computed/length_percentage.rs`):
    `LengthPercentage::resolve_unclamped`. A computed `calc()` clamps its result to the property's
-   range, so osmium-render, which takes a linear `calc()` apart into a length and a percentage by
+   range, so snowlark-render, which takes a linear `calc()` apart into a length and a percentage by
    resolving it at two bases, read `calc(50% - 10px)` in `width` as 49% (the value at base 0 clamped
    to zero).
 14. **Pseudo-elements after `::slotted()`** (`servo/selector_parser.rs`): the servo build's
@@ -97,13 +97,13 @@ the source; `git log -p vendor/stylo` shows the diff.
 25. **`sideways-rl`, `sideways-lr` and `text-orientation` in the servo build** (`logical_geometry.rs`):
     upstream declares the sideways writing modes, and sets the writing mode's `UPRIGHT`/`TEXT_SIDEWAYS`
     flags from `text-orientation` (with `upright` forcing a used `direction: ltr`, CSS Writing Modes 4
-    §5.1), for the gecko build only. osmium-layout lays out all four vertical writing modes.
+    §5.1), for the gecko build only. snowlark-layout lays out all four vertical writing modes.
     `text-combine-upright` is a longhand of the servo build too (`properties/longhands.toml`, behind
-    `layout.unimplemented`); osmium-layout combines the text, so the gecko-only style adjustment that
+    `layout.unimplemented`); snowlark-layout combines the text, so the gecko-only style adjustment that
     turns a text frame horizontal stays off.
 
 26. **`:dir()` in the servo build** (`servo/selector_parser.rs`): `NonTSPseudoClass::Dir`, parsed and serialized like `:lang()`;
-    osmium-style's `match_non_ts_pseudo_class` works out the element's directionality. No element state
+    snowlark-style's `match_non_ts_pseudo_class` works out the element's directionality. No element state
     bit, so a `dir` change on an ancestor does not invalidate `:dir()` in its descendants.
 
 17. **SVG 2's properties in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`):
@@ -123,7 +123,7 @@ the source; `git log -p vendor/stylo` shows the diff.
     `overflow-block`, `overflow-inline`, `update`, `scripting` and `-webkit-transform-3d`, with what a
     desktop browser window on a standard display reports (8-bit sRGB, standard dynamic range, no
     user preference, `display-mode: browser`; print pages and does not update). `scripting` reads
-    `Device::scripting_enabled` (set by osmium-style from `DeviceConfig::scripting`). The list is a
+    `Device::scripting_enabled` (set by snowlark-style from `DeviceConfig::scripting`). The list is a
     `LazyLock` because the new names are not static atoms of the servo build.
 18. **calc() precision** (`values/specified/length.rs`, `values/specified/calc.rs`): absolute
     lengths convert to px in double precision, rounded once (`12cm` and `round(10cm, 6cm)` are
@@ -135,9 +135,9 @@ the source; `git log -p vendor/stylo` shows the diff.
     `pow(±1, ±infinity)` and `log()` with a base of 1 or below 0; a zero `log()` is 0⁺.
 20. **`@supports font-format()`/`font-tech()` and `@font-face` `tech()` in the servo build**
     (`stylesheets/supports_rule.rs`): the servo evaluators answered false for everything; they now
-    answer for what Osmium loads and renders (OpenType, TrueType, collections, WOFF, WOFF2;
+    answer for what Snowlark loads and renders (OpenType, TrueType, collections, WOFF, WOFF2;
     OpenType features, variations, COLRv0, SVG and bitmap color glyphs). `eval_font_tech` is
-    public so osmium-style skips `@font-face` sources needing a technology it lacks (CSS Fonts 4
+    public so snowlark-style skips `@font-face` sources needing a technology it lacks (CSS Fonts 4
     §4.3.1).
 21. **The `container` shorthand in the servo build** (`properties/shorthands.toml`,
     `properties/shorthands.rs`), behind the container queries preference like its longhands.
@@ -147,28 +147,28 @@ the source; `git log -p vendor/stylo` shows the diff.
     once substituted) is unknown, so `((unknown) or (width))` does not match although Kleene `or`
     would make it true.
 30. **`image-orientation` in the servo build** (`properties/longhands.toml`): upstream declares it for
-   gecko only. CSS Images 3 §5.3 (`from-image` | `none`); osmium-paint applies EXIF orientation when
-   decoding and osmium-render shows the stored pixels for `none` on same-origin images.
+   gecko only. CSS Images 3 §5.3 (`from-image` | `none`); snowlark-paint applies EXIF orientation when
+   decoding and snowlark-render shows the stored pixels for `none` on same-origin images.
 
 31. **`transform-box` in the servo build** (`properties/longhands.toml`): upstream declares it for
-   gecko only. CSS Transforms 1 §6.2; osmium-render resolves an SVG element's transform against it
+   gecko only. CSS Transforms 1 §6.2; snowlark-render resolves an SVG element's transform against it
    when it serializes SVG documents (inline `svg`, SVG images).
    `all_transform_boxes_are_enabled` (`values/specified/transform.rs`) is true: `content-box` and `stroke-box` parse.
 
 32. **`object-view-box`** (`properties/longhands.toml`, `values/generics/basic_shape.rs`,
    `values/specified/basic_shape.rs`, `values/computed/basic_shape.rs`): a new longhand, `none |
    <basic-shape-rect>` computed as an `inset()` (CSS Images 5 §5.1); upstream has no such property.
-   osmium-layout crops a replaced element's natural size to it.
+   snowlark-layout crops a replaced element's natural size to it.
 
 33. **`image-rendering` values** (`values/specified/image.rs`): `smooth`, `optimizeSpeed` and
    `optimizeQuality` parse in the servo build too, and `high-quality` (CSS Images 4 §5.4), which
-   upstream lacks, in both; osmium-render draws `crisp-edges`, `pixelated` and `optimizeSpeed` with
+   upstream lacks, in both; snowlark-render draws `crisp-edges`, `pixelated` and `optimizeSpeed` with
    nearest-neighbour sampling and the rest smoothly.
 
 34. **`image()` with a source** (`values/generics/image.rs`, `values/specified/image.rs`,
    `values/computed/image.rs`): upstream parses only `image(<color>)`; the rest of CSS Images 4 §2.3,
    `image( <image-tags>? [ <image-src>? , <color>? ]! )`, is a new `Image::Fallback` variant, which
-   osmium-render shows as its source once loaded, else its color. WPT's
+   snowlark-render shows as its source once loaded, else its color. WPT's
    `parsing/image-function-invalid.html` ("image(url(foo.png))") expects Chrome's `image(<color>)`
    only and fails against the grammar; `css-image-fallbacks-and-annotations003/004.html` use CSS
    Images 3's list of sources, which the grammar dropped. The tags parse and serialize but do not
@@ -187,7 +187,7 @@ the source; `git log -p vendor/stylo` shows the diff.
 37. **CSS Motion Path in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`, `properties/shorthands.rs`):
    `offset-anchor`, `offset-distance`, `offset-position`, `offset-rotate` and the `offset` shorthand were
    gecko-only; they parse and compute behind `layout.unimplemented` as `offset-path` already did. Motion
-   Path 1; osmium-render's `motion.rs` applies them. `has_transform_or_perspective`
+   Path 1; snowlark-render's `motion.rs` applies them. `has_transform_or_perspective`
    (`servo/restyle_damage.rs`) counts `offset-path`, which makes a containing block as a transform does.
 
 38. **`polygon(round <length>)` and fill rules of outlines** (`values/generics/basic_shape.rs`,
@@ -207,16 +207,16 @@ the source; `git log -p vendor/stylo` shows the diff.
 
 40. **`ComputedValues::longhand_equals`** (`properties/properties.mako.rs`): whether two styles have the
    same computed value of a longhand (the same style struct, or the longhand's `_equals`), for any
-   non-logical longhand. osmium-style's `computed::same_computed_value` uses it, so that the inline
+   non-logical longhand. snowlark-style's `computed::same_computed_value` uses it, so that the inline
    SVG writer skips a property equal to its parent's or the initial value without serializing it.
 
 41. **`Animation::properties_changed()`** (`servo/animation.rs`): the properties a CSS animation
-   changes, read-only, so that osmium-style can tell which elements have a transform or opacity
+   changes, read-only, so that snowlark-style can tell which elements have a transform or opacity
    animation in effect (Blink's `UpdateAnimationFlagsForEffect`, the compositor's layers).
 
 42. **`Animation::property_keyframes()` and `Transition::parts()`** (`servo/animation.rs`): a CSS
    animation's keyframes for one property (offset, value, timing function) and a transition's start
-   and end values and timing function, read-only, so that osmium-render can hand transform and opacity
+   and end values and timing function, read-only, so that snowlark-render can hand transform and opacity
    animations to the compositor (`docs/compositor-animations.md`, S2; Blink's
    `CompositorAnimations::StartAnimationOnCompositor`).
 
@@ -280,7 +280,7 @@ the source; `git log -p vendor/stylo` shows the diff.
 53. **Inert subtrees in the servo build** (`properties/longhands.toml`, `servo/selector_parser.rs`): HTML
    §6.3. The internal inherited `-moz-inert` property (UA sheets only) is built for servo too, and the
    servo parser takes `:-moz-inert` and `:-moz-topmost-modal` in UA sheets only, matched by the `INERT`
-   and `TOPMOST_MODAL` element states. Osmium's UA sheet sets the property from the `inert` attribute,
+   and `TOPMOST_MODAL` element states. Snowlark's UA sheet sets the property from the `inert` attribute,
    the root of a document blocked by a modal dialog (`INERT`) and the blocking dialog (`TOPMOST_MODAL`),
    so inertness follows the flat tree; hit testing and selection read it.
 54. **Hyphenation and `text-wrap` in the servo build** (`properties/longhands.toml`,
@@ -288,11 +288,11 @@ the source; `git log -p vendor/stylo` shows the diff.
    `hyphenate-character`, `hyphenate-limit-chars`, `text-wrap-style` and the `text-wrap` shorthand
    for the gecko engine only, though their value types are engine-neutral (CSS Text 3 and 4).
    `text-wrap-style` also takes `pretty` (CSS Text 4), which upstream lacks. `hyphens` drops Gecko's `-moz-`
-   alias (the bindings expose no `-moz-` name, so `CSS.supports` must not take one). osmium-layout reads `hyphens` and `hyphenate-character` (a line broken at a soft hyphen
+   alias (the bindings expose no `-moz-` name, so `CSS.supports` must not take one). snowlark-layout reads `hyphens` and `hyphenate-character` (a line broken at a soft hyphen
    ends with the hyphenation character).
 55. **`text-indent` keywords and `text-align-last: match-parent`** (`values/specified/text.rs`): the
    servo build parsed `text-indent`'s `hanging` and `each-line` (CSS Text 3 §7.1) as errors;
-   osmium-layout implements them. `TextAlignLast` gets `match-parent` (CSS Text 3 §7.3), which
+   snowlark-layout implements them. `TextAlignLast` gets `match-parent` (CSS Text 3 §7.3), which
    computes like `text-align`'s: the parent's value, with `start` and `end` resolved against the
    parent's direction to `left` or `right`.
 56. **Column rules and `column-fill` in the servo build** (`properties/longhands.toml`,
@@ -304,7 +304,7 @@ the source; `git log -p vendor/stylo` shows the diff.
 57. **`column-height` and `column-wrap`** (`properties/longhands.toml`, `properties/shorthands.toml`,
    `properties/shorthands.rs`): CSS Multi-column Layout 2, which upstream lacks. `columns` takes
    `[ <'column-width'> || <'column-count'> ] [ / <'column-height'> ]?` and resets `column-wrap`; it
-   serializes as the empty string while `column-wrap` is not `auto`. Osmium does not lay out
+   serializes as the empty string while `column-wrap` is not `auto`. Snowlark does not lay out
    multi-column containers yet, so neither property changes layout.
 58. **Breaks, orphans and widows in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`,
    `values/specified/box.rs`): upstream declares `break-before`, `break-after`, `break-inside` and the legacy
@@ -340,7 +340,7 @@ the source; `git log -p vendor/stylo` shows the diff.
    omitted). It interpolates as `palette-mix(in oklab, A (1-p), B p)` between the end points (equal values
    and progress outside (0, 1) give an end point; addition is not defined). `HueInterpolationMethod` and
    `ColorInterpolationMethod` derive `Serialize` and `Deserialize`, as the servo font struct needs.
-   `@font-palette-values` needs the `layout.css.font-palette.enabled` preference (osmium-style turns it on).
+   `@font-palette-values` needs the `layout.css.font-palette.enabled` preference (snowlark-style turns it on).
 63. **`font-variant-emoji` in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`,
    `properties/shorthands.rs`): upstream declares it (CSS Fonts 4 §6.13: `normal | text | emoji | unicode`) for
    the gecko engine only. It is now a longhand of `font-variant` (which parses and serializes it) and is reset
@@ -351,8 +351,8 @@ the source; `git log -p vendor/stylo` shows the diff.
    -0.8333333333333334, 1, -0.8333333333333334)`: 14.4999998, rounded to 14 instead of 15). The value is
    rounded to `f32` first (below 2^24, where `f32` holds every integer), as `Animate for f32` does.
 66. **Computed styles kept across restyles** (`rule_cache.rs` `MatchedPropertiesCache`, `style_resolver.rs`,
-   `context.rs`, `driver.rs`, `device/mod.rs` `osmium_root_and_viewport`, `properties.mako.rs`
-   `osmium_inherits_equal`): the rule cache lives for one traversal and keeps only reset structs, so an element
+   `context.rs`, `driver.rs`, `device/mod.rs` `snowlark_root_and_viewport`, `properties.mako.rs`
+   `snowlark_inherits_equal`): the rule cache lives for one traversal and keeps only reset structs, so an element
    inserted in a later restyle cascaded again whatever matched it before. The embedder now owns a cache from
    rule node to whole styles, with the element's name, its parent's inherited values and its layout parent's
    display and writing mode; a cascade with all of them equal returns a copy of the kept style instead (its
@@ -373,6 +373,34 @@ the source; `git log -p vendor/stylo` shows the diff.
    its validation data. The cached class lists and presentational hints are compared before the checks
    that query both elements again per candidate (state, link, shadow roots, slots, animations, id rules,
    style attribute); the checks are all required, so their order changes no outcome.
+68. **No sharing lookup for presentational hints of an element's own** (`dom.rs`
+   `TElement::has_unshared_presentational_hints`, `sharing/mod.rs` `share_style_if_possible`,
+   `lookup_by_rules`): hint blocks compare by identity, and an SVG chart's shapes each have a block no
+   other element holds (their own `d`, `x`, `y`), yet every one tested the 25-31 candidates of the cache
+   at its depth. The embedder says when an element's block is its alone; neither lookup is made for it
+   (it is still inserted, for an element given its block later). No style changes: a lookup that
+   cannot hit is skipped.
+69. **No cascade for a `::before` or `::after` its rules cannot generate** (`style_resolver.rs`
+   `before_or_after_may_be_generated`, `resolve_pseudo_style`, `cascade_styles_with_default_parents`):
+   a rule such as `*, ::before, ::after { box-sizing: border-box }` matches both pseudo-elements of
+   every element, and each was cascaded only to be dropped (`content` computes to `normal`). Unless
+   the styles are forced, an eager `::before` or `::after` is cascaded only when a rule matched for
+   it (normal or visited) declares `content` (`all` included), or declares `display` with
+   something other than a plain value (`inherit`, `var()`: such styles are kept whatever their
+   `content`). No style changes: only styles that were dropped are not computed.
+70. **The parts of `progress` and `meter`** (`servo/selector_parser.rs`): the lazily cascaded
+   pseudo-elements `::-webkit-progress-inner-element`, `::-webkit-progress-bar`,
+   `::-webkit-progress-value`, `::-webkit-meter-inner-element`, `::-webkit-meter-bar`,
+   `::-webkit-meter-optimum-value`, `::-webkit-meter-suboptimum-value` and
+   `::-webkit-meter-even-less-good-value`, which pages style and the embedder lays out as the parts of
+   an element with `appearance: none`.
+71. **The caller styles the top of a parallel traversal** (`driver.rs`, `scoped_tls.rs`): a traversal
+   started from a thread outside the pool ran entirely on a worker (`spawn_fifo` of the whole
+   closure) while the caller only waited, so every traversal given the pool paid a worker's wake-up
+   and the caller's own wake-up at the end. The closure now runs in place on the caller, which has
+   a slot of its own in `ScopedTLS` (one more than the pool's threads) and the workers' local queue
+   size; work goes to the pool only when a level of the tree has enough elements to share, as the
+   traversal does on a thread of the pool. The embedder can then offer the pool to every restyle.
 
 To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
-still lacks, and run `cargo test -p osmium-style`.
+still lacks, and run `cargo test -p snowlark-style`.

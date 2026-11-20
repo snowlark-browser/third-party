@@ -65,11 +65,11 @@ pub enum GenericImage<G, ImageUrl, Color, Percentage, Resolution> {
     #[css(function)]
     Image(#[value_info(skip)] Box<Color>),
 
-    /// Osmium patch: an `image()` function beyond `image(<color>)` (CSS Images 4 §2.3).
+    /// Snowlark patch: an `image()` function beyond `image(<color>)` (CSS Images 4 §2.3).
     Fallback(#[value_info(skip)] Box<GenericImageFallback<Self, Color>>),
 }
 
-/// Osmium patch: `<image-tags>` (CSS Images 4 §2.3), the directionality an image was made for.
+/// Snowlark patch: `<image-tags>` (CSS Images 4 §2.3), the directionality an image was made for.
 #[derive(
     Clone, Copy, Debug, MallocSizeOf, PartialEq, ToComputedValue, ToCss, ToResolvedValue, ToShmem,
 )]
@@ -81,7 +81,7 @@ pub enum ImageTag {
     Rtl,
 }
 
-/// Osmium patch: `image( <image-tags>? [ <image-src>? , <color>? ]! )`: its source when available,
+/// Snowlark patch: `image( <image-tags>? [ <image-src>? , <color>? ]! )`: its source when available,
 /// else the color (transparent without one).
 #[derive(Clone, Debug, MallocSizeOf, PartialEq, ToComputedValue, ToResolvedValue, ToShmem)]
 #[repr(C)]
@@ -138,7 +138,7 @@ pub struct GenericCrossFade<Image, Color, Percentage> {
 )]
 #[repr(C)]
 pub struct GenericCrossFadeElement<Image, Color, Percentage> {
-    // Osmium patch: the image before its percentage, which serializes them in CSS Images 4's
+    // Snowlark patch: the image before its percentage, which serializes them in CSS Images 4's
     // canonical order (`<image> <percentage>?`).
     /// A color or image that will be blended when cross-fade is
     /// evaluated.

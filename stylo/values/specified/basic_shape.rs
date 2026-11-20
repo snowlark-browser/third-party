@@ -486,7 +486,7 @@ impl Polygon {
         input: &mut Parser,
         shape_type: ShapeType,
     ) -> Result<Self, ParseError> {
-        // Osmium patch: polygon( <fill-rule>? [ round <length> ]?, ... ) (CSS Shapes 2), the fill rule
+        // Snowlark patch: polygon( <fill-rule>? [ round <length> ]?, ... ) (CSS Shapes 2), the fill rule
         // kept for outlines too, as `offset-path`'s tests have it.
         let _ = shape_type;
         let fill = input.try_parse(FillRule::parse).ok();
@@ -698,7 +698,7 @@ impl generic::Shape<Angle, Position, LengthPercentage> {
         input: &mut Parser,
         shape_type: ShapeType,
     ) -> Result<Self, ParseError> {
-        // (Osmium patch: kept for outlines too, as `offset-path`'s tests have it)
+        // (Snowlark patch: kept for outlines too, as `offset-path`'s tests have it)
         let _ = shape_type;
         let fill = parse_fill_rule(input, ShapeType::Filled, false /* no following comma */);
 
@@ -1005,7 +1005,7 @@ impl ByTo {
     }
 }
 
-/// Osmium patch: the specified value of `object-view-box`.
+/// Snowlark patch: the specified value of `object-view-box`.
 pub type ObjectViewBox = generic::GenericObjectViewBox<BasicShapeRect>;
 
 impl Parse for ObjectViewBox {

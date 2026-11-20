@@ -42,10 +42,10 @@ fn all_transform_boxes_are_enabled(_context: &ParserContext) -> bool {
     true
 }
 
-// Osmium patch (OSMIUM-PATCHES.md 17): the servo build has all of them too.
+// Snowlark patch (SNOWLARK-PATCHES.md 17): the servo build has all of them too.
 #[cfg(feature = "servo")]
 fn all_transform_boxes_are_enabled(_context: &ParserContext) -> bool {
-    // Osmium patch: `content-box` and `stroke-box` too (OSMIUM-PATCHES.md 31).
+    // Snowlark patch: `content-box` and `stroke-box` too (SNOWLARK-PATCHES.md 31).
     true
 }
 

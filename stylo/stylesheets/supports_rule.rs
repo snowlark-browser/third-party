@@ -241,7 +241,7 @@ pub fn eval_font_tech(flag: &FontFaceSourceTechFlags) -> bool {
     unsafe { bindings::Gecko_IsFontTechSupported(*flag) }
 }
 
-/// Osmium patch: the font formats Osmium loads (DirectWrite reads OpenType, TrueType and
+/// Snowlark patch: the font formats Snowlark loads (DirectWrite reads OpenType, TrueType and
 /// collections; WOFF and WOFF2 are decoded to them).
 #[cfg(feature = "servo")]
 fn eval_font_format(kw: &FontFaceSourceFormatKeyword) -> bool {
@@ -252,7 +252,7 @@ fn eval_font_format(kw: &FontFaceSourceFormatKeyword) -> bool {
     )
 }
 
-/// Osmium patch: the font technologies Osmium renders (DirectWrite shaping with OpenType
+/// Snowlark patch: the font technologies Snowlark renders (DirectWrite shaping with OpenType
 /// features and variations; COLRv0, SVG and bitmap color glyphs through its color glyph runs).
 #[cfg(feature = "servo")]
 pub fn eval_font_tech(flag: &FontFaceSourceTechFlags) -> bool {

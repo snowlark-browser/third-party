@@ -62,11 +62,11 @@ fn with_pool_in_place_scope<'scope>(
                 Some(0),
                 "Main thread should be the first thread"
             );
-            if cfg!(feature = "gecko") || pool.current_thread_index().is_some() {
-                closure(Some(scope));
-            } else {
-                scope.spawn_fifo(|scope| closure(Some(scope)));
-            }
+            // Snowlark patch 71: the calling thread styles the traversal's top itself, in its own
+            // slot of the scoped TLS when it is not one of the pool's threads, and shares a level
+            // with the pool once it is wide enough. Handing the whole traversal to a worker made
+            // the caller wait for a worker to wake for every traversal, however small.
+            closure(Some(scope));
         });
     }
 }
@@ -145,7 +145,7 @@ where
         );
     });
 
-    // Osmium patch 66: hand the styles the threads kept to the cache's owner.
+    // Snowlark patch 66: hand the styles the threads kept to the cache's owner.
     #[cfg(feature = "servo")]
     if let Some(sink) = traversal.shared_context().matched_properties_sink {
         let mut sink = sink.lock().unwrap_or_else(|e| e.into_inner());

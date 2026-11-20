@@ -107,8 +107,8 @@ pub enum SystemFont {
     End, // Just for indexing purposes.
 }
 
-/// The system font keywords of the `font` shorthand (CSS Fonts 4 §3.7.1). Osmium patch
-/// (OSMIUM-PATCHES.md 61): servo resolves them when the longhands compute, from
+/// The system font keywords of the `font` shorthand (CSS Fonts 4 §3.7.1). Snowlark patch
+/// (SNOWLARK-PATCHES.md 61): servo resolves them when the longhands compute, from
 /// [`SystemFont::resolve`], not from a cached platform font.
 #[repr(u8)]
 #[derive(
@@ -1678,7 +1678,7 @@ pub enum FontSynthesisStyle {
     ObliqueOnly,
 }
 
-// Osmium patch: `palette-mix()` (CSS Fonts 4 §9.2; OSMIUM-PATCHES.md 62). Upstream's value is one
+// Snowlark patch: `palette-mix()` (CSS Fonts 4 §9.2; SNOWLARK-PATCHES.md 62). Upstream's value is one
 // identifier.
 /// Allows authors to choose a palette from those supported by a color font
 /// (and potentially @font-palette-values overrides).

@@ -29,7 +29,7 @@ pub use crate::values::specified::box_::{
 pub type BaselineShift = GenericBaselineShift<LengthPercentage>;
 
 /// A computed value for the `overflow-clip-margin` property.
-// Osmium patch (OSMIUM-PATCHES.md 16): a negative length is allowed.
+// Snowlark patch (SNOWLARK-PATCHES.md 16): a negative length is allowed.
 pub type OverflowClipMargin = GenericOverflowClipMargin<Length>;
 
 /// A computed value for the `-moz-scrollbar-inset-block` / `-inline` properties.

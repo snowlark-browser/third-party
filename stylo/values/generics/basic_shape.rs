@@ -363,7 +363,7 @@ pub struct GenericPolygon<LengthPercentage> {
     /// The filling rule for a polygon.
     #[css(skip_if = "is_default")]
     pub fill: FillRule,
-    /// Osmium patch: `round <length>`, the radius of the corners (`None` for none or zero).
+    /// Snowlark patch: `round <length>`, the radius of the corners (`None` for none or zero).
     pub round: Option<LengthPercentage>,
     /// A collection of (x, y) coordinates to draw the polygon.
     #[css(iterable)]
@@ -1430,7 +1430,7 @@ impl ComputeSquaredDistance for ArcSize {
     }
 }
 
-/// Osmium patch: a value of `object-view-box` (CSS Images 5 §5.1): `none | <basic-shape-rect>`.
+/// Snowlark patch: a value of `object-view-box` (CSS Images 5 §5.1): `none | <basic-shape-rect>`.
 #[allow(missing_docs)]
 #[derive(
     Animate,

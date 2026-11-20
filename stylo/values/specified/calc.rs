@@ -140,7 +140,7 @@ impl ToTyped for Leaf {
     }
 }
 
-/// Osmium patch: the sum of two percentages (stored as fractions, which a decimal percentage
+/// Snowlark patch: the sum of two percentages (stored as fractions, which a decimal percentage
 /// is not exactly: 60% is 0.6000000238) to the seven significant digits single precision holds,
 /// so `calc(60% - 50%)` is 10% and not 10.0000024%.
 fn decimal_sum(a: f32, b: f32) -> f32 {

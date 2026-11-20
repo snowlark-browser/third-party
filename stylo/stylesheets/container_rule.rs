@@ -133,7 +133,7 @@ pub struct ContainerCondition {
     flags: FeatureFlags,
     #[css(skip)]
     attributes_referenced: AttrReferenceSet,
-    /// Osmium patch: whether the query has an unknown feature (see `matches`), found when parsing
+    /// Snowlark patch: whether the query has an unknown feature (see `matches`), found when parsing
     /// because `matches` runs per element.
     #[css(skip)]
     has_unknown: bool,
@@ -228,7 +228,7 @@ impl ContainerCondition {
         let flags = condition
             .as_ref()
             .map_or(FeatureFlags::empty(), |c| c.cumulative_flags());
-        // Osmium patch: CSS Conditional 5 §5.4: a <general-enclosed> with a substitution function is
+        // Snowlark patch: CSS Conditional 5 §5.4: a <general-enclosed> with a substitution function is
         // not known to be unknown: it is parsed again once substituted.
         let mut has_unknown = false;
         if let Some(c) = condition.as_ref() {
@@ -345,7 +345,7 @@ impl ContainerCondition {
                 return KleeneValue::from(result.is_some());
             },
         };
-        // Osmium patch: CSS Conditional 5 §5.4: a <container-query> with unknown features
+        // Snowlark patch: CSS Conditional 5 §5.4: a <container-query> with unknown features
         // selects no query container, so its condition is unknown whatever else it says
         // (`((unknown) or (width))` does not match).
         if self.has_unknown {

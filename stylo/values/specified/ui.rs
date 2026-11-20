@@ -274,7 +274,7 @@ pub enum MozTheme {
 pub enum PointerEvents {
     Auto,
     None,
-    // Osmium patch: SVG 2 §16.6's values parse in the servo build too (upstream: gecko only, so a
+    // Snowlark patch: SVG 2 §16.6's values parse in the servo build too (upstream: gecko only, so a
     // declaration such as `pointer-events: all` was dropped and the element kept an inherited
     // `none`); on elements other than SVG graphics they act as `auto`.
     Visiblepainted,
@@ -285,7 +285,7 @@ pub enum PointerEvents {
     Fill,
     Stroke,
     All,
-    // Osmium patch: SVG 2 §16.6 `bounding-box` (the servo build only).
+    // Snowlark patch: SVG 2 §16.6 `bounding-box` (the servo build only).
     #[cfg(not(feature = "gecko"))]
     BoundingBox,
 }

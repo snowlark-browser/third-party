@@ -80,7 +80,7 @@ bitflags! {
 }
 
 /// The specified value of `overflow-clip-margin`.
-// Osmium patch (OSMIUM-PATCHES.md 16): the length may be negative, as WPT's
+// Snowlark patch (SNOWLARK-PATCHES.md 16): the length may be negative, as WPT's
 // css/css-overflow/parsing/overflow-clip-margin*.html test it.
 pub type OverflowClipMargin = GenericOverflowClipMargin<Length>;
 
@@ -170,7 +170,7 @@ pub enum DisplayInside {
     RubyText,
     #[cfg(feature = "gecko")]
     RubyTextContainer,
-    // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
+    // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
     WebkitBox,
 }
 
@@ -238,7 +238,7 @@ impl Display {
     );
     pub const Block: Self =
         Self(((DisplayOutside::Block as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::Flow as u16);
-    // Osmium patch: `flow-root` as a constant in the servo build too (legacy line clamping).
+    // Snowlark patch: `flow-root` as a constant in the servo build too (legacy line clamping).
     pub const FlowRoot: Self = Self(
         ((DisplayOutside::Block as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::FlowRoot as u16,
     );
@@ -261,11 +261,11 @@ impl Display {
     #[cfg(feature = "gecko")]
     pub const Ruby: Self =
         Self(((DisplayOutside::Inline as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::Ruby as u16);
-    // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
+    // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
     pub const WebkitBox: Self = Self(
         ((DisplayOutside::Block as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::WebkitBox as u16,
     );
-    // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
+    // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
     pub const WebkitInlineBox: Self = Self(
         ((DisplayOutside::Inline as u16) << Self::OUTSIDE_SHIFT) | DisplayInside::WebkitBox as u16,
     );
@@ -408,7 +408,7 @@ impl Display {
         match self.inside() {
             DisplayInside::Flex => true,
             DisplayInside::Grid => true,
-            // Osmium patch (OSMIUM-PATCHES.md 16): a `-webkit-box`'s children are flex items (CSS
+            // Snowlark patch (SNOWLARK-PATCHES.md 16): a `-webkit-box`'s children are flex items (CSS
             // Display 3 Appendix A: a legacy flex container).
             DisplayInside::WebkitBox => true,
             _ => false,
@@ -521,9 +521,9 @@ impl DisplayKeyword {
             "ruby-text" => Full(Display::RubyText),
             #[cfg(feature = "gecko")]
             "ruby-text-container" => Full(Display::RubyTextContainer),
-            // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
+            // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
             "-webkit-box" => Full(Display::WebkitBox),
-            // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
+            // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
             "-webkit-inline-box" => Full(Display::WebkitInlineBox),
 
             /// <display-outside> = block | inline | run-in
@@ -556,9 +556,9 @@ impl ToCss for Display {
         match *self {
             Display::Block | Display::Inline => outside.to_css(dest),
             Display::InlineBlock => dest.write_str("inline-block"),
-            // Osmium patch: `-webkit-box` in the servo build too (legacy line clamping).
+            // Snowlark patch: `-webkit-box` in the servo build too (legacy line clamping).
             Display::WebkitInlineBox => dest.write_str("-webkit-inline-box"),
-            // Osmium patch (OSMIUM-PATCHES.md 16): `-webkit-box` serializes as itself.
+            // Snowlark patch (SNOWLARK-PATCHES.md 16): `-webkit-box` serializes as itself.
             Display::WebkitBox => dest.write_str("-webkit-box"),
             Display::TableCaption => dest.write_str("table-caption"),
             _ => match (outside, inside) {
@@ -1252,7 +1252,7 @@ fn change_bits_for_longhand(longhand: LonghandId) -> WillChangeBits {
             WillChangeBits::STACKING_CONTEXT_UNCONDITIONAL | WillChangeBits::BACKDROP_ROOT
         },
         LonghandId::Isolation => WillChangeBits::STACKING_CONTEXT_UNCONDITIONAL,
-        // Osmium patch: a mask makes a backdrop root (Filter Effects 2 §3.1), and so does
+        // Snowlark patch: a mask makes a backdrop root (Filter Effects 2 §3.1), and so does
         // `will-change` naming it.
         LonghandId::MaskImage => {
             WillChangeBits::STACKING_CONTEXT_UNCONDITIONAL | WillChangeBits::BACKDROP_ROOT
@@ -2011,7 +2011,7 @@ pub enum BreakBetween {
     Avoid,
     Left,
     Right,
-    // Osmium patch (OSMIUM-PATCHES.md 58): the other values of CSS Fragmentation 3 §3.1.
+    // Snowlark patch (SNOWLARK-PATCHES.md 58): the other values of CSS Fragmentation 3 §3.1.
     AvoidPage,
     Recto,
     Verso,

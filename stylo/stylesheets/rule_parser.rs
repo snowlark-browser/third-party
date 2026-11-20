@@ -282,7 +282,7 @@ impl AtRuleType {
             "counter-style" if cfg!(feature = "gecko") => Self::CounterStyle,
             "media" => Self::Media,
             "custom-media" if crate::pref!("layout.css.custom-media.enabled") => Self::CustomMedia,
-            // Osmium patch: container queries for the servo build too (gated by the
+            // Snowlark patch: container queries for the servo build too (gated by the
             // `layout.container-queries.enabled` preference instead of the gecko feature).
             "container" if cfg!(feature = "gecko") || crate::pref!("layout.container-queries.enabled") => Self::Container,
             "supports" => Self::Supports,

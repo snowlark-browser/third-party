@@ -565,14 +565,14 @@ pub trait TElement:
         context: &SharedStyleContext,
     ) -> Option<Arc<Locked<PropertyDeclarationBlock>>>;
 
-    /// Osmium patch: whether a script animation (Web Animations) in effect on this element animates
+    /// Snowlark patch: whether a script animation (Web Animations) in effect on this element animates
     /// `property`.
     #[cfg(feature = "servo")]
     fn animated_by_script(&self, _property: crate::properties::PropertyDeclarationId) -> bool {
         false
     }
 
-    /// Osmium patch: computes the keyframes of the script animations (Web Animations) targeting this
+    /// Snowlark patch: computes the keyframes of the script animations (Web Animations) targeting this
     /// element against its new style, when that style without animations changed. Returns whether
     /// its animation rule changed, so the element is cascaded again with it.
     #[cfg(feature = "servo")]
@@ -962,6 +962,14 @@ pub trait TElement:
         hints: &mut V,
     ) where
         V: Push<ApplicableDeclarationBlock>;
+
+    /// Snowlark patch 68: whether the declaration block of this element's presentational hints
+    /// is held by no other element. Blocks compare by identity, so no style sharing candidate
+    /// can have the same hints (nor the same rule node), and the sharing cache is not searched.
+    #[inline]
+    fn has_unshared_presentational_hints(&self) -> bool {
+        false
+    }
 
     /// Generate the proper applicable declarations due to view transition dynamic rules, and
     /// insert them into `rules`.

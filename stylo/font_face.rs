@@ -298,7 +298,7 @@ pub enum FontDisplay {
     Optional,
 }
 
-// Osmium patch: the `font-weight` and `font-width` descriptors take `auto` (CSS Fonts 4 §4.4, their
+// Snowlark patch: the `font-weight` and `font-width` descriptors take `auto` (CSS Fonts 4 §4.4, their
 // initial value: selected as `normal`, with no clamping of variation axes).
 macro_rules! impl_range {
     ($range:ident, $component:ident) => {
@@ -422,7 +422,7 @@ impl FontWidthRange {
 #[derive(Clone, Debug, MallocSizeOf, PartialEq, ToShmem)]
 #[allow(missing_docs)]
 pub enum FontStyleRange {
-    /// Osmium patch: `auto` (CSS Fonts 4 §4.4, the initial value), selected as `normal`.
+    /// Snowlark patch: `auto` (CSS Fonts 4 §4.4, the initial value), selected as `normal`.
     Auto,
     Italic,
     Oblique(Angle, Angle),
@@ -468,7 +468,7 @@ impl ToCss for FontStyleRange {
     where
         W: fmt::Write,
     {
-        // Osmium patch: an angle written as zero in any unit (`0rad`, `0turn`), though not a
+        // Snowlark patch: an angle written as zero in any unit (`0rad`, `0turn`), though not a
         // `calc()` that computes to zero, is `normal` (CSS Fonts 4 §4.4: `oblique 0deg` is `normal`).
         fn is_literal_zero(angle: &Angle) -> bool {
             angle.as_no_calc().is_some_and(|a| a.degrees() == 0.0)

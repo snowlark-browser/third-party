@@ -67,7 +67,7 @@ pub enum ModRemOp {
     Rem,
 }
 
-/// Osmium patch: CSS Values 4 §10.5.1 `pow(A, B)` with the rules of §10.9.2 that override IEEE
+/// Snowlark patch: CSS Values 4 §10.5.1 `pow(A, B)` with the rules of §10.9.2 that override IEEE
 /// 754 `pow`: any NaN argument gives NaN (`pow(NaN, 0)`), and so does an infinite exponent on a
 /// base of magnitude 1 (`pow(1, infinity)`, `pow(-1, -infinity)`).
 pub fn css_pow(a: f32, b: f32) -> f32 {
@@ -77,7 +77,7 @@ pub fn css_pow(a: f32, b: f32) -> f32 {
     a.powf(b)
 }
 
-/// Osmium patch: CSS Values 4 §10.5.1 `log(A, B)`: a base of 1 or below 0 gives NaN (IEEE 754
+/// Snowlark patch: CSS Values 4 §10.5.1 `log(A, B)`: a base of 1 or below 0 gives NaN (IEEE 754
 /// `log(2)/log(1)` would be infinite), any NaN argument gives NaN, and a zero result is 0⁺.
 pub fn css_log(a: f32, b: Option<f32>) -> f32 {
     let r = match b {
@@ -98,7 +98,7 @@ pub fn css_log(a: f32, b: Option<f32>) -> f32 {
 
 impl ModRemOp {
     fn apply(self, dividend: f32, divisor: f32) -> f32 {
-        // Osmium patch: any NaN argument gives NaN (CSS Values 4 §10.9.2).
+        // Snowlark patch: any NaN argument gives NaN (CSS Values 4 §10.9.2).
         if dividend.is_nan() || divisor.is_nan() {
             return f32::NAN;
         }
@@ -1400,7 +1400,7 @@ impl<L: CalcNodeLeaf> CalcNode<L> {
 
                 let step = step.abs();
 
-                // Osmium patch: any NaN argument gives NaN (CSS Values 4 §10.9.2).
+                // Snowlark patch: any NaN argument gives NaN (CSS Values 4 §10.9.2).
                 if value.is_nan() || step.is_nan() {
                     return Ok((f32::NAN, ty));
                 }
@@ -1893,7 +1893,7 @@ impl<L: CalcNodeLeaf> CalcNode<L> {
                 ref mut value,
                 ref mut step,
             } => {
-                // Osmium patch: a NaN step gives NaN (CSS Values 4 §10.9.2).
+                // Snowlark patch: a NaN step gives NaN (CSS Values 4 §10.9.2).
                 if value_or_stop!(step.is_zero_leaf()) || value_or_stop!(step.is_nan_leaf()) {
                     value_or_stop!(value.coerce_to_value(f32::NAN));
                     replace_self_with!(&mut **value);

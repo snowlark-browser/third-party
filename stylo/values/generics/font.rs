@@ -375,7 +375,7 @@ impl<N, L> LineHeight<N, L> {
     }
 }
 
-// Osmium patch: `font-palette` with `palette-mix()` (CSS Fonts 4 §9.1-9.2; OSMIUM-PATCHES.md 62).
+// Snowlark patch: `font-palette` with `palette-mix()` (CSS Fonts 4 §9.1-9.2; SNOWLARK-PATCHES.md 62).
 
 /// One `<palette-identifier> <percentage>?` component of a `palette-mix()`.
 #[derive(

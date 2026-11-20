@@ -50,7 +50,7 @@ pub enum WritingModeProperty {
     #[parse(aliases = "tb,tb-rl")]
     VerticalRl,
     VerticalLr,
-    // Osmium patch: `sideways-rl` and `sideways-lr` in the servo build too (CSS Writing Modes 4).
+    // Snowlark patch: `sideways-rl` and `sideways-lr` in the servo build too (CSS Writing Modes 4).
     SidewaysRl,
     SidewaysLr,
 }
@@ -176,7 +176,7 @@ impl WritingMode {
             },
         }
 
-        // Osmium patch: `text-orientation` sets its flags in the servo build too.
+        // Snowlark patch: `text-orientation` sets its flags in the servo build too.
         {
             use crate::properties::longhands::text_orientation::computed_value::T as TextOrientation;
 
