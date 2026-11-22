@@ -424,13 +424,29 @@ where
                     && inputs.visited_rules.is_none()
                     && self.element.style_attribute().is_none()
                     && !self.element.is_svg_element()
-                    && !crate::rule_cache::MatchedPropertiesCache::animated(rules)
                     && !inputs
                         .included_cascade_flags
                         .contains(RuleCascadeFlags::STARTING_STYLE) =>
             {
                 let layout_parent = layout_parent_style.unwrap_or(parent);
                 let device = self.context.shared.stylist.device();
+                // Snowlark patch 72: an element with running transitions looks up the style of
+                // its rules without them (its after-change rules, whose style was kept when its
+                // transitions started) and gets that style with the transitions' values applied
+                // over it (`apply_transitions_to_base`).
+                let animated = crate::rule_cache::MatchedPropertiesCache::animated(rules);
+                let base_rules;
+                let lookup = if animated {
+                    base_rules = self
+                        .context
+                        .shared
+                        .stylist
+                        .rule_tree()
+                        .remove_animation_rules(rules);
+                    &base_rules
+                } else {
+                    rules
+                };
                 let kept = self
                     .context
                     .shared
@@ -438,7 +454,7 @@ where
                     .and_then(|cache| {
                         cache.find(
                             device,
-                            rules,
+                            lookup,
                             self.element.local_name(),
                             self.element.namespace(),
                             inputs.flags,
@@ -449,7 +465,7 @@ where
                     .or_else(|| {
                         self.context.thread_local.matched_properties.find(
                             device,
-                            rules,
+                            lookup,
                             self.element.local_name(),
                             self.element.namespace(),
                             inputs.flags,
@@ -457,15 +473,34 @@ where
                             layout_parent,
                         )
                     });
-                if let Some(style) = kept {
+                if animated {
+                    let base = kept.cloned();
+                    let applied = base.and_then(|base| {
+                        crate::properties::cascade::apply_transitions_to_base(
+                            self.context.shared.stylist,
+                            rules,
+                            &self.context.shared.guards,
+                            &base,
+                            parent,
+                            self.element,
+                            &mut self.context.thread_local.tree_counting_caches,
+                        )
+                    });
+                    if let Some(style) = applied {
+                        return ResolvedStyle(style);
+                    }
+                    // (a style with animation rules is not kept: their values change every frame)
+                    false
+                } else if let Some(style) = kept {
                     // A copy of its own (the style structs stay shared): the style sharing cache
                     // takes two parents with one style `Arc` for parents that matched the same
                     // selectors, and lets their children share as cousins. Elements of other
                     // classes may get the same kept style, so it must not make them one `Arc`;
                     // elements that share this copy later do so through the sharing cache.
                     return ResolvedStyle(style.clone_with_flags(style.flags, None));
+                } else {
+                    self.context.shared.matched_properties_sink.is_some()
                 }
-                self.context.shared.matched_properties_sink.is_some()
             },
             _ => false,
         };

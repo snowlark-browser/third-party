@@ -142,6 +142,11 @@ bitflags! {
         /// Computed for every style from its `color-scheme`, the page color scheme and the
         /// preferred one (`Device::is_dark_color_scheme`); not inherited as a flag.
         const USED_DARK_COLOR_SCHEME = 1 << 28;
+
+        /// Snowlark patch (SNOWLARK-PATCHES.md 81): the element is an item of a legacy
+        /// `display: -webkit-box` (its layout parent's display), so layout reads its flex from
+        /// `-webkit-box-flex` and its order from `-webkit-box-ordinal-group`. Not inherited.
+        const IS_WEBKIT_BOX_ITEM = 1 << 29;
     }
 }
 

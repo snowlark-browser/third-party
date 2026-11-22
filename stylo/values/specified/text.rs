@@ -886,7 +886,7 @@ pub enum WordBreak {
     ///
     /// Specifying `word-break: break-word` makes `overflow-wrap` behave as
     /// `anywhere`, and `word-break` behave like `normal`.
-    #[cfg(feature = "gecko")]
+    // (Snowlark patch: in the servo build too; CSS Text 3 §5.2 keeps it for compatibility)
     BreakWord,
 }
 
@@ -1585,3 +1585,7 @@ impl TextBoxTrim {
         TextBoxTrim::NONE
     }
 }
+
+/// Snowlark patch (SNOWLARK-PATCHES.md 83): the specified value of `text-size-adjust`.
+pub type TextSizeAdjust =
+    crate::values::generics::text::GenericTextSizeAdjust<crate::values::specified::NonNegativePercentage>;

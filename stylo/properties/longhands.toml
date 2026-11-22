@@ -594,6 +594,8 @@ servo_restyle_damage = "repaint"
 affects = "paint"
 
 [column-count]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-column-count"]
 type = "ColumnCount"
 initial = "computed::ColumnCount::Auto"
 struct = "column"
@@ -606,12 +608,15 @@ affects = "layout"
 type = "length::NonNegativeLengthPercentageOrNormal"
 initial = "computed::length::NonNegativeLengthPercentageOrNormal::normal()"
 struct = "position"
-aliases = ["grid-column-gap"]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-column-gap", "grid-column-gap"]
 spec = "https://drafts.csswg.org/css-align-3/#propdef-column-gap"
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [column-rule-color]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-column-rule-color"]
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "column"
@@ -621,6 +626,8 @@ spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-color"
 affects = "paint"
 
 [column-rule-style]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-column-rule-style"]
 type = "BorderStyle"
 initial = "computed::BorderStyle::None"
 struct = "column"
@@ -630,6 +637,8 @@ spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-style"
 affects = "paint"
 
 [column-rule-width]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-column-rule-width"]
 type = "BorderSideWidth"
 initial = "computed::BorderSideWidth::medium()"
 struct = "column"
@@ -639,6 +648,8 @@ spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-width"
 affects = "layout"
 
 [column-width]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-column-width"]
 type = "length::NonNegativeLengthOrAuto"
 initial = "computed::length::NonNegativeLengthOrAuto::auto()"
 struct = "column"
@@ -1569,6 +1580,8 @@ affects = "layout"
 
 [outline-color]
 type = "Color"
+# Snowlark patch (SNOWLARK-PATCHES.md 83): takes `-webkit-focus-ring-color`.
+parse_method = "parse_outline_color"
 initial = "computed_value::T::currentcolor()"
 struct = "outline"
 ignored_when_colors_disabled = true
@@ -1864,7 +1877,6 @@ affects = "layout"
 type = "Resize"
 initial = "computed::Resize::None"
 struct = "box"
-engine = "gecko"
 animation_type = "discrete"
 gecko_ffi_name = "mResize"
 spec = "https://drafts.csswg.org/css-ui/#propdef-resize"
@@ -1912,29 +1924,29 @@ spec = "https://drafts.csswg.org/css-transforms-2/#individual-transforms"
 servo_restyle_damage = "recalculate_overflow"
 affects = "overflow"
 
+# Snowlark patch (SNOWLARK-PATCHES.md 85): in the servo build too (CSS Scroll Snap 1).
 [scroll-snap-align]
 type = "ScrollSnapAlign"
 initial = "computed::ScrollSnapAlign::none()"
 struct = "box"
-engine = "gecko"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#scroll-snap-align"
 animation_type = "discrete"
 affects = "paint"
 
+# Snowlark patch (SNOWLARK-PATCHES.md 85): in the servo build too (CSS Scroll Snap 1).
 [scroll-snap-stop]
 type = "ScrollSnapStop"
 initial = "computed::ScrollSnapStop::Normal"
 struct = "box"
-engine = "gecko"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#scroll-snap-stop"
 animation_type = "discrete"
 affects = "paint"
 
+# Snowlark patch (SNOWLARK-PATCHES.md 85): in the servo build too (CSS Scroll Snap 1).
 [scroll-snap-type]
 type = "ScrollSnapType"
 initial = "computed::ScrollSnapType::none()"
 struct = "box"
-engine = "gecko"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#scroll-snap-type"
 animation_type = "discrete"
 affects = "paint"
@@ -2580,7 +2592,6 @@ affects = "layout"
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "inherited_text"
-engine = "gecko"
 ignored_when_colors_disabled = true
 spec = "https://compat.spec.whatwg.org/#the-webkit-text-fill-color"
 affects = "paint"
@@ -2745,6 +2756,8 @@ servo_restyle_damage = "rebuild_stacking_context"
 affects = "overflow"
 
 [writing-mode]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-writing-mode"]
 type = "WritingModeProperty"
 initial = "computed::WritingModeProperty::HorizontalTb"
 struct = "inherited_box"
@@ -2927,6 +2940,8 @@ ignored_when_colors_disabled = true
 affects = "paint"
 
 [border-block-start-color]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-before-color"]
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "border"
@@ -2937,6 +2952,8 @@ ignored_when_colors_disabled = true
 affects = "paint"
 
 [border-block-end-color]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-after-color"]
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "border"
@@ -2947,6 +2964,8 @@ ignored_when_colors_disabled = true
 affects = "paint"
 
 [border-inline-start-color]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-start-color"]
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "border"
@@ -2958,6 +2977,8 @@ ignored_when_colors_disabled = true
 affects = "paint"
 
 [border-inline-end-color]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-end-color"]
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "border"
@@ -3009,6 +3030,8 @@ logical_group = "border-style"
 affects = "layout"
 
 [border-block-start-style]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-before-style"]
 type = "BorderStyle"
 initial = "specified::BorderStyle::None"
 struct = "border"
@@ -3020,6 +3043,8 @@ logical_group = "border-style"
 affects = "layout"
 
 [border-block-end-style]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-after-style"]
 type = "BorderStyle"
 initial = "specified::BorderStyle::None"
 struct = "border"
@@ -3031,6 +3056,8 @@ logical_group = "border-style"
 affects = "layout"
 
 [border-inline-start-style]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-start-style"]
 type = "BorderStyle"
 initial = "specified::BorderStyle::None"
 struct = "border"
@@ -3043,6 +3070,8 @@ logical_group = "border-style"
 affects = "layout"
 
 [border-inline-end-style]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-end-style"]
 type = "BorderStyle"
 initial = "specified::BorderStyle::None"
 struct = "border"
@@ -3099,6 +3128,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [border-block-start-width]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-before-width"]
 type = "BorderSideWidth"
 initial = "computed::BorderSideWidth::medium()"
 struct = "border"
@@ -3110,6 +3141,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [border-block-end-width]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-after-width"]
 type = "BorderSideWidth"
 initial = "computed::BorderSideWidth::medium()"
 struct = "border"
@@ -3121,6 +3154,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [border-inline-start-width]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-start-width"]
 type = "BorderSideWidth"
 initial = "computed::BorderSideWidth::medium()"
 struct = "border"
@@ -3133,6 +3168,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [border-inline-end-width]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-border-end-width"]
 type = "BorderSideWidth"
 initial = "computed::BorderSideWidth::medium()"
 struct = "border"
@@ -3385,6 +3422,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [margin-block-start]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-margin-before"]
 type = "Margin"
 initial = "computed::Margin::zero()"
 struct = "margin"
@@ -3398,6 +3437,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [margin-block-end]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-margin-after"]
 type = "Margin"
 initial = "computed::Margin::zero()"
 struct = "margin"
@@ -3411,6 +3452,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [margin-inline-start]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-margin-start"]
 type = "Margin"
 initial = "computed::Margin::zero()"
 struct = "margin"
@@ -3425,6 +3468,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [margin-inline-end]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-margin-end"]
 type = "Margin"
 initial = "computed::Margin::zero()"
 struct = "margin"
@@ -3585,6 +3630,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [padding-block-start]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-padding-before"]
 type = "NonNegativeLengthPercentage"
 initial = "computed::NonNegativeLengthPercentage::zero()"
 struct = "padding"
@@ -3596,6 +3643,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [padding-block-end]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-padding-after"]
 type = "NonNegativeLengthPercentage"
 initial = "computed::NonNegativeLengthPercentage::zero()"
 struct = "padding"
@@ -3607,6 +3656,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [padding-inline-start]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-padding-start"]
 type = "NonNegativeLengthPercentage"
 initial = "computed::NonNegativeLengthPercentage::zero()"
 struct = "padding"
@@ -3619,6 +3670,8 @@ servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [padding-inline-end]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-padding-end"]
 type = "NonNegativeLengthPercentage"
 initial = "computed::NonNegativeLengthPercentage::zero()"
 struct = "padding"
@@ -3772,6 +3825,8 @@ gecko_enum_prefix = "StyleBlend"
 gecko_inexhaustive = true
 
 [box-decoration-break]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-box-decoration-break"]
 struct = "border"
 spec = "https://drafts.csswg.org/css-break/#propdef-box-decoration-break"
 animation_type = "discrete"
@@ -3849,6 +3904,8 @@ affects = "layout"
 keyword = { values = ["balance", "auto"] }
 
 [column-span]
+# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
+aliases = ["-webkit-column-span"]
 struct = "column"
 spec = "https://drafts.csswg.org/css-multicol/#propdef-column-span"
 animation_type = "discrete"
@@ -4053,6 +4110,43 @@ affects = "layout"
 gecko_ffi_name = "mTextSizeAdjust"
 aliases = ["-webkit-text-size-adjust"]
 keyword = { values = ["auto", "none"] }
+
+# Snowlark patch (SNOWLARK-PATCHES.md 83): `text-size-adjust` with its percentages, and two
+# legacy properties the web sets everywhere (Compat), in the servo build.
+[text-size-adjust]
+type = "TextSizeAdjust"
+initial = "computed::TextSizeAdjust::Auto"
+struct = "inherited_text"
+engine = "servo"
+spec = "https://drafts.csswg.org/css-size-adjust/#adjustment-control"
+aliases = ["-webkit-text-size-adjust"]
+affects = "layout"
+
+[-webkit-tap-highlight-color]
+type = "Color"
+initial = "computed::Color::Absolute(crate::color::AbsoluteColor::srgb_legacy(0, 0, 0, 46.0 / 255.0))"
+struct = "inherited_text"
+engine = "servo"
+ignored_when_colors_disabled = true
+spec = "Nonstandard (https://compat.spec.whatwg.org/#the-webkit-tap-highlight-color)"
+affects = "paint"
+
+# Snowlark patch (SNOWLARK-PATCHES.md 84): what a press on the box drags (Compat).
+[-webkit-user-drag]
+struct = "box"
+engine = "servo"
+spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-user-drag)"
+animation_type = "discrete"
+affects = ""
+keyword = { values = ["auto", "none", "element"] }
+
+[-webkit-font-smoothing]
+struct = "inherited_text"
+engine = "servo"
+spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/font-smooth)"
+animation_type = "discrete"
+affects = "paint"
+keyword = { values = ["auto", "none", "antialiased", "subpixel-antialiased"] }
 
 [ruby-align]
 struct = "inherited_text"
@@ -4328,6 +4422,51 @@ spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-orient
 animation_type = "discrete"
 affects = "layout"
 keyword = { values = ["horizontal", "vertical"], servo_aliases = ["inline-axis=horizontal", "block-axis=vertical"] }
+
+# Snowlark patch (SNOWLARK-PATCHES.md 81): the rest of the legacy `-webkit-box` properties in the
+# servo build (Gecko has them as aliases of its XUL `-moz-box-*`). snowlark-render lays a
+# `-webkit-box` out as a flex container from them (Compat, `display: -webkit-box`).
+[-webkit-box-align]
+struct = "box"
+engine = "servo"
+spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-align)"
+animation_type = "discrete"
+affects = "layout"
+keyword = { values = ["stretch", "start", "center", "baseline", "end"] }
+
+[-webkit-box-direction]
+struct = "box"
+engine = "servo"
+spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-direction)"
+animation_type = "discrete"
+affects = "layout"
+keyword = { values = ["normal", "reverse"] }
+
+[-webkit-box-pack]
+struct = "box"
+engine = "servo"
+spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-pack)"
+animation_type = "discrete"
+affects = "layout"
+keyword = { values = ["start", "center", "end", "justify"] }
+
+[-webkit-box-flex]
+type = "NonNegativeNumber"
+initial = "From::from(0.)"
+struct = "box"
+engine = "servo"
+spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-flex)"
+affects = "layout"
+
+[-webkit-box-ordinal-group]
+type = "Integer"
+initial = "1"
+struct = "box"
+engine = "servo"
+parse_method = "parse_non_negative"
+animation_type = "discrete"
+spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/-moz-box-ordinal-group)"
+affects = "layout"
 
 [-moz-box-pack]
 struct = "xul"

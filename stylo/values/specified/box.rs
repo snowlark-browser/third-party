@@ -942,6 +942,19 @@ impl ScrollSnapType {
             strictness: ScrollSnapStrictness::None,
         }
     }
+
+    // Snowlark patch (SNOWLARK-PATCHES.md 85): read by the embedder's scroll snapping.
+    /// The axis the box snaps on.
+    #[inline]
+    pub fn axis(&self) -> ScrollSnapAxis {
+        self.axis
+    }
+
+    /// How strictly the box snaps (`None` for `scroll-snap-type: none`).
+    #[inline]
+    pub fn strictness(&self) -> ScrollSnapStrictness {
+        self.strictness
+    }
 }
 
 impl Parse for ScrollSnapType {
@@ -1035,6 +1048,19 @@ impl ScrollSnapAlign {
             block: ScrollSnapAlignKeyword::None,
             inline: ScrollSnapAlignKeyword::None,
         }
+    }
+
+    // Snowlark patch (SNOWLARK-PATCHES.md 85): read by the embedder's scroll snapping.
+    /// The alignment in the block axis.
+    #[inline]
+    pub fn block(&self) -> ScrollSnapAlignKeyword {
+        self.block
+    }
+
+    /// The alignment in the inline axis.
+    #[inline]
+    pub fn inline(&self) -> ScrollSnapAlignKeyword {
+        self.inline
     }
 }
 

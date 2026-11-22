@@ -437,6 +437,8 @@ impl Device {
                 SystemColor::Marktext => srgb(255, 255, 255),
                 SystemColor::Selecteditem => srgb(153, 200, 255),
                 SystemColor::Selecteditemtext => srgb(59, 59, 59),
+                // Snowlark patch (SNOWLARK-PATCHES.md 83): the focus ring colour of a dark scheme.
+                SystemColor::WebkitFocusRingColor => srgb(238, 238, 238),
             }
         } else {
             match system_color {
@@ -481,12 +483,15 @@ impl Device {
                 SystemColor::Graytext
                 // Deprecated system colors (CSS Color 4) mapped to Graytext.
                 | SystemColor::Inactivecaptiontext => srgb(109, 109, 109),
-                SystemColor::Highlight => srgb(0, 65, 198),
-                SystemColor::Highlighttext => srgb(0, 0, 0),
+                // Snowlark patch: Highlight and HighlightText are Windows' default selection colors.
+                SystemColor::Highlight => srgb(0, 120, 215),
+                SystemColor::Highlighttext => srgb(255, 255, 255),
                 SystemColor::Mark => srgb(255, 235, 59),
                 SystemColor::Marktext => srgb(0, 0, 0),
                 SystemColor::Selecteditem => srgb(0, 102, 204),
                 SystemColor::Selecteditemtext => srgb(255, 255, 255),
+                // Snowlark patch (SNOWLARK-PATCHES.md 83): the platform's focus ring colour.
+                SystemColor::WebkitFocusRingColor => srgb(16, 16, 16),
             }
         }
     }

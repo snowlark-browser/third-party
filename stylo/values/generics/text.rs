@@ -266,3 +266,34 @@ impl<LengthPercentage: Zero> GenericTextIndent<LengthPercentage> {
         }
     }
 }
+
+/// Snowlark patch (SNOWLARK-PATCHES.md 83): the value of `text-size-adjust`.
+///
+/// <https://drafts.csswg.org/css-size-adjust/#adjustment-control>
+#[derive(
+    Animate,
+    Clone,
+    ComputeSquaredDistance,
+    Copy,
+    Debug,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToAnimatedValue,
+    ToAnimatedZero,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(C, u8)]
+pub enum GenericTextSizeAdjust<P> {
+    /// `auto`
+    Auto,
+    /// `none`
+    None,
+    /// `<percentage [0,∞]>`
+    Percentage(P),
+}

@@ -131,6 +131,54 @@ where
     false
 }
 
+/// Snowlark patch 73: the servo build's [unboxing of unusual elements](
+/// https://drafts.csswg.org/css-display/#unbox): the elements whose `display: contents` computes
+/// to `none`, as the gecko build's list above, compared by name (the servo build has no `atom!`).
+#[cfg(feature = "servo")]
+fn is_effective_display_none_for_display_contents<E>(element: E) -> bool
+where
+    E: TElement,
+{
+    // https://drafts.csswg.org/css-display/#unbox-html
+    if element.is_html_element() {
+        return matches!(
+            &**element.local_name(),
+            "br" | "wbr"
+                | "meter"
+                | "progress"
+                | "canvas"
+                | "embed"
+                | "object"
+                | "audio"
+                | "iframe"
+                | "img"
+                | "video"
+                | "frame"
+                | "frameset"
+                | "input"
+                | "textarea"
+                | "select"
+        );
+    }
+    // https://drafts.csswg.org/css-display/#unbox-svg: an `svg` element that is not the topmost
+    // one, or one inside `foreignObject`, unboxes as `svg`, `a`, `g`, `use`, `tspan` and
+    // `textPath` do; any other SVG element computes to `none`.
+    if element.is_svg_element() {
+        let name = &**element.local_name();
+        if name == "svg" {
+            let topmost = element.traversal_parent().map_or(true, |parent| {
+                !parent.is_svg_element() || &**parent.local_name() == "foreignObject"
+            });
+            if topmost {
+                return true;
+            }
+        }
+        return !matches!(name, "svg" | "a" | "g" | "use" | "tspan" | "textPath");
+    }
+    // https://drafts.csswg.org/css-display/#unbox-mathml
+    element.is_mathml_element()
+}
+
 impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
     /// Trivially constructs a new StyleAdjuster.
     #[inline]
@@ -241,6 +289,11 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
         if !self.skip_item_display_fixup(element) {
             let parent_display = layout_parent_style.get_box().clone_display();
             blockify_if!(parent_display.is_item_container());
+            // Snowlark patch (SNOWLARK-PATCHES.md 81): an item of a legacy `-webkit-box`.
+            if parent_display.inside() == crate::values::specified::box_::DisplayInside::WebkitBox
+            {
+                self.style.add_flags(ComputedValueFlags::IS_WEBKIT_BOX_ITEM);
+            }
         }
 
         let is_item_or_root = blockify;
@@ -548,6 +601,22 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
         };
 
         if is_effective_display_none_for_display_contents(element) {
+            self.style.mutate_box().set_display(Display::None);
+        }
+    }
+
+    /// Snowlark patch 73: `display: contents` on an element that cannot be unboxed computes to
+    /// `none` (https://drafts.csswg.org/css-display/#unbox). Pseudo-elements keep it.
+    #[cfg(feature = "servo")]
+    fn adjust_for_prohibited_display_contents<E>(&mut self, element: Option<E>)
+    where
+        E: TElement,
+    {
+        if self.style.get_box().clone_display() != Display::Contents || self.style.pseudo.is_some()
+        {
+            return;
+        }
+        if element.is_some_and(is_effective_display_none_for_display_contents) {
             self.style.mutate_box().set_display(Display::None);
         }
     }
@@ -1066,6 +1135,9 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
         // );
 
         self.adjust_for_visited(element);
+        // (Snowlark patch 73)
+        #[cfg(feature = "servo")]
+        self.adjust_for_prohibited_display_contents(element);
         #[cfg(feature = "gecko")]
         {
             self.adjust_for_prohibited_display_contents(element);

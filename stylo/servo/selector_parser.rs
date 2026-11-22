@@ -57,6 +57,10 @@ pub enum PseudoElement {
     Backdrop,
     DetailsContent,
     Marker,
+    // Snowlark patch: the highlight pseudo-elements besides `::selection` (CSS Pseudo 4 §3.1).
+    TargetText,
+    SpellingError,
+    GrammarError,
 
     // Implemented pseudos. These pseudo elements are representing the
     // elements within an UA shadow DOM, and matching the elements with
@@ -78,6 +82,50 @@ pub enum PseudoElement {
     WebkitMeterSuboptimumValue,
     WebkitMeterEvenLessGoodValue,
 
+    // Snowlark patch: the parts of a scroll container's custom scroll bars (a compat feature:
+    // their styles, cascaded lazily from the scroll container, say how its bars are drawn). Keep
+    // them together, `WebkitScrollbar` first and `WebkitScrollbarCorner` last.
+    WebkitScrollbar,
+    WebkitScrollbarThumb,
+    WebkitScrollbarTrack,
+    WebkitScrollbarTrackPiece,
+    WebkitScrollbarButton,
+    WebkitScrollbarCorner,
+
+    // Snowlark patch: Selectors 4 §compat, `::-webkit-` pseudo-elements are valid. The parts of
+    // form controls that pages style under these names, which this engine does not have (they
+    // match nothing; the stylist drops their rules), then any other name. Keep them together,
+    // `WebkitInnerSpinButton` first and `UnknownWebkit` last.
+    WebkitInnerSpinButton,
+    WebkitOuterSpinButton,
+    WebkitSearchCancelButton,
+    WebkitSearchDecoration,
+    WebkitSearchResultsButton,
+    WebkitSearchResultsDecoration,
+    WebkitSliderThumb,
+    WebkitSliderRunnableTrack,
+    WebkitSliderContainer,
+    WebkitCalendarPickerIndicator,
+    WebkitClearButton,
+    WebkitColorSwatch,
+    WebkitColorSwatchWrapper,
+    WebkitDatetimeEdit,
+    WebkitDatetimeEditFieldsWrapper,
+    WebkitDatetimeEditText,
+    WebkitDatetimeEditYearField,
+    WebkitDatetimeEditMonthField,
+    WebkitDatetimeEditDayField,
+    WebkitDatetimeEditHourField,
+    WebkitDatetimeEditMinuteField,
+    WebkitDatetimeEditSecondField,
+    WebkitDatetimeEditMillisecondField,
+    WebkitDatetimeEditAmpmField,
+    WebkitDatetimeEditWeekField,
+    WebkitDetailsMarker,
+    WebkitTextfieldDecorationContainer,
+    WebkitResizer,
+    UnknownWebkit,
+
     // Private, Servo-specific implemented pseudos. Only matchable in UA sheet.
     ServoTextControlInnerContainer,
     ServoTextControlInnerEditor,
@@ -94,6 +142,48 @@ pub enum PseudoElement {
 /// The count of all pseudo-elements.
 pub const PSEUDO_COUNT: usize = PseudoElement::ServoTableWrapper as usize + 1;
 
+/// Snowlark patch: the `::-webkit-` parts this engine parses by name: the scroll bar parts, then
+/// the ones it does not have.
+const WEBKIT_PARTS: &[(&str, PseudoElement)] = {
+    use self::PseudoElement::*;
+    &[
+        ("-webkit-inner-spin-button", WebkitInnerSpinButton),
+        ("-webkit-outer-spin-button", WebkitOuterSpinButton),
+        ("-webkit-search-cancel-button", WebkitSearchCancelButton),
+        ("-webkit-search-decoration", WebkitSearchDecoration),
+        ("-webkit-search-results-button", WebkitSearchResultsButton),
+        ("-webkit-search-results-decoration", WebkitSearchResultsDecoration),
+        ("-webkit-slider-thumb", WebkitSliderThumb),
+        ("-webkit-slider-runnable-track", WebkitSliderRunnableTrack),
+        ("-webkit-slider-container", WebkitSliderContainer),
+        ("-webkit-calendar-picker-indicator", WebkitCalendarPickerIndicator),
+        ("-webkit-clear-button", WebkitClearButton),
+        ("-webkit-color-swatch", WebkitColorSwatch),
+        ("-webkit-color-swatch-wrapper", WebkitColorSwatchWrapper),
+        ("-webkit-datetime-edit", WebkitDatetimeEdit),
+        ("-webkit-datetime-edit-fields-wrapper", WebkitDatetimeEditFieldsWrapper),
+        ("-webkit-datetime-edit-text", WebkitDatetimeEditText),
+        ("-webkit-datetime-edit-year-field", WebkitDatetimeEditYearField),
+        ("-webkit-datetime-edit-month-field", WebkitDatetimeEditMonthField),
+        ("-webkit-datetime-edit-day-field", WebkitDatetimeEditDayField),
+        ("-webkit-datetime-edit-hour-field", WebkitDatetimeEditHourField),
+        ("-webkit-datetime-edit-minute-field", WebkitDatetimeEditMinuteField),
+        ("-webkit-datetime-edit-second-field", WebkitDatetimeEditSecondField),
+        ("-webkit-datetime-edit-millisecond-field", WebkitDatetimeEditMillisecondField),
+        ("-webkit-datetime-edit-ampm-field", WebkitDatetimeEditAmpmField),
+        ("-webkit-datetime-edit-week-field", WebkitDatetimeEditWeekField),
+        ("-webkit-details-marker", WebkitDetailsMarker),
+        ("-webkit-textfield-decoration-container", WebkitTextfieldDecorationContainer),
+        ("-webkit-scrollbar", WebkitScrollbar),
+        ("-webkit-scrollbar-thumb", WebkitScrollbarThumb),
+        ("-webkit-scrollbar-track", WebkitScrollbarTrack),
+        ("-webkit-scrollbar-track-piece", WebkitScrollbarTrackPiece),
+        ("-webkit-scrollbar-button", WebkitScrollbarButton),
+        ("-webkit-scrollbar-corner", WebkitScrollbarCorner),
+        ("-webkit-resizer", WebkitResizer),
+    ]
+};
+
 impl ToCss for PseudoElement {
     fn to_css<W>(&self, dest: &mut W) -> fmt::Result
     where
@@ -108,6 +198,9 @@ impl ToCss for PseudoElement {
             Backdrop => "::backdrop",
             DetailsContent => "::details-content",
             Marker => "::marker",
+            TargetText => "::target-text",
+            SpellingError => "::spelling-error",
+            GrammarError => "::grammar-error",
             ColorSwatch => "::color-swatch",
             FileSelectorButton => "::file-selector-button",
             Placeholder => "::placeholder",
@@ -131,6 +224,17 @@ impl ToCss for PseudoElement {
             ServoAnonymousTableRow => "::-servo-anonymous-table-row",
             ServoTableGrid => "::-servo-table-grid",
             ServoTableWrapper => "::-servo-table-wrapper",
+            // (the name of any other `-webkit-` pseudo-element is not kept)
+            UnknownWebkit => "::-webkit-unknown",
+            ref p => {
+                dest.write_str("::")?;
+                return dest.write_str(
+                    WEBKIT_PARTS
+                        .iter()
+                        .find(|(_, q)| q == p)
+                        .map_or("-webkit-unknown", |(name, _)| name),
+                );
+            },
         })
     }
 }
@@ -162,6 +266,13 @@ impl ::selectors::parser::PseudoElement for PseudoElement {
     fn is_before_or_after(&self) -> bool {
         matches!(self, Self::Before | Self::After)
     }
+
+    /// Snowlark patch: user action pseudo-classes may follow a `::-webkit-` pseudo-element
+    /// (`::-webkit-scrollbar-thumb:hover`), as in Gecko. (A scroll bar part's style is cascaded
+    /// without state, so such a rule does not apply to it.)
+    fn accepts_state_pseudo_classes(&self) -> bool {
+        self.is_unknown_webkit_pseudo_element() || self.is_webkit_scrollbar_part()
+    }
 }
 
 /// The number of eager pseudo-elements. Keep this in sync with cascade_type.
@@ -183,7 +294,8 @@ impl PseudoElement {
 
     /// An array of `None`, one per pseudo-element.
     pub fn pseudo_none_array<T>() -> [Option<T>; PSEUDO_COUNT] {
-        Default::default()
+        // Snowlark patch: more than 32 pseudo-elements (arrays that long have no `Default`).
+        std::array::from_fn(|_| None)
     }
 
     /// Creates a pseudo-element from an eager index.
@@ -205,7 +317,17 @@ impl PseudoElement {
     /// Whether this is an unknown ::-webkit- pseudo-element.
     #[inline]
     pub fn is_unknown_webkit_pseudo_element(&self) -> bool {
-        false
+        // Snowlark patch: the `::-webkit-` parts this engine does not have.
+        (PseudoElement::WebkitInnerSpinButton as u8..=PseudoElement::UnknownWebkit as u8)
+            .contains(&(*self as u8))
+    }
+
+    /// Snowlark patch: whether this is a part of a custom scroll bar (`::-webkit-scrollbar` and
+    /// its `-thumb`, `-track`, `-track-piece`, `-button` and `-corner`).
+    #[inline]
+    pub fn is_webkit_scrollbar_part(&self) -> bool {
+        (PseudoElement::WebkitScrollbar as u8..=PseudoElement::WebkitScrollbarCorner as u8)
+            .contains(&(*self as u8))
     }
 
     /// Whether this pseudo-element is the ::marker pseudo.
@@ -299,6 +421,9 @@ impl PseudoElement {
             | PseudoElement::ColorSwatch
             | PseudoElement::FileSelectorButton
             | PseudoElement::Marker
+            | PseudoElement::TargetText
+            | PseudoElement::SpellingError
+            | PseudoElement::GrammarError
             | PseudoElement::Placeholder
             | PseudoElement::DetailsContent
             | PseudoElement::SliderFill
@@ -321,6 +446,8 @@ impl PseudoElement {
             | PseudoElement::ServoAnonymousTableRow
             | PseudoElement::ServoTableGrid
             | PseudoElement::ServoTableWrapper => PseudoElementCascadeType::Precomputed,
+            // (the `::-webkit-` parts this engine does not have)
+            _ => PseudoElementCascadeType::Lazy,
         }
     }
 
@@ -344,6 +471,11 @@ impl PseudoElement {
                 PropertyFlags::APPLIES_TO_MARKER
             },
             PseudoElement::Placeholder => PropertyFlags::APPLIES_TO_PLACEHOLDER,
+            // Snowlark patch: CSS Pseudo 4 §3.2, the properties that apply to highlights.
+            PseudoElement::Selection
+            | PseudoElement::TargetText
+            | PseudoElement::SpellingError
+            | PseudoElement::GrammarError => PropertyFlags::APPLIES_TO_HIGHLIGHT,
             _ => return None,
         })
     }
@@ -376,7 +508,16 @@ impl PseudoElement {
     /// Whether this pseudo-element is the ::target-text pseudo.
     #[inline]
     pub fn is_target_text(&self) -> bool {
-        false
+        *self == PseudoElement::TargetText
+    }
+
+    /// Snowlark patch: whether this is one of the highlight pseudo-elements (CSS Pseudo 4 §3.1).
+    #[inline]
+    pub fn is_highlight_pseudo(&self) -> bool {
+        matches!(
+            self,
+            Self::Selection | Self::TargetText | Self::SpellingError | Self::GrammarError
+        )
     }
 
     /// Whether this is a highlight pseudo-element that is styled lazily during
@@ -724,6 +865,11 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
             "user-valid" => NonTSPseudoClass::UserValid,
             "valid" => NonTSPseudoClass::Valid,
             "visited" => NonTSPseudoClass::Visited,
+            // Snowlark patch: legacy names. `:-webkit-autofill` is HTML's own alias of `:autofill`
+            // (§4.16.3); the other two are the compat names of `:fullscreen` and `:any-link`.
+            "-webkit-autofill" => NonTSPseudoClass::Autofill,
+            "-webkit-full-screen" => NonTSPseudoClass::Fullscreen,
+            "-webkit-any-link" => NonTSPseudoClass::AnyLink,
             "-moz-meter-optimum" => NonTSPseudoClass::MozMeterOptimum,
             "-moz-meter-sub-optimum" => NonTSPseudoClass::MozMeterSubOptimum,
             "-moz-meter-sub-sub-optimum" => NonTSPseudoClass::MozMeterSubSubOptimum,
@@ -786,6 +932,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
             "file-selector-button" => FileSelectorButton,
             "first-letter" => FirstLetter,
             "marker" => Marker,
+            "target-text" => TargetText,
+            "spelling-error" => SpellingError,
+            "grammar-error" => GrammarError,
             "details-content" => DetailsContent,
             "color-swatch" => ColorSwatch,
             "placeholder" => Placeholder,
@@ -849,7 +998,25 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
                 }
                 ServoTableWrapper
             },
-            _ => return Err(ParseError::custom(SelectorParseErrorKind::UnexpectedIdent))
+            // Snowlark patch: the legacy names of `::placeholder` and `::file-selector-button`
+            // (CSS Pseudo 4 §5.2, §5.3), then the other `::-webkit-` pseudo-elements, valid by
+            // Selectors 4 §compat (an unknown one is not supported in `@supports`, as CSS
+            // Conditional 4 §8.1's `selector()` asks).
+            "-webkit-input-placeholder" => Placeholder,
+            "-webkit-file-upload-button" => FileSelectorButton,
+            _ => {
+                if let Some((_, part)) = WEBKIT_PARTS
+                    .iter()
+                    .find(|(n, _)| n.eq_ignore_ascii_case(&name))
+                {
+                    return Ok(*part);
+                }
+                let webkit = name.len() > 8 && name.as_bytes()[..8].eq_ignore_ascii_case(b"-webkit-");
+                if webkit && !self.for_supports_rule {
+                    return Ok(UnknownWebkit);
+                }
+                return Err(ParseError::custom(SelectorParseErrorKind::UnexpectedIdent))
+            }
 
         };
 

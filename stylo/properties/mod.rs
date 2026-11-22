@@ -68,6 +68,8 @@ bitflags! {
         const IS_LEGACY_SHORTHAND = 1 << 6;
        /// This shorthand remains enabled even if some subproperties are pref-disabled.
         const ALLOWS_DISABLED_SUBPROPERTIES = 1 << 7;
+        /// Snowlark patch: this longhand property applies to the highlight pseudo-elements.
+        const APPLIES_TO_HIGHLIGHT = 1 << 8;
 
         /* The following flags are currently not used in Rust code, they
          * only need to be listed in corresponding properties so that

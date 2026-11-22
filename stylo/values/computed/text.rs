@@ -197,3 +197,7 @@ pub enum TextEmphasisStyle {
     /// `<string>` (of which only the first grapheme cluster will be used).
     String(crate::OwnedStr),
 }
+
+/// Snowlark patch (SNOWLARK-PATCHES.md 83): the computed value of `text-size-adjust`.
+pub type TextSizeAdjust =
+    crate::values::generics::text::GenericTextSizeAdjust<crate::values::computed::NonNegativePercentage>;

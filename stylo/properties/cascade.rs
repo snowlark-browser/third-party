@@ -467,6 +467,161 @@ where
     context.builder.build()
 }
 
+/// Snowlark patch 72: the properties whose transitions [`apply_transitions_to_base`] applies to
+/// a base style. None of them is read when another property of the same element is computed or
+/// adjusted (unlike the font properties, `line-height`, `zoom`, the writing mode, `display`,
+/// `position`, `float`, the border and outline styles, `overflow` or the containment properties).
+#[cfg(feature = "servo")]
+fn transition_applies_to_base(id: LonghandId) -> bool {
+    matches!(
+        id,
+        LonghandId::Opacity
+            | LonghandId::Transform
+            | LonghandId::Translate
+            | LonghandId::Rotate
+            | LonghandId::Scale
+            | LonghandId::TransformOrigin
+            | LonghandId::Color
+            | LonghandId::BackgroundColor
+            | LonghandId::BorderTopColor
+            | LonghandId::BorderRightColor
+            | LonghandId::BorderBottomColor
+            | LonghandId::BorderLeftColor
+            | LonghandId::OutlineColor
+            | LonghandId::TextDecorationColor
+            | LonghandId::BoxShadow
+            | LonghandId::TextShadow
+            | LonghandId::Filter
+            | LonghandId::BackdropFilter
+            | LonghandId::Visibility
+            | LonghandId::Width
+            | LonghandId::Height
+            | LonghandId::MinWidth
+            | LonghandId::MinHeight
+            | LonghandId::MaxWidth
+            | LonghandId::MaxHeight
+            | LonghandId::Top
+            | LonghandId::Right
+            | LonghandId::Bottom
+            | LonghandId::Left
+            | LonghandId::MarginTop
+            | LonghandId::MarginRight
+            | LonghandId::MarginBottom
+            | LonghandId::MarginLeft
+            | LonghandId::PaddingTop
+            | LonghandId::PaddingRight
+            | LonghandId::PaddingBottom
+            | LonghandId::PaddingLeft
+            | LonghandId::BorderTopLeftRadius
+            | LonghandId::BorderTopRightRadius
+            | LonghandId::BorderBottomRightRadius
+            | LonghandId::BorderBottomLeftRadius
+            | LonghandId::BackgroundPositionX
+            | LonghandId::BackgroundPositionY
+            | LonghandId::BackgroundSize
+            | LonghandId::ClipPath
+            | LonghandId::LetterSpacing
+            | LonghandId::WordSpacing
+            | LonghandId::Fill
+            | LonghandId::FillOpacity
+            | LonghandId::Stroke
+            | LonghandId::StrokeOpacity
+            | LonghandId::FlexGrow
+            | LonghandId::FlexShrink
+            | LonghandId::FlexBasis
+            | LonghandId::RowGap
+            | LonghandId::ColumnGap
+    )
+}
+
+/// Snowlark patch 72: the style that `rules` give an element whose rules without their
+/// transitions gave `base` (under `parent_style`): `base` with the values of the transitions
+/// applied over it, as a cascade of `rules` would end (transitions are the last origin of the
+/// cascade, CSS Cascade 5 §6.1). `None` when `rules` hold animations other than transitions, or a
+/// transition of a property that is not one of [`transition_applies_to_base`]'s, whose value
+/// other properties may depend on: the caller cascades `rules` then.
+#[cfg(feature = "servo")]
+pub fn apply_transitions_to_base<E>(
+    stylist: &Stylist,
+    rules: &StrongRuleNode,
+    guards: &StylesheetGuards,
+    base: &ComputedValues,
+    parent_style: &ComputedValues,
+    element: E,
+    tree_counting_caches: &mut TreeCountingCaches,
+) -> Option<Arc<ComputedValues>>
+where
+    E: TElement,
+{
+    let device = stylist.device();
+    // (forced colors change the values of the color properties as they are cascaded)
+    if device.forced_colors().is_active() {
+        return None;
+    }
+    let mut transitions = SmallVec::<[&StrongRuleNode; 2]>::new();
+    for node in rules.self_and_ancestors() {
+        let level = node.cascade_level();
+        if level.origin() == CascadeOrigin::Transitions {
+            transitions.push(node);
+        } else if level.is_animation() {
+            return None;
+        } else if !level.is_important() {
+            break;
+        }
+    }
+    if transitions.is_empty() {
+        return None;
+    }
+    // (the transitions' blocks hold computed values: no variables, no CSS-wide keywords)
+    let mut declarations = SmallVec::<[(&PropertyDeclaration, CascadeLevel); 8]>::new();
+    for node in &transitions {
+        let level = node.cascade_level();
+        let guard = level.origin().guard(guards);
+        let block = node.style_source()?.read(guard);
+        // (in the cascade's order: a block's last declaration of a property wins)
+        for (declaration, importance) in block.declaration_importance_iter().rev() {
+            let id = declaration.id().as_longhand()?;
+            if importance.important()
+                || id.is_logical()
+                || !transition_applies_to_base(id)
+                || declaration.get_css_wide_keyword().is_some()
+            {
+                return None;
+            }
+            declarations.push((declaration, level));
+        }
+    }
+
+    let mut builder = StyleBuilder::for_derived_style(device, Some(stylist), base, Some(parent_style));
+    builder.rules = Some(rules.clone());
+    let mut conditions = RuleCacheConditions::default();
+    let container_size_query =
+        ContainerSizeQuery::for_option_element(Some(element), Some(parent_style), false);
+    let originating_element = element.ultimate_originating_element();
+    let mut context = computed::Context::new(
+        builder,
+        stylist.quirks_mode(),
+        &mut conditions,
+        container_size_query,
+        RuleCascadeFlags::empty(),
+        &originating_element as &dyn ElementContext,
+        tree_counting_caches,
+    );
+    // (the first declaration of a property wins: the outermost rule node comes first)
+    let mut seen = LonghandIdSet::default();
+    for (declaration, level) in declarations {
+        let id = declaration.id().as_longhand().unwrap();
+        if seen.contains(id) {
+            continue;
+        }
+        seen.insert(id);
+        context.scope = level;
+        // SAFETY: `declaration` is a declaration of `id`, whose function `CASCADE_PROPERTY` holds.
+        unsafe { (CASCADE_PROPERTY[id as usize])(declaration, &mut context) }
+    }
+    Some(context.builder.build())
+}
+
 /// For ignored colors mode, we sometimes want to do something equivalent to
 /// "revert-or-initial", where we `revert` for a given origin, but then apply a
 /// given initial value if nothing in other origins did override it.

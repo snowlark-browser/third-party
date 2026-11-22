@@ -379,10 +379,10 @@ index 00000000..d0a1fa14
 +  defined by the Mozilla Public License, v. 2.0.
 diff --git a/SNOWLARK-PATCHES.md b/SNOWLARK-PATCHES.md
 new file mode 100644
-index 00000000..0779de79
+index 00000000..6a61b0d8
 --- /dev/null
 +++ b/SNOWLARK-PATCHES.md
-@@ -0,0 +1,406 @@
+@@ -0,0 +1,498 @@
 +# stylo 0.22.0, patched for Snowlark
 +
 +This is stylo 0.22.0 from crates.io (the first commit that adds this directory is the unmodified release),
@@ -786,6 +786,98 @@ index 00000000..0779de79
 +   a slot of its own in `ScopedTLS` (one more than the pool's threads) and the workers' local queue
 +   size; work goes to the pool only when a level of the tree has enough elements to share, as the
 +   traversal does on a thread of the pool. The embedder can then offer the pool to every restyle.
++72. **Running transitions applied over a kept base style** (`style_resolver.rs`
++   `cascade_style_and_visited`, `properties/cascade.rs` `apply_transitions_to_base`): an element with
++   a running transition was cascaded in full on every restyle (patch 66 keeps no style with animation
++   rules). Its rules without the transitions (`remove_animation_rules`) are its after-change rules,
++   whose style patch 66 keeps; the element now gets that style with the transitions' computed values
++   applied over it, as the cascade ends with the transitions origin. Only when the rules hold no
++   other animation level and every transitioning property is one no other property of the element
++   reads or adjusts (opacity, transforms, colors, shadows, filters, visibility, sizes, insets,
++   margins, paddings, radii, background position and size, clip path, spacing, SVG paint, flex and
++   gap; not the font properties, `line-height`, `zoom`, the writing mode, `display`, `position`,
++   `float`, border or outline styles, `overflow`, containment). Otherwise the rules are cascaded as
++   before. No style changes.
++
++73. **Unusual elements' `display: contents` in the servo build** (`style_adjuster.rs`, CSS Display 3
++   §2.5, "Unboxing"): upstream computes `display: contents` to `none` for the elements that cannot be
++   unboxed (`br`, `wbr`, `meter`, `progress`, `canvas`, `embed`, `object`, `audio`, `iframe`, `img`,
++   `video`, `frame`, `frameset`, `input`, `textarea`, `select`; SVG elements other than a nested `svg`,
++   `a`, `g`, `use`, `tspan` and `textPath`; MathML elements) only in the gecko build. The servo build now
++   does the same, comparing local names as strings; pseudo-elements keep `contents`.
++
++74. **The highlight pseudo-elements** (`servo/selector_parser.rs`, `properties/data.py`, `properties/mod.rs`,
++   `properties/properties.mako.rs`; CSS Pseudo-Elements 4 §3): the servo build parses `::target-text`,
++   `::spelling-error` and `::grammar-error` (lazy, like the other pseudo-elements the traversal does not
++   style) and has `is_highlight_pseudo()`. A new property flag, `APPLIES_TO_HIGHLIGHT` (`color`,
++   `background-color`, `text-decoration` and its longhands, `text-underline-offset`, `text-underline-position`,
++   `text-shadow`, `fill`, `stroke`, `stroke-width`; §3.2), is the property restriction of those three and of
++   `::selection`, so their cascade ignores every other property (custom properties pass, as for the other
++   restrictions). `pseudo_none_array` is built with `std::array::from_fn`: with more than 32 pseudo-elements
++   the array has no `Default`.
++
++75. **`Highlight` and `HighlightText`** (`device/servo.rs`, CSS Color 4 §6.2): in the light color scheme the
++   system colors of selected text are Windows' default selection colors, rgb(0, 120, 215) and white (upstream:
++   rgb(0, 65, 198) and black), the colors the engine paints a selection in where no `::selection` colors are
++   declared. The dark scheme keeps upstream's values.
++
++76. **`word-break: break-word` in the servo build** (`values/specified/text.rs`, CSS Text 3 §5.2): upstream
++   parses the value only with the `gecko` feature. It is the deprecated value the spec keeps for
++   compatibility: `word-break: normal` with `overflow-wrap: anywhere`, which snowlark-layout's line
++   breaking applies.
++
++77. **`::-webkit-` pseudo-elements and legacy pseudo-class names** (`servo/selector_parser.rs`, Selectors 4
++   §compat): any `::-webkit-` pseudo-element is valid. The form control and scrollbar parts pages style under
++   these names (`::-webkit-inner-spin-button`, `::-webkit-scrollbar-thumb` and others, by name) and any other
++   `-webkit-` name (`UnknownWebkit`, serialized as `::-webkit-unknown`; not supported in `@supports`, as in
++   Gecko) parse as pseudo-elements the stylist drops (`is_unknown_webkit_pseudo_element`), after which user
++   action pseudo-classes may follow. `::-webkit-input-placeholder` and `::-webkit-file-upload-button` are
++   `::placeholder` and `::file-selector-button`; `:-webkit-autofill`, `:-webkit-full-screen` and
++   `:-webkit-any-link` are `:autofill`, `:fullscreen` and `:any-link`.
++78. **Custom scroll bar parts** (`servo/selector_parser.rs`): `::-webkit-scrollbar`, `-thumb`, `-track`,
++   `-track-piece`, `-button` and `-corner` are lazily cascaded pseudo-elements (`is_webkit_scrollbar_part`),
++   no longer among the parts patch 77 drops: the engine reads them from a scroll container to draw its scroll
++   bars. A user action pseudo-class may follow them; their styles are cascaded without state, so the stylist
++   (`stylist.rs` `add_styles`) leaves such rules out.
++79. **`resize` in the servo build** (`properties/longhands.toml`, CSS UI 4 §5.1): upstream builds the
++   longhand only for the `gecko` engine. The computed value (logical `block`/`inline` resolved against the
++   writing mode) is upstream's; snowlark-layout reads it to place the resizer of a scroll container.
++80. **Gradient text in the servo build** (`values/specified/background.rs`, `properties/longhands.toml`): upstream
++   parses `background-clip: text` (CSS Backgrounds 4 §2.1) and builds `-webkit-text-fill-color` (Compat §5.4)
++   only with the `gecko` feature. Both are in the servo build: snowlark-layout clips a `text` layer to the
++   glyphs of the box's text and fills glyphs with the fill colour.
++81. **The legacy `-webkit-box` properties in the servo build** (`properties/longhands.toml`,
++   `properties/computed_value_flags.rs`, `style_adjuster.rs`): upstream has `-webkit-box-align`, `-direction`,
++   `-pack`, `-flex` and `-ordinal-group` only as Gecko aliases of its XUL properties. They are servo longhands
++   in the box struct, as `-webkit-box-orient` is (patch 11). An element whose layout parent is a `-webkit-box`
++   gets the flag `IS_WEBKIT_BOX_ITEM`, so snowlark-render can give it the legacy box's item rules (its flex
++   from `-webkit-box-flex`, its order from `-webkit-box-ordinal-group`) without changing computed values.
++82. **The legacy `-webkit-` names of logical, multi-column and fragmentation properties**
++   (`properties/longhands.toml`, `properties/shorthands.toml`, `properties/counted_unknown_properties.py`,
++   `values/specified/length.rs`): upstream has none
++   of them. They are aliases, as the web relies on: `-webkit-margin-`/`-padding-`/`-border-` `start`/`end`/
++   `before`/`after` (and the borders' `-color`/`-style`/`-width`) of the inline and block start and end
++   properties, `-webkit-column-count`/`-gap`/`-width`/`-span`/`-rule` (and its longhands)/`-webkit-columns`,
++   `-webkit-box-decoration-break` and `-webkit-writing-mode`. Sizes take `-webkit-min-content`,
++   `-webkit-max-content` and `-webkit-fit-content` as the keywords without the prefix (as `-moz-` ones).
++83. **`-webkit-focus-ring-color`, `-webkit-tap-highlight-color`, `-webkit-font-smoothing` and
++   `text-size-adjust`** (`values/specified/color.rs`, `device/servo.rs`, `properties/longhands.toml`,
++   `properties/shorthands.rs`, `properties/counted_unknown_properties.py`, `values/*/text.rs`, Compat and CSS
++   Size Adjust 1): the servo `SystemColor` gets `-webkit-focus-ring-color` (rgb(16, 16, 16), or
++   rgb(238, 238, 238) in a dark scheme), which `outline-color` and `outline` take (`Color::parse_outline_color`)
++   and any colour takes in a UA sheet or in quirks mode. `-webkit-tap-highlight-color` (inherited colour,
++   initially 18% black) and `-webkit-font-smoothing` (`auto | none | antialiased | subpixel-antialiased`) are
++   inherited servo longhands that nothing reads yet; `text-size-adjust` (`auto | none | <percentage [0,∞]>`,
++   alias `-webkit-text-size-adjust`, `GenericTextSizeAdjust`) is one too: text autosizing is for small
++   screens, so no desktop layout changes with it.
++84. **`-webkit-user-drag` in the servo build** (`properties/longhands.toml`,
++   `properties/counted_unknown_properties.py`, Compat): a servo longhand of the box struct, `auto | none |
++   element`, not inherited. snowlark-page reads it to choose what a press drags: `element` makes a box a drag
++   source, `none` keeps an image, a link or a `draggable` element from being one.
++85. **Scroll snap properties in the servo build** (`properties/longhands.toml`, `values/specified/box.rs`, CSS
++   Scroll Snap 1): `scroll-snap-type`, `scroll-snap-align` and `scroll-snap-stop` lose their gecko-only engine
++   line, and `ScrollSnapType` (`axis`, `strictness`) and `ScrollSnapAlign` (`block`, `inline`) get public
++   getters. snowlark-page snaps scrolls with them; `scroll-margin` and `scroll-padding` were already there.
 +
 +To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 +still lacks, and run `cargo test -p snowlark-style`.
@@ -1029,7 +1121,7 @@ index 8c818b96..10475975 100644
      /// calculation of root font-relative metrics.
      pub fn set_root_style(&self, style: &Arc<ComputedValues>) {
 diff --git a/device/servo.rs b/device/servo.rs
-index a8f94bf8..48f92ad0 100644
+index a8f94bf8..8af9645c 100644
 --- a/device/servo.rs
 +++ b/device/servo.rs
 @@ -69,6 +69,11 @@ pub(super) struct ExtraDeviceData {
@@ -1160,7 +1252,34 @@ index a8f94bf8..48f92ad0 100644
                  SystemColor::Graytext
                  // Deprecated system colors (CSS Color 4) mapped to Graytext.
                  | SystemColor::Inactivecaptiontext => srgb(155, 155, 155),
-@@ -505,3 +533,31 @@ impl Device {
+@@ -409,6 +437,8 @@ impl Device {
+                 SystemColor::Marktext => srgb(255, 255, 255),
+                 SystemColor::Selecteditem => srgb(153, 200, 255),
+                 SystemColor::Selecteditemtext => srgb(59, 59, 59),
++                // Snowlark patch (SNOWLARK-PATCHES.md 83): the focus ring colour of a dark scheme.
++                SystemColor::WebkitFocusRingColor => srgb(238, 238, 238),
+             }
+         } else {
+             match system_color {
+@@ -453,12 +483,15 @@ impl Device {
+                 SystemColor::Graytext
+                 // Deprecated system colors (CSS Color 4) mapped to Graytext.
+                 | SystemColor::Inactivecaptiontext => srgb(109, 109, 109),
+-                SystemColor::Highlight => srgb(0, 65, 198),
+-                SystemColor::Highlighttext => srgb(0, 0, 0),
++                // Snowlark patch: Highlight and HighlightText are Windows' default selection colors.
++                SystemColor::Highlight => srgb(0, 120, 215),
++                SystemColor::Highlighttext => srgb(255, 255, 255),
+                 SystemColor::Mark => srgb(255, 235, 59),
+                 SystemColor::Marktext => srgb(0, 0, 0),
+                 SystemColor::Selecteditem => srgb(0, 102, 204),
+                 SystemColor::Selecteditemtext => srgb(255, 255, 255),
++                // Snowlark patch (SNOWLARK-PATCHES.md 83): the platform's focus ring colour.
++                SystemColor::WebkitFocusRingColor => srgb(16, 16, 16),
+             }
+         }
+     }
+@@ -505,3 +538,31 @@ impl Device {
          None
      }
  }
@@ -1526,11 +1645,177 @@ index 4aae362a..c1168a28 100644
  
          // This should change the computed values in the style, so we don't need
          // to mark this set as dirty.
+diff --git a/properties/cascade.rs b/properties/cascade.rs
+index c5b21989..d8abe59b 100644
+--- a/properties/cascade.rs
++++ b/properties/cascade.rs
+@@ -467,6 +467,161 @@ where
+     context.builder.build()
+ }
+ 
++/// Snowlark patch 72: the properties whose transitions [`apply_transitions_to_base`] applies to
++/// a base style. None of them is read when another property of the same element is computed or
++/// adjusted (unlike the font properties, `line-height`, `zoom`, the writing mode, `display`,
++/// `position`, `float`, the border and outline styles, `overflow` or the containment properties).
++#[cfg(feature = "servo")]
++fn transition_applies_to_base(id: LonghandId) -> bool {
++    matches!(
++        id,
++        LonghandId::Opacity
++            | LonghandId::Transform
++            | LonghandId::Translate
++            | LonghandId::Rotate
++            | LonghandId::Scale
++            | LonghandId::TransformOrigin
++            | LonghandId::Color
++            | LonghandId::BackgroundColor
++            | LonghandId::BorderTopColor
++            | LonghandId::BorderRightColor
++            | LonghandId::BorderBottomColor
++            | LonghandId::BorderLeftColor
++            | LonghandId::OutlineColor
++            | LonghandId::TextDecorationColor
++            | LonghandId::BoxShadow
++            | LonghandId::TextShadow
++            | LonghandId::Filter
++            | LonghandId::BackdropFilter
++            | LonghandId::Visibility
++            | LonghandId::Width
++            | LonghandId::Height
++            | LonghandId::MinWidth
++            | LonghandId::MinHeight
++            | LonghandId::MaxWidth
++            | LonghandId::MaxHeight
++            | LonghandId::Top
++            | LonghandId::Right
++            | LonghandId::Bottom
++            | LonghandId::Left
++            | LonghandId::MarginTop
++            | LonghandId::MarginRight
++            | LonghandId::MarginBottom
++            | LonghandId::MarginLeft
++            | LonghandId::PaddingTop
++            | LonghandId::PaddingRight
++            | LonghandId::PaddingBottom
++            | LonghandId::PaddingLeft
++            | LonghandId::BorderTopLeftRadius
++            | LonghandId::BorderTopRightRadius
++            | LonghandId::BorderBottomRightRadius
++            | LonghandId::BorderBottomLeftRadius
++            | LonghandId::BackgroundPositionX
++            | LonghandId::BackgroundPositionY
++            | LonghandId::BackgroundSize
++            | LonghandId::ClipPath
++            | LonghandId::LetterSpacing
++            | LonghandId::WordSpacing
++            | LonghandId::Fill
++            | LonghandId::FillOpacity
++            | LonghandId::Stroke
++            | LonghandId::StrokeOpacity
++            | LonghandId::FlexGrow
++            | LonghandId::FlexShrink
++            | LonghandId::FlexBasis
++            | LonghandId::RowGap
++            | LonghandId::ColumnGap
++    )
++}
++
++/// Snowlark patch 72: the style that `rules` give an element whose rules without their
++/// transitions gave `base` (under `parent_style`): `base` with the values of the transitions
++/// applied over it, as a cascade of `rules` would end (transitions are the last origin of the
++/// cascade, CSS Cascade 5 §6.1). `None` when `rules` hold animations other than transitions, or a
++/// transition of a property that is not one of [`transition_applies_to_base`]'s, whose value
++/// other properties may depend on: the caller cascades `rules` then.
++#[cfg(feature = "servo")]
++pub fn apply_transitions_to_base<E>(
++    stylist: &Stylist,
++    rules: &StrongRuleNode,
++    guards: &StylesheetGuards,
++    base: &ComputedValues,
++    parent_style: &ComputedValues,
++    element: E,
++    tree_counting_caches: &mut TreeCountingCaches,
++) -> Option<Arc<ComputedValues>>
++where
++    E: TElement,
++{
++    let device = stylist.device();
++    // (forced colors change the values of the color properties as they are cascaded)
++    if device.forced_colors().is_active() {
++        return None;
++    }
++    let mut transitions = SmallVec::<[&StrongRuleNode; 2]>::new();
++    for node in rules.self_and_ancestors() {
++        let level = node.cascade_level();
++        if level.origin() == CascadeOrigin::Transitions {
++            transitions.push(node);
++        } else if level.is_animation() {
++            return None;
++        } else if !level.is_important() {
++            break;
++        }
++    }
++    if transitions.is_empty() {
++        return None;
++    }
++    // (the transitions' blocks hold computed values: no variables, no CSS-wide keywords)
++    let mut declarations = SmallVec::<[(&PropertyDeclaration, CascadeLevel); 8]>::new();
++    for node in &transitions {
++        let level = node.cascade_level();
++        let guard = level.origin().guard(guards);
++        let block = node.style_source()?.read(guard);
++        // (in the cascade's order: a block's last declaration of a property wins)
++        for (declaration, importance) in block.declaration_importance_iter().rev() {
++            let id = declaration.id().as_longhand()?;
++            if importance.important()
++                || id.is_logical()
++                || !transition_applies_to_base(id)
++                || declaration.get_css_wide_keyword().is_some()
++            {
++                return None;
++            }
++            declarations.push((declaration, level));
++        }
++    }
++
++    let mut builder = StyleBuilder::for_derived_style(device, Some(stylist), base, Some(parent_style));
++    builder.rules = Some(rules.clone());
++    let mut conditions = RuleCacheConditions::default();
++    let container_size_query =
++        ContainerSizeQuery::for_option_element(Some(element), Some(parent_style), false);
++    let originating_element = element.ultimate_originating_element();
++    let mut context = computed::Context::new(
++        builder,
++        stylist.quirks_mode(),
++        &mut conditions,
++        container_size_query,
++        RuleCascadeFlags::empty(),
++        &originating_element as &dyn ElementContext,
++        tree_counting_caches,
++    );
++    // (the first declaration of a property wins: the outermost rule node comes first)
++    let mut seen = LonghandIdSet::default();
++    for (declaration, level) in declarations {
++        let id = declaration.id().as_longhand().unwrap();
++        if seen.contains(id) {
++            continue;
++        }
++        seen.insert(id);
++        context.scope = level;
++        // SAFETY: `declaration` is a declaration of `id`, whose function `CASCADE_PROPERTY` holds.
++        unsafe { (CASCADE_PROPERTY[id as usize])(declaration, &mut context) }
++    }
++    Some(context.builder.build())
++}
++
+ /// For ignored colors mode, we sometimes want to do something equivalent to
+ /// "revert-or-initial", where we `revert` for a given origin, but then apply a
+ /// given initial value if nothing in other origins did override it.
 diff --git a/properties/computed_value_flags.rs b/properties/computed_value_flags.rs
-index 80944d87..f235f81b 100644
+index 80944d87..ff353b9a 100644
 --- a/properties/computed_value_flags.rs
 +++ b/properties/computed_value_flags.rs
-@@ -137,6 +137,11 @@ bitflags! {
+@@ -137,6 +137,16 @@ bitflags! {
  
          /// Whether this style uses `sibling-index()`.
          const USES_SIBLING_INDEX = 1 << 27;
@@ -1539,23 +1824,148 @@ index 80944d87..f235f81b 100644
 +        /// Computed for every style from its `color-scheme`, the page color scheme and the
 +        /// preferred one (`Device::is_dark_color_scheme`); not inherited as a flag.
 +        const USED_DARK_COLOR_SCHEME = 1 << 28;
++
++        /// Snowlark patch (SNOWLARK-PATCHES.md 81): the element is an item of a legacy
++        /// `display: -webkit-box` (its layout parent's display), so layout reads its flex from
++        /// `-webkit-box-flex` and its order from `-webkit-box-ordinal-group`. Not inherited.
++        const IS_WEBKIT_BOX_ITEM = 1 << 29;
      }
  }
  
 diff --git a/properties/counted_unknown_properties.py b/properties/counted_unknown_properties.py
-index 7b5c8a80..c7f99612 100644
+index 7b5c8a80..780775de 100644
 --- a/properties/counted_unknown_properties.py
 +++ b/properties/counted_unknown_properties.py
-@@ -7,8 +7,7 @@ COUNTED_UNKNOWN_PROPERTIES = [
+@@ -3,37 +3,26 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ COUNTED_UNKNOWN_PROPERTIES = [
+-    "-webkit-tap-highlight-color",
++    # Snowlark patch (SNOWLARK-PATCHES.md 82-84): the legacy -webkit- aliases, text-size-adjust,
++    # -webkit-tap-highlight-color and -webkit-user-drag are known properties here.
      "speak",
-     "text-size-adjust",
-     "-webkit-user-drag",
+-    "text-size-adjust",
+-    "-webkit-user-drag",
 -    "orphans",
 -    "widows",
 +    # Snowlark patch (SNOWLARK-PATCHES.md 58): `orphans` and `widows` are known properties here.
      "-webkit-user-modify",
-     "-webkit-margin-before",
-     "-webkit-margin-after",
+-    "-webkit-margin-before",
+-    "-webkit-margin-after",
+-    "-webkit-margin-start",
+     "-webkit-column-break-inside",
+-    "-webkit-padding-start",
+-    "-webkit-margin-end",
+     "-webkit-box-reflect",
+     "-webkit-print-color-adjust",
+     "-webkit-mask-box-image",
+     "-webkit-line-break",
+-    "-webkit-writing-mode",
+     "-webkit-hyphenate-character",
+     "-webkit-highlight",
+     "background-repeat-x",
+-    "-webkit-padding-end",
+     "background-repeat-y",
+     "-webkit-text-emphasis-color",
+     "-webkit-margin-top-collapse",
+     "-webkit-rtl-ordering",
+-    "-webkit-padding-before",
+     "-webkit-text-decorations-in-effect",
+     "-webkit-border-vertical-spacing",
+     "-webkit-locale",
+-    "-webkit-padding-after",
+     "-webkit-border-horizontal-spacing",
+     "color-rendering",
+     "-webkit-column-break-before",
+@@ -51,20 +40,13 @@ COUNTED_UNKNOWN_PROPERTIES = [
+     "-webkit-mask-box-image-slice",
+     "-webkit-mask-box-image-repeat",
+     "-webkit-margin-after-collapse",
+-    "-webkit-border-before-color",
+-    "-webkit-border-before-width",
+     "-webkit-perspective-origin-x",
+     "-webkit-perspective-origin-y",
+     "-webkit-margin-before-collapse",
+-    "-webkit-border-before-style",
+     "-webkit-margin-bottom-collapse",
+     "-webkit-ruby-position",
+     "-webkit-column-break-after",
+     "-webkit-margin-collapse",
+-    "-webkit-border-before",
+-    "-webkit-border-end",
+-    "-webkit-border-after",
+-    "-webkit-border-start",
+     "-webkit-min-logical-width",
+     "-webkit-logical-height",
+     "-webkit-transform-origin-z",
+@@ -73,34 +55,15 @@ COUNTED_UNKNOWN_PROPERTIES = [
+     "-webkit-max-logical-width",
+     "-webkit-min-logical-height",
+     "-webkit-max-logical-height",
+-    "-webkit-border-end-color",
+-    "-webkit-border-end-width",
+-    "-webkit-border-start-color",
+-    "-webkit-border-start-width",
+-    "-webkit-border-after-color",
+-    "-webkit-border-after-width",
+-    "-webkit-border-end-style",
+-    "-webkit-border-after-style",
+-    "-webkit-border-start-style",
+     "-webkit-mask-repeat-x",
+     "-webkit-mask-repeat-y",
+     "user-zoom",
+     "min-zoom",
+-    "-webkit-box-decoration-break",
+     "orientation",
+     "max-zoom",
+     "-webkit-app-region",
+-    "-webkit-column-rule",
+-    "-webkit-column-span",
+-    "-webkit-column-gap",
+     "-webkit-shape-outside",
+-    "-webkit-column-rule-width",
+-    "-webkit-column-count",
+     "-webkit-opacity",
+-    "-webkit-column-width",
+     "-webkit-shape-image-threshold",
+-    "-webkit-column-rule-style",
+-    "-webkit-columns",
+-    "-webkit-column-rule-color",
+     "-webkit-shape-margin",
+ ]
+diff --git a/properties/data.py b/properties/data.py
+index e19d9f27..2321650e 100644
+--- a/properties/data.py
++++ b/properties/data.py
+@@ -1367,6 +1367,28 @@ class PropertyRestrictions:
+             + PropertyRestrictions.shorthand(data, "font-synthesis")
+         )
+ 
++    # Snowlark patch: https://drafts.csswg.org/css-pseudo-4/#highlight-styling (custom
++    # properties apply too; the cascade lets them through).
++    @staticmethod
++    def highlight(data):
++        return set(
++            [
++                "color",
++                "background-color",
++                "text-shadow",
++                "text-underline-offset",
++                "text-underline-position",
++                "text-decoration-skip-ink",
++                "stroke",
++                "fill",
++                "stroke-width",
++                "-webkit-text-fill-color",
++                "-webkit-text-stroke-color",
++                "-webkit-text-stroke-width",
++            ]
++            + PropertyRestrictions.shorthand(data, "text-decoration")
++        )
++
+ 
+ class CountedUnknownProperty:
+     def __init__(self, name):
 diff --git a/properties/helpers.mako.rs b/properties/helpers.mako.rs
 index b8014cb8..3e6091d3 100644
 --- a/properties/helpers.mako.rs
@@ -1667,7 +2077,7 @@ index 0f528db5..5effa830 100644
      ///
      /// SERVO ONLY: This doesn't properly handle things like updating 'em' units
 diff --git a/properties/longhands.toml b/properties/longhands.toml
-index 830a44d2..83a00f77 100644
+index 830a44d2..752a8141 100644
 --- a/properties/longhands.toml
 +++ b/properties/longhands.toml
 @@ -101,7 +101,9 @@ type = "LineClamp"
@@ -1740,7 +2150,29 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/masking.html#ClipRuleProperty"
  affects = "paint"
-@@ -594,7 +615,7 @@ affects = "layout"
+@@ -573,6 +594,8 @@ servo_restyle_damage = "repaint"
+ affects = "paint"
+ 
+ [column-count]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-column-count"]
+ type = "ColumnCount"
+ initial = "computed::ColumnCount::Auto"
+ struct = "column"
+@@ -585,39 +608,48 @@ affects = "layout"
+ type = "length::NonNegativeLengthPercentageOrNormal"
+ initial = "computed::length::NonNegativeLengthPercentageOrNormal::normal()"
+ struct = "position"
+-aliases = ["grid-column-gap"]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-column-gap", "grid-column-gap"]
+ spec = "https://drafts.csswg.org/css-align-3/#propdef-column-gap"
+ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [column-rule-color]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-column-rule-color"]
  type = "Color"
  initial = "computed_value::T::currentcolor()"
  struct = "column"
@@ -1749,7 +2181,10 @@ index 830a44d2..83a00f77 100644
  ignored_when_colors_disabled = true
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-color"
  affects = "paint"
-@@ -603,7 +624,7 @@ affects = "paint"
+ 
+ [column-rule-style]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-column-rule-style"]
  type = "BorderStyle"
  initial = "computed::BorderStyle::None"
  struct = "column"
@@ -1758,7 +2193,10 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-style"
  affects = "paint"
-@@ -612,7 +633,7 @@ affects = "paint"
+ 
+ [column-rule-width]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-column-rule-width"]
  type = "BorderSideWidth"
  initial = "computed::BorderSideWidth::medium()"
  struct = "column"
@@ -1767,7 +2205,14 @@ index 830a44d2..83a00f77 100644
  initial_specified_value = "specified::BorderSideWidth::medium()"
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule-width"
  affects = "layout"
-@@ -626,6 +647,25 @@ spec = "https://drafts.csswg.org/css-multicol/#propdef-column-width"
+ 
+ [column-width]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-column-width"]
+ type = "length::NonNegativeLengthOrAuto"
+ initial = "computed::length::NonNegativeLengthOrAuto::auto()"
+ struct = "column"
+@@ -626,6 +658,25 @@ spec = "https://drafts.csswg.org/css-multicol/#propdef-column-width"
  servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
@@ -1793,7 +2238,7 @@ index 830a44d2..83a00f77 100644
  [contain]
  type = "Contain"
  initial = "specified::Contain::empty()"
-@@ -639,7 +679,8 @@ affects = "layout"
+@@ -639,7 +690,8 @@ affects = "layout"
  type = "ContainIntrinsicSize"
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
@@ -1803,7 +2248,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "contain-intrinsic-size"
  logical = true
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
-@@ -649,7 +690,8 @@ affects = "layout"
+@@ -649,7 +701,8 @@ affects = "layout"
  type = "ContainIntrinsicSize"
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
@@ -1813,7 +2258,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "contain-intrinsic-size"
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
  affects = "layout"
-@@ -658,7 +700,8 @@ affects = "layout"
+@@ -658,7 +711,8 @@ affects = "layout"
  type = "ContainIntrinsicSize"
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
@@ -1823,7 +2268,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "contain-intrinsic-size"
  logical = true
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
-@@ -668,7 +711,8 @@ affects = "layout"
+@@ -668,7 +722,8 @@ affects = "layout"
  type = "ContainIntrinsicSize"
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
@@ -1833,7 +2278,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "contain-intrinsic-size"
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
  affects = "layout"
-@@ -704,7 +748,10 @@ affects = "layout"
+@@ -704,7 +759,10 @@ affects = "layout"
  type = "ContentVisibility"
  initial = "computed::ContentVisibility::Visible"
  struct = "box"
@@ -1845,7 +2290,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-contain/#content-visibility"
  affects = "layout"
  
-@@ -847,7 +894,8 @@ affects = "layout"
+@@ -847,7 +905,8 @@ affects = "layout"
  type = "Color"
  initial = "computed::Color::BLACK"
  struct = "svg"
@@ -1855,7 +2300,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.fxtf.org/filter-effects-1/#FloodColorProperty"
  affects = "paint"
  
-@@ -855,7 +903,8 @@ affects = "paint"
+@@ -855,7 +914,8 @@ affects = "paint"
  type = "Opacity"
  initial = "1.0"
  struct = "svg"
@@ -1865,7 +2310,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.fxtf.org/filter-effects-1/#FloodOpacityProperty"
  affects = "paint"
  
-@@ -888,12 +937,11 @@ extra_prefixes = ["moz:layout.css.prefixes.font-features"]
+@@ -888,12 +948,11 @@ extra_prefixes = ["moz:layout.css.prefixes.font-features"]
  spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font-language-override"
  affects = "layout"
  
@@ -1879,7 +2324,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-fonts/#font-palette-prop"
  affects = "layout"
  
-@@ -936,31 +984,31 @@ gecko_ffi_name = "mFont.style"
+@@ -936,31 +995,31 @@ gecko_ffi_name = "mFont.style"
  servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
@@ -1914,7 +2359,7 @@ index 830a44d2..83a00f77 100644
  gecko_ffi_name = "mFont.synthesisStyle"
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-fonts-4/#font-synthesis-style"
-@@ -1255,7 +1303,8 @@ affects = "layout"
+@@ -1255,7 +1314,8 @@ affects = "layout"
  type = "Color"
  initial = "computed::Color::WHITE"
  struct = "svg"
@@ -1924,7 +2369,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.fxtf.org/filter-effects-1#LightingColorProperty"
  affects = "paint"
  
-@@ -1299,7 +1348,8 @@ affects = "layout"
+@@ -1299,7 +1359,8 @@ affects = "layout"
  type = "url::UrlOrNone"
  initial = "computed::url::UrlOrNone::none()"
  struct = "inherited_svg"
@@ -1934,7 +2379,7 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
  affects = "layout"
-@@ -1308,7 +1358,8 @@ affects = "layout"
+@@ -1308,7 +1369,8 @@ affects = "layout"
  type = "url::UrlOrNone"
  initial = "computed::url::UrlOrNone::none()"
  struct = "inherited_svg"
@@ -1944,7 +2389,7 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
  affects = "layout"
-@@ -1317,7 +1368,8 @@ affects = "layout"
+@@ -1317,7 +1379,8 @@ affects = "layout"
  type = "url::UrlOrNone"
  initial = "computed::url::UrlOrNone::none()"
  struct = "inherited_svg"
@@ -1954,7 +2399,7 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
  affects = "layout"
-@@ -1428,6 +1480,15 @@ rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+@@ -1428,6 +1491,15 @@ rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
  servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
@@ -1970,7 +2415,7 @@ index 830a44d2..83a00f77 100644
  [object-position]
  type = "Position"
  initial = "computed::Position::center()"
-@@ -1440,7 +1501,7 @@ affects = "layout"
+@@ -1440,7 +1512,7 @@ affects = "layout"
  type = "PositionOrAuto"
  initial = "computed::PositionOrAuto::auto()"
  struct = "box"
@@ -1979,7 +2424,7 @@ index 830a44d2..83a00f77 100644
  flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
  spec = "https://drafts.fxtf.org/motion-1/#offset-anchor-property"
  servo_restyle_damage = "rebuild_box"
-@@ -1451,7 +1512,7 @@ affects = "overflow"
+@@ -1451,7 +1523,7 @@ affects = "overflow"
  type = "LengthPercentage"
  initial = "computed::LengthPercentage::zero()"
  struct = "box"
@@ -1988,7 +2433,7 @@ index 830a44d2..83a00f77 100644
  flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
  spec = "https://drafts.fxtf.org/motion-1/#offset-distance-property"
  servo_restyle_damage = "rebuild_box"
-@@ -1471,7 +1532,7 @@ affects = "overflow"
+@@ -1471,7 +1543,7 @@ affects = "overflow"
  type = "OffsetPosition"
  initial = "computed::OffsetPosition::normal()"
  struct = "box"
@@ -1997,7 +2442,7 @@ index 830a44d2..83a00f77 100644
  flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
  spec = "https://drafts.fxtf.org/motion-1/#offset-position-property"
  servo_restyle_damage = "rebuild_box"
-@@ -1482,7 +1543,7 @@ affects = "overflow"
+@@ -1482,7 +1554,7 @@ affects = "overflow"
  type = "OffsetRotate"
  initial = "computed::OffsetRotate::auto()"
  struct = "box"
@@ -2006,7 +2451,16 @@ index 830a44d2..83a00f77 100644
  flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
  spec = "https://drafts.fxtf.org/motion-1/#offset-rotate-property"
  servo_restyle_damage = "rebuild_box"
-@@ -1566,6 +1627,8 @@ affects = "layout"
+@@ -1508,6 +1580,8 @@ affects = "layout"
+ 
+ [outline-color]
+ type = "Color"
++# Snowlark patch (SNOWLARK-PATCHES.md 83): takes `-webkit-focus-ring-color`.
++parse_method = "parse_outline_color"
+ initial = "computed_value::T::currentcolor()"
+ struct = "outline"
+ ignored_when_colors_disabled = true
+@@ -1566,6 +1640,8 @@ affects = "layout"
  type = "OverflowClipMargin"
  initial = "computed::OverflowClipMargin::zero()"
  struct = "margin"
@@ -2015,7 +2469,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-overflow/#propdef-overflow-clip-margin"
  affects = "overflow"
  
-@@ -1675,7 +1738,8 @@ affects = "layout"
+@@ -1675,7 +1751,8 @@ affects = "layout"
  type = "SVGPaintOrder"
  initial = "computed::SVGPaintOrder::normal()"
  struct = "inherited_svg"
@@ -2025,7 +2479,48 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#PaintOrder"
  affects = "paint"
-@@ -1899,11 +1963,12 @@ affects = ""
+@@ -1800,7 +1877,6 @@ affects = "layout"
+ type = "Resize"
+ initial = "computed::Resize::None"
+ struct = "box"
+-engine = "gecko"
+ animation_type = "discrete"
+ gecko_ffi_name = "mResize"
+ spec = "https://drafts.csswg.org/css-ui/#propdef-resize"
+@@ -1848,29 +1924,29 @@ spec = "https://drafts.csswg.org/css-transforms-2/#individual-transforms"
+ servo_restyle_damage = "recalculate_overflow"
+ affects = "overflow"
+ 
++# Snowlark patch (SNOWLARK-PATCHES.md 85): in the servo build too (CSS Scroll Snap 1).
+ [scroll-snap-align]
+ type = "ScrollSnapAlign"
+ initial = "computed::ScrollSnapAlign::none()"
+ struct = "box"
+-engine = "gecko"
+ spec = "https://drafts.csswg.org/css-scroll-snap-1/#scroll-snap-align"
+ animation_type = "discrete"
+ affects = "paint"
+ 
++# Snowlark patch (SNOWLARK-PATCHES.md 85): in the servo build too (CSS Scroll Snap 1).
+ [scroll-snap-stop]
+ type = "ScrollSnapStop"
+ initial = "computed::ScrollSnapStop::Normal"
+ struct = "box"
+-engine = "gecko"
+ spec = "https://drafts.csswg.org/css-scroll-snap-1/#scroll-snap-stop"
+ animation_type = "discrete"
+ affects = "paint"
+ 
++# Snowlark patch (SNOWLARK-PATCHES.md 85): in the servo build too (CSS Scroll Snap 1).
+ [scroll-snap-type]
+ type = "ScrollSnapType"
+ initial = "computed::ScrollSnapType::none()"
+ struct = "box"
+-engine = "gecko"
+ spec = "https://drafts.csswg.org/css-scroll-snap-1/#scroll-snap-type"
+ animation_type = "discrete"
+ affects = "paint"
+@@ -1899,11 +1975,12 @@ affects = ""
  type = "Inert"
  initial = "specified::Inert::None"
  struct = "inherited_ui"
@@ -2039,7 +2534,7 @@ index 830a44d2..83a00f77 100644
  affects = "paint"
  
  [-moz-user-focus]
-@@ -1931,7 +1996,8 @@ affects = "paint"
+@@ -1931,7 +2008,8 @@ affects = "paint"
  type = "ScrollbarGutter"
  initial = "computed::ScrollbarGutter::AUTO"
  struct = "box"
@@ -2049,7 +2544,7 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-overflow-3/#scrollbar-gutter-property"
  affects = "layout"
-@@ -1974,7 +2040,8 @@ affects = "layout"
+@@ -1974,7 +2052,8 @@ affects = "layout"
  type = "Color"
  initial = "computed::Color::BLACK"
  struct = "svg"
@@ -2059,7 +2554,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://svgwg.org/svg2-draft/pservers.html#StopColorProperties"
  affects = "paint"
  
-@@ -1982,7 +2049,8 @@ affects = "paint"
+@@ -1982,7 +2061,8 @@ affects = "paint"
  type = "Opacity"
  initial = "1.0"
  struct = "svg"
@@ -2069,7 +2564,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://svgwg.org/svg2-draft/pservers.html#StopOpacityProperty"
  affects = "paint"
  
-@@ -2116,7 +2184,8 @@ affects = "overflow"
+@@ -2116,7 +2196,8 @@ affects = "overflow"
  type = "TransformBox"
  initial = "computed::TransformBox::ViewBox"
  struct = "box"
@@ -2079,7 +2574,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-transforms/#transform-box"
  animation_type = "discrete"
  affects = "overflow"
-@@ -2349,7 +2418,8 @@ affects = ""
+@@ -2349,7 +2430,8 @@ affects = ""
  type = "VectorEffect"
  initial = "computed::VectorEffect::none()"
  struct = "svg"
@@ -2089,7 +2584,15 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/coords.html#VectorEffects"
  affects = "layout"
-@@ -2546,7 +2616,7 @@ affects = "paint"
+@@ -2510,7 +2592,6 @@ affects = "layout"
+ type = "Color"
+ initial = "computed_value::T::currentcolor()"
+ struct = "inherited_text"
+-engine = "gecko"
+ ignored_when_colors_disabled = true
+ spec = "https://compat.spec.whatwg.org/#the-webkit-text-fill-color"
+ affects = "paint"
+@@ -2546,7 +2627,7 @@ affects = "paint"
  type = "HyphenateCharacter"
  initial = "computed::HyphenateCharacter::Auto"
  struct = "inherited_text"
@@ -2098,7 +2601,7 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  spec = "https://www.w3.org/TR/css-text-4/#hyphenate-character"
  affects = "layout"
-@@ -2555,7 +2625,7 @@ affects = "layout"
+@@ -2555,7 +2636,7 @@ affects = "layout"
  type = "HyphenateLimitChars"
  initial = "computed::HyphenateLimitChars::auto()"
  struct = "inherited_text"
@@ -2107,7 +2610,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-text-4/#hyphenate-char-limits"
  affects = "layout"
  boxed = true
-@@ -2601,7 +2671,7 @@ affects = "layout"
+@@ -2601,7 +2682,7 @@ affects = "layout"
  type = "TextBoxEdge"
  initial = "computed::TextBoxEdge::Auto"
  struct = "inherited_text"
@@ -2116,7 +2619,7 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  gecko_pref = "layout.css.text-box.enabled"
  has_effect_on_gecko_scrollbars = false
-@@ -2612,7 +2682,7 @@ affects = "layout"
+@@ -2612,7 +2693,7 @@ affects = "layout"
  type = "TextBoxTrim"
  initial = "computed::TextBoxTrim::none()"
  struct = "text"
@@ -2125,7 +2628,160 @@ index 830a44d2..83a00f77 100644
  animation_type = "discrete"
  gecko_pref = "layout.css.text-box.enabled"
  has_effect_on_gecko_scrollbars = false
-@@ -3382,7 +3452,8 @@ affects = "layout"
+@@ -2675,6 +2756,8 @@ servo_restyle_damage = "rebuild_stacking_context"
+ affects = "overflow"
+ 
+ [writing-mode]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-writing-mode"]
+ type = "WritingModeProperty"
+ initial = "computed::WritingModeProperty::HorizontalTb"
+ struct = "inherited_box"
+@@ -2857,6 +2940,8 @@ ignored_when_colors_disabled = true
+ affects = "paint"
+ 
+ [border-block-start-color]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-before-color"]
+ type = "Color"
+ initial = "computed_value::T::currentcolor()"
+ struct = "border"
+@@ -2867,6 +2952,8 @@ ignored_when_colors_disabled = true
+ affects = "paint"
+ 
+ [border-block-end-color]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-after-color"]
+ type = "Color"
+ initial = "computed_value::T::currentcolor()"
+ struct = "border"
+@@ -2877,6 +2964,8 @@ ignored_when_colors_disabled = true
+ affects = "paint"
+ 
+ [border-inline-start-color]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-start-color"]
+ type = "Color"
+ initial = "computed_value::T::currentcolor()"
+ struct = "border"
+@@ -2888,6 +2977,8 @@ ignored_when_colors_disabled = true
+ affects = "paint"
+ 
+ [border-inline-end-color]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-end-color"]
+ type = "Color"
+ initial = "computed_value::T::currentcolor()"
+ struct = "border"
+@@ -2939,6 +3030,8 @@ logical_group = "border-style"
+ affects = "layout"
+ 
+ [border-block-start-style]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-before-style"]
+ type = "BorderStyle"
+ initial = "specified::BorderStyle::None"
+ struct = "border"
+@@ -2950,6 +3043,8 @@ logical_group = "border-style"
+ affects = "layout"
+ 
+ [border-block-end-style]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-after-style"]
+ type = "BorderStyle"
+ initial = "specified::BorderStyle::None"
+ struct = "border"
+@@ -2961,6 +3056,8 @@ logical_group = "border-style"
+ affects = "layout"
+ 
+ [border-inline-start-style]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-start-style"]
+ type = "BorderStyle"
+ initial = "specified::BorderStyle::None"
+ struct = "border"
+@@ -2973,6 +3070,8 @@ logical_group = "border-style"
+ affects = "layout"
+ 
+ [border-inline-end-style]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-end-style"]
+ type = "BorderStyle"
+ initial = "specified::BorderStyle::None"
+ struct = "border"
+@@ -3029,6 +3128,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [border-block-start-width]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-before-width"]
+ type = "BorderSideWidth"
+ initial = "computed::BorderSideWidth::medium()"
+ struct = "border"
+@@ -3040,6 +3141,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [border-block-end-width]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-after-width"]
+ type = "BorderSideWidth"
+ initial = "computed::BorderSideWidth::medium()"
+ struct = "border"
+@@ -3051,6 +3154,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [border-inline-start-width]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-start-width"]
+ type = "BorderSideWidth"
+ initial = "computed::BorderSideWidth::medium()"
+ struct = "border"
+@@ -3063,6 +3168,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [border-inline-end-width]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-end-width"]
+ type = "BorderSideWidth"
+ initial = "computed::BorderSideWidth::medium()"
+ struct = "border"
+@@ -3315,6 +3422,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [margin-block-start]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-margin-before"]
+ type = "Margin"
+ initial = "computed::Margin::zero()"
+ struct = "margin"
+@@ -3328,6 +3437,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [margin-block-end]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-margin-after"]
+ type = "Margin"
+ initial = "computed::Margin::zero()"
+ struct = "margin"
+@@ -3341,6 +3452,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [margin-inline-start]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-margin-start"]
+ type = "Margin"
+ initial = "computed::Margin::zero()"
+ struct = "margin"
+@@ -3355,6 +3468,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [margin-inline-end]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-margin-end"]
+ type = "Margin"
+ initial = "computed::Margin::zero()"
+ struct = "margin"
+@@ -3382,7 +3497,8 @@ affects = "layout"
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2135,7 +2791,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.0"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-top"
-@@ -3392,7 +3463,8 @@ affects = ""
+@@ -3392,7 +3508,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2145,7 +2801,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.1"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-right"
-@@ -3402,7 +3474,8 @@ affects = ""
+@@ -3402,7 +3519,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2155,7 +2811,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.2"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-bottom"
-@@ -3412,7 +3485,8 @@ affects = ""
+@@ -3412,7 +3530,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2165,7 +2821,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.3"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-left"
-@@ -3422,7 +3496,8 @@ affects = ""
+@@ -3422,7 +3541,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2175,7 +2831,7 @@ index 830a44d2..83a00f77 100644
  logical = true
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.4"
-@@ -3433,7 +3508,8 @@ affects = ""
+@@ -3433,7 +3553,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2185,7 +2841,7 @@ index 830a44d2..83a00f77 100644
  logical = true
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.5"
-@@ -3444,7 +3520,8 @@ affects = ""
+@@ -3444,7 +3565,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2195,7 +2851,7 @@ index 830a44d2..83a00f77 100644
  logical = true
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.6"
-@@ -3455,7 +3532,8 @@ affects = ""
+@@ -3455,7 +3577,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2205,7 +2861,43 @@ index 830a44d2..83a00f77 100644
  logical = true
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.7"
-@@ -3556,7 +3634,8 @@ affects = "layout"
+@@ -3507,6 +3630,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [padding-block-start]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-padding-before"]
+ type = "NonNegativeLengthPercentage"
+ initial = "computed::NonNegativeLengthPercentage::zero()"
+ struct = "padding"
+@@ -3518,6 +3643,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [padding-block-end]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-padding-after"]
+ type = "NonNegativeLengthPercentage"
+ initial = "computed::NonNegativeLengthPercentage::zero()"
+ struct = "padding"
+@@ -3529,6 +3656,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [padding-inline-start]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-padding-start"]
+ type = "NonNegativeLengthPercentage"
+ initial = "computed::NonNegativeLengthPercentage::zero()"
+ struct = "padding"
+@@ -3541,6 +3670,8 @@ servo_restyle_damage = "rebuild_box"
+ affects = "layout"
+ 
+ [padding-inline-end]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-padding-end"]
+ type = "NonNegativeLengthPercentage"
+ initial = "computed::NonNegativeLengthPercentage::zero()"
+ struct = "padding"
+@@ -3556,7 +3687,8 @@ affects = "layout"
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -2215,7 +2907,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.0"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-top"
-@@ -3566,7 +3645,8 @@ affects = ""
+@@ -3566,7 +3698,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -2225,7 +2917,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.1"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-right"
-@@ -3576,7 +3656,8 @@ affects = ""
+@@ -3576,7 +3709,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -2235,7 +2927,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.2"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-bottom"
-@@ -3586,7 +3667,8 @@ affects = ""
+@@ -3586,7 +3720,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -2245,7 +2937,7 @@ index 830a44d2..83a00f77 100644
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.3"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-left"
-@@ -3596,7 +3678,8 @@ affects = ""
+@@ -3596,7 +3731,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -2255,7 +2947,7 @@ index 830a44d2..83a00f77 100644
  logical = true
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.4"
-@@ -3607,7 +3690,8 @@ affects = ""
+@@ -3607,7 +3743,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -2265,7 +2957,7 @@ index 830a44d2..83a00f77 100644
  logical = true
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.5"
-@@ -3618,7 +3702,8 @@ affects = ""
+@@ -3618,7 +3755,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -2275,7 +2967,7 @@ index 830a44d2..83a00f77 100644
  logical = true
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.6"
-@@ -3629,7 +3714,8 @@ affects = ""
+@@ -3629,7 +3767,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -2285,7 +2977,7 @@ index 830a44d2..83a00f77 100644
  logical = true
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.7"
-@@ -3643,7 +3729,8 @@ animation_type = "discrete"
+@@ -3643,7 +3782,8 @@ animation_type = "discrete"
  affects = "paint"
  servo_restyle_damage = "repaint"
  vector = {}
@@ -2295,7 +2987,16 @@ index 830a44d2..83a00f77 100644
  
  [background-clip]
  type = "BackgroundClip"
-@@ -3755,7 +3842,7 @@ keyword = { values = ["inline", "block", "horizontal", "vertical"] }
+@@ -3685,6 +3825,8 @@ gecko_enum_prefix = "StyleBlend"
+ gecko_inexhaustive = true
+ 
+ [box-decoration-break]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-box-decoration-break"]
+ struct = "border"
+ spec = "https://drafts.csswg.org/css-break/#propdef-box-decoration-break"
+ animation_type = "discrete"
+@@ -3755,13 +3897,15 @@ keyword = { values = ["inline", "block", "horizontal", "vertical"] }
  
  [column-fill]
  struct = "column"
@@ -2304,7 +3005,15 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-fill"
  animation_type = "discrete"
  affects = "layout"
-@@ -3778,8 +3865,7 @@ gecko_ffi_name = "mFont.variantCaps"
+ keyword = { values = ["balance", "auto"] }
+ 
+ [column-span]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-column-span"]
+ struct = "column"
+ spec = "https://drafts.csswg.org/css-multicol/#propdef-column-span"
+ animation_type = "discrete"
+@@ -3778,8 +3922,7 @@ gecko_ffi_name = "mFont.variantCaps"
  servo_restyle_damage = "rebuild_box"
  
  [font-variant-caps.keyword]
@@ -2314,7 +3023,7 @@ index 830a44d2..83a00f77 100644
  gecko_constant_prefix = "NS_FONT_VARIANT_CAPS"
  
  [font-kerning]
-@@ -3790,9 +3876,9 @@ affects = "layout"
+@@ -3790,9 +3933,9 @@ affects = "layout"
  gecko_ffi_name = "mFont.kerning"
  keyword = { values = ["auto", "none", "normal"], gecko_constant_prefix = "NS_FONT_KERNING" }
  
@@ -2325,7 +3034,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-fonts/#propdef-font-variant-emoji"
  animation_type = "discrete"
  affects = "layout"
-@@ -3874,11 +3960,11 @@ servo_pref = "layout.unimplemented"
+@@ -3874,11 +4017,11 @@ servo_pref = "layout.unimplemented"
  spec = "https://drafts.csswg.org/css-writing-modes/#propdef-text-orientation"
  animation_type = "none"
  affects = "layout"
@@ -2339,7 +3048,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-images/#propdef-image-orientation"
  animation_type = "discrete"
  affects = "layout"
-@@ -3886,7 +3972,8 @@ keyword = { values = ["from-image", "none"] }
+@@ -3886,7 +4029,8 @@ keyword = { values = ["from-image", "none"] }
  
  [text-anchor]
  struct = "inherited_svg"
@@ -2349,7 +3058,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://svgwg.org/svg2-draft/text.html#TextAnchorProperty"
  animation_type = "discrete"
  affects = "layout"
-@@ -3894,7 +3981,8 @@ keyword = { values = ["start", "middle", "end"] }
+@@ -3894,7 +4038,8 @@ keyword = { values = ["start", "middle", "end"] }
  
  [color-interpolation]
  struct = "inherited_svg"
@@ -2359,7 +3068,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationProperty"
  animation_type = "discrete"
  affects = "paint"
-@@ -3902,7 +3990,8 @@ keyword = { values = ["srgb", "auto", "linearrgb"] }
+@@ -3902,7 +4047,8 @@ keyword = { values = ["srgb", "auto", "linearrgb"] }
  
  [color-interpolation-filters]
  struct = "inherited_svg"
@@ -2369,7 +3078,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationFiltersProperty"
  animation_type = "discrete"
  affects = "paint"
-@@ -3910,7 +3999,8 @@ keyword = { values = ["linearrgb", "auto", "srgb"], gecko_enum_prefix = "StyleCo
+@@ -3910,7 +4056,8 @@ keyword = { values = ["linearrgb", "auto", "srgb"], gecko_enum_prefix = "StyleCo
  
  [shape-rendering]
  struct = "inherited_svg"
@@ -2379,7 +3088,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://svgwg.org/svg2-draft/painting.html#ShapeRenderingProperty"
  animation_type = "discrete"
  affects = "paint"
-@@ -3948,11 +4038,10 @@ keyword = { values = ["show", "hide"] }
+@@ -3948,11 +4095,10 @@ keyword = { values = ["show", "hide"] }
  
  [hyphens]
  struct = "inherited_text"
@@ -2392,7 +3101,51 @@ index 830a44d2..83a00f77 100644
  keyword = { values = ["manual", "none", "auto"] }
  
  [-moz-text-size-adjust]
-@@ -3975,7 +4064,7 @@ keyword = { values = ["space-around", "start", "center", "space-between"] }
+@@ -3965,6 +4111,43 @@ gecko_ffi_name = "mTextSizeAdjust"
+ aliases = ["-webkit-text-size-adjust"]
+ keyword = { values = ["auto", "none"] }
+ 
++# Snowlark patch (SNOWLARK-PATCHES.md 83): `text-size-adjust` with its percentages, and two
++# legacy properties the web sets everywhere (Compat), in the servo build.
++[text-size-adjust]
++type = "TextSizeAdjust"
++initial = "computed::TextSizeAdjust::Auto"
++struct = "inherited_text"
++engine = "servo"
++spec = "https://drafts.csswg.org/css-size-adjust/#adjustment-control"
++aliases = ["-webkit-text-size-adjust"]
++affects = "layout"
++
++[-webkit-tap-highlight-color]
++type = "Color"
++initial = "computed::Color::Absolute(crate::color::AbsoluteColor::srgb_legacy(0, 0, 0, 46.0 / 255.0))"
++struct = "inherited_text"
++engine = "servo"
++ignored_when_colors_disabled = true
++spec = "Nonstandard (https://compat.spec.whatwg.org/#the-webkit-tap-highlight-color)"
++affects = "paint"
++
++# Snowlark patch (SNOWLARK-PATCHES.md 84): what a press on the box drags (Compat).
++[-webkit-user-drag]
++struct = "box"
++engine = "servo"
++spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-user-drag)"
++animation_type = "discrete"
++affects = ""
++keyword = { values = ["auto", "none", "element"] }
++
++[-webkit-font-smoothing]
++struct = "inherited_text"
++engine = "servo"
++spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/font-smooth)"
++animation_type = "discrete"
++affects = "paint"
++keyword = { values = ["auto", "none", "antialiased", "subpixel-antialiased"] }
++
+ [ruby-align]
+ struct = "inherited_text"
+ engine = "gecko"
+@@ -3975,7 +4158,7 @@ keyword = { values = ["space-around", "start", "center", "space-between"] }
  
  [text-combine-upright]
  struct = "inherited_text"
@@ -2401,7 +3154,7 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-writing-modes-3/#text-combine-upright"
  animation_type = "none"
  affects = "layout"
-@@ -4007,11 +4096,11 @@ keyword = { values = ["wrap", "nowrap"] }
+@@ -4007,11 +4190,11 @@ keyword = { values = ["wrap", "nowrap"] }
  
  [text-wrap-style]
  struct = "inherited_text"
@@ -2415,7 +3168,7 @@ index 830a44d2..83a00f77 100644
  
  [list-style-position]
  struct = "list"
-@@ -4230,6 +4319,16 @@ gecko_ffi_name = "mBoxOrient"
+@@ -4230,6 +4413,61 @@ gecko_ffi_name = "mBoxOrient"
  aliases = ["-webkit-box-orient"]
  keyword = { values = ["horizontal", "vertical"], gecko_aliases = ["inline-axis=horizontal", "block-axis=vertical"] }
  
@@ -2429,10 +3182,55 @@ index 830a44d2..83a00f77 100644
 +affects = "layout"
 +keyword = { values = ["horizontal", "vertical"], servo_aliases = ["inline-axis=horizontal", "block-axis=vertical"] }
 +
++# Snowlark patch (SNOWLARK-PATCHES.md 81): the rest of the legacy `-webkit-box` properties in the
++# servo build (Gecko has them as aliases of its XUL `-moz-box-*`). snowlark-render lays a
++# `-webkit-box` out as a flex container from them (Compat, `display: -webkit-box`).
++[-webkit-box-align]
++struct = "box"
++engine = "servo"
++spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-align)"
++animation_type = "discrete"
++affects = "layout"
++keyword = { values = ["stretch", "start", "center", "baseline", "end"] }
++
++[-webkit-box-direction]
++struct = "box"
++engine = "servo"
++spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-direction)"
++animation_type = "discrete"
++affects = "layout"
++keyword = { values = ["normal", "reverse"] }
++
++[-webkit-box-pack]
++struct = "box"
++engine = "servo"
++spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-pack)"
++animation_type = "discrete"
++affects = "layout"
++keyword = { values = ["start", "center", "end", "justify"] }
++
++[-webkit-box-flex]
++type = "NonNegativeNumber"
++initial = "From::from(0.)"
++struct = "box"
++engine = "servo"
++spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-flex)"
++affects = "layout"
++
++[-webkit-box-ordinal-group]
++type = "Integer"
++initial = "1"
++struct = "box"
++engine = "servo"
++parse_method = "parse_non_negative"
++animation_type = "discrete"
++spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/-moz-box-ordinal-group)"
++affects = "layout"
++
  [-moz-box-pack]
  struct = "xul"
  engine = "gecko"
-@@ -4252,7 +4351,8 @@ keyword = { values = ["normal", "multiply", "screen", "overlay", "darken", "ligh
+@@ -4252,7 +4490,8 @@ keyword = { values = ["normal", "multiply", "screen", "overlay", "darken", "ligh
  type = "DominantBaseline"
  initial = "computed::DominantBaseline::Auto"
  struct = "inherited_box"
@@ -2443,10 +3241,19 @@ index 830a44d2..83a00f77 100644
  spec = "https://drafts.csswg.org/css-inline-3/#dominant-baseline-property"
  affects = "layout"
 diff --git a/properties/mod.rs b/properties/mod.rs
-index dd241194..08ae70c5 100644
+index dd241194..4adf5f10 100644
 --- a/properties/mod.rs
 +++ b/properties/mod.rs
-@@ -1491,8 +1491,9 @@ pub struct SourcePropertyDeclaration {
+@@ -68,6 +68,8 @@ bitflags! {
+         const IS_LEGACY_SHORTHAND = 1 << 6;
+        /// This shorthand remains enabled even if some subproperties are pref-disabled.
+         const ALLOWS_DISABLED_SUBPROPERTIES = 1 << 7;
++        /// Snowlark patch: this longhand property applies to the highlight pseudo-elements.
++        const APPLIES_TO_HIGHLIGHT = 1 << 8;
+ 
+         /* The following flags are currently not used in Rust code, they
+          * only need to be listed in corresponding properties so that
+@@ -1491,8 +1493,9 @@ pub struct SourcePropertyDeclaration {
  // we only pass `&mut SourcePropertyDeclaration` references around.
  #[cfg(feature = "gecko")]
  size_of_test!(SourcePropertyDeclaration, 632);
@@ -2458,10 +3265,27 @@ index dd241194..08ae70c5 100644
  impl SourcePropertyDeclaration {
      /// Create one with a single PropertyDeclaration.
 diff --git a/properties/properties.mako.rs b/properties/properties.mako.rs
-index 1c9033fb..3a626a68 100644
+index 1c9033fb..7ced1244 100644
 --- a/properties/properties.mako.rs
 +++ b/properties/properties.mako.rs
-@@ -1693,6 +1693,24 @@ impl ComputedValues {
+@@ -536,6 +536,7 @@ ${id_set("PrioritaryPropertyIdSet", [p for p in data.longhands if p.is_prioritar
+     MARKER_RESTRICTIONS = PropertyRestrictions.marker(data)
+     PLACEHOLDER_RESTRICTIONS = PropertyRestrictions.placeholder(data)
+     CUE_RESTRICTIONS = PropertyRestrictions.cue(data)
++    HIGHLIGHT_RESTRICTIONS = PropertyRestrictions.highlight(data)
+ 
+     def restriction_flags(property):
+         name = property.name
+@@ -550,6 +551,8 @@ ${id_set("PrioritaryPropertyIdSet", [p for p in data.longhands if p.is_prioritar
+             flags.append("APPLIES_TO_MARKER")
+         if name in CUE_RESTRICTIONS:
+             flags.append("APPLIES_TO_CUE")
++        if name in HIGHLIGHT_RESTRICTIONS:
++            flags.append("APPLIES_TO_HIGHLIGHT")
+         return flags
+ 
+ %>
+@@ -1693,6 +1696,24 @@ impl ComputedValues {
  % endif
  % endfor
  
@@ -2486,7 +3310,7 @@ index 1c9033fb..3a626a68 100644
      /// Writes the (resolved or computed) value of the given longhand as a string in `dest`.
      ///
      /// TODO(emilio): We should move all the special resolution from
-@@ -2024,6 +2042,24 @@ impl ComputedValuesInner {
+@@ -2024,6 +2045,24 @@ impl ComputedValuesInner {
          }
      % endfor
  
@@ -2511,7 +3335,7 @@ index 1c9033fb..3a626a68 100644
      /// Gets a reference to the rule node. Panic if no rule node exists.
      pub fn rules(&self) -> &StrongRuleNode {
          self.rules.as_ref().unwrap()
-@@ -2619,13 +2655,23 @@ impl<'a> StyleBuilder<'a> {
+@@ -2619,13 +2658,23 @@ impl<'a> StyleBuilder<'a> {
  
      /// Turns this `StyleBuilder` into a proper `ComputedValues` instance.
      pub fn build(self) -> Arc<ComputedValues> {
@@ -2537,7 +3361,7 @@ index 1c9033fb..3a626a68 100644
              self.visited_style,
              % for style_struct in data.active_style_structs():
 diff --git a/properties/shorthands.rs b/properties/shorthands.rs
-index 30196e39..2dd0b5c1 100644
+index 30196e39..8d884a9f 100644
 --- a/properties/shorthands.rs
 +++ b/properties/shorthands.rs
 @@ -545,7 +545,7 @@ pub mod border {
@@ -2675,7 +3499,18 @@ index 30196e39..2dd0b5c1 100644
  pub mod marker {
      pub use crate::properties::generated::shorthands::marker::*;
  
-@@ -2461,16 +2502,16 @@ pub mod font {
+@@ -2088,7 +2129,9 @@ pub mod outline {
+         let mut parsed = 0;
+         loop {
+             parsed += 1;
+-            try_parse_one!(context, input, color, specified::Color::parse);
++            // Snowlark patch (SNOWLARK-PATCHES.md 83): `outline-color`'s own parse, which takes
++            // `-webkit-focus-ring-color`.
++            try_parse_one!(context, input, color, specified::Color::parse_outline_color);
+             try_parse_one!(context, input, style, outline_style::parse);
+             try_parse_one!(context, input, width, outline_width::parse);
+             parsed -= 1;
+@@ -2461,16 +2504,16 @@ pub mod font {
  
      use super::*;
      #[cfg(feature = "gecko")]
@@ -2696,7 +3531,7 @@ index 30196e39..2dd0b5c1 100644
      use crate::values::specified::font::SystemFont;
      use crate::values::specified::font::{
          FontFamily, FontSize, FontStyle, FontWeight, FontWidth, FontWidthKeyword, LineHeight,
-@@ -2486,7 +2527,10 @@ pub mod font {
+@@ -2486,7 +2529,10 @@ pub mod font {
          let mut weight = None;
          let mut width = None;
          #[cfg(feature = "gecko")]
@@ -2708,7 +3543,7 @@ index 30196e39..2dd0b5c1 100644
              return Ok(Longhands {
                  font_family: font_family::SpecifiedValue::system_font(sys),
                  font_size: font_size::SpecifiedValue::system_font(sys),
-@@ -2496,6 +2540,7 @@ pub mod font {
+@@ -2496,6 +2542,7 @@ pub mod font {
                  line_height: LineHeight::normal(),
                  font_kerning: font_kerning::get_initial_specified_value(),
                  font_language_override: font_language_override::get_initial_specified_value(),
@@ -2716,7 +3551,7 @@ index 30196e39..2dd0b5c1 100644
                  font_size_adjust: font_size_adjust::get_initial_specified_value(),
                  font_variant_alternates: font_variant_alternates::get_initial_specified_value(),
                  font_variant_east_asian: font_variant_east_asian::get_initial_specified_value(),
-@@ -2572,7 +2617,6 @@ pub mod font {
+@@ -2572,7 +2619,6 @@ pub mod font {
              font_size_adjust: font_size_adjust::get_initial_specified_value(),
              font_variant_alternates: font_variant_alternates::get_initial_specified_value(),
              font_variant_east_asian: font_variant_east_asian::get_initial_specified_value(),
@@ -2724,7 +3559,7 @@ index 30196e39..2dd0b5c1 100644
              font_variant_emoji: font_variant_emoji::get_initial_specified_value(),
              font_variant_ligatures: font_variant_ligatures::get_initial_specified_value(),
              font_variant_numeric: font_variant_numeric::get_initial_specified_value(),
-@@ -2581,7 +2625,6 @@ pub mod font {
+@@ -2581,7 +2627,6 @@ pub mod font {
          })
      }
  
@@ -2732,7 +3567,7 @@ index 30196e39..2dd0b5c1 100644
      enum CheckSystemResult {
          AllSystem(SystemFont),
          SomeSystem,
-@@ -2593,7 +2636,6 @@ pub mod font {
+@@ -2593,7 +2638,6 @@ pub mod font {
          where
              W: fmt::Write,
          {
@@ -2740,7 +3575,7 @@ index 30196e39..2dd0b5c1 100644
              match self.check_system() {
                  CheckSystemResult::AllSystem(sys) => return sys.to_css(dest),
                  CheckSystemResult::SomeSystem => return Ok(()),
-@@ -2622,7 +2664,6 @@ pub mod font {
+@@ -2622,7 +2666,6 @@ pub mod font {
                      return Ok(());
                  }
              }
@@ -2748,7 +3583,7 @@ index 30196e39..2dd0b5c1 100644
              if self.font_variant_emoji != &font_variant_emoji::get_initial_specified_value() {
                  return Ok(());
              }
-@@ -2719,7 +2760,6 @@ pub mod font {
+@@ -2719,7 +2762,6 @@ pub mod font {
      }
  
      impl<'a> LonghandsToSerialize<'a> {
@@ -2756,7 +3591,7 @@ index 30196e39..2dd0b5c1 100644
          fn check_system(&self) -> CheckSystemResult {
              let mut sys = None;
              let mut all = true;
-@@ -2776,7 +2816,6 @@ pub mod font {
+@@ -2776,7 +2818,6 @@ pub mod font {
              FontSize::collect_completion_keywords(f);
              FontFamily::collect_completion_keywords(f);
  
@@ -2764,7 +3599,7 @@ index 30196e39..2dd0b5c1 100644
              SystemFont::collect_completion_keywords(f);
          }
      }
-@@ -2786,7 +2825,7 @@ pub mod font_variant {
+@@ -2786,7 +2827,7 @@ pub mod font_variant {
      pub use crate::properties::generated::shorthands::font_variant::*;
  
      use super::*;
@@ -2773,7 +3608,7 @@ index 30196e39..2dd0b5c1 100644
      use crate::properties::longhands::font_variant_emoji;
      use crate::properties::longhands::{
          font_variant_alternates, font_variant_caps, font_variant_east_asian,
-@@ -2804,7 +2843,6 @@ pub mod font_variant {
+@@ -2804,7 +2845,6 @@ pub mod font_variant {
          let mut numeric = None;
          let mut east_asian = None;
          let mut position = None;
@@ -2781,7 +3616,7 @@ index 30196e39..2dd0b5c1 100644
          let mut emoji = None;
  
          if input
-@@ -2835,7 +2873,6 @@ pub mod font_variant {
+@@ -2835,7 +2875,6 @@ pub mod font_variant {
                  try_parse_one!(context, input, numeric, font_variant_numeric::parse);
                  try_parse_one!(context, input, east_asian, font_variant_east_asian::parse);
                  try_parse_one!(context, input, position, font_variant_position::parse);
@@ -2789,7 +3624,7 @@ index 30196e39..2dd0b5c1 100644
                  try_parse_one!(context, input, emoji, font_variant_emoji::parse);
                  parsed -= 1;
                  break;
-@@ -2846,7 +2883,6 @@ pub mod font_variant {
+@@ -2846,7 +2885,6 @@ pub mod font_variant {
              }
          }
  
@@ -2797,7 +3632,7 @@ index 30196e39..2dd0b5c1 100644
          return Ok(expanded! {
              font_variant_ligatures: unwrap_or_initial!(font_variant_ligatures, ligatures),
              font_variant_caps: unwrap_or_initial!(font_variant_caps, caps),
-@@ -2856,15 +2892,6 @@ pub mod font_variant {
+@@ -2856,15 +2894,6 @@ pub mod font_variant {
              font_variant_position: unwrap_or_initial!(font_variant_position, position),
              font_variant_emoji: unwrap_or_initial!(font_variant_emoji, emoji),
          });
@@ -2813,7 +3648,7 @@ index 30196e39..2dd0b5c1 100644
      }
  
      impl<'a> ToCss for LonghandsToSerialize<'a> {
-@@ -2875,10 +2902,7 @@ pub mod font_variant {
+@@ -2875,10 +2904,7 @@ pub mod font_variant {
          {
              let has_none_ligatures = self.font_variant_ligatures == &FontVariantLigatures::NONE;
  
@@ -2824,7 +3659,7 @@ index 30196e39..2dd0b5c1 100644
              let mut nb_normals = 0;
              macro_rules! count_normal {
                  ($e: expr, $p: ident) => {
-@@ -2896,7 +2920,6 @@ pub mod font_variant {
+@@ -2896,7 +2922,6 @@ pub mod font_variant {
              count_normal!(font_variant_numeric);
              count_normal!(font_variant_east_asian);
              count_normal!(font_variant_position);
@@ -2832,7 +3667,7 @@ index 30196e39..2dd0b5c1 100644
              count_normal!(font_variant_emoji);
  
              if nb_normals == TOTAL_SUBPROPS {
-@@ -2927,14 +2950,12 @@ pub mod font_variant {
+@@ -2927,14 +2952,12 @@ pub mod font_variant {
              write!(font_variant_numeric);
              write!(font_variant_east_asian);
              write!(font_variant_position);
@@ -2847,7 +3682,7 @@ index 30196e39..2dd0b5c1 100644
  pub mod font_synthesis {
      pub use crate::properties::generated::shorthands::font_synthesis::*;
  
-@@ -3042,7 +3063,7 @@ pub mod font_synthesis {
+@@ -3042,7 +3065,7 @@ pub mod font_synthesis {
      }
  }
  
@@ -2857,7 +3692,7 @@ index 30196e39..2dd0b5c1 100644
      pub use crate::properties::generated::shorthands::text_box::*;
  
 diff --git a/properties/shorthands.toml b/properties/shorthands.toml
-index bd1c5ddd..d5c2721e 100644
+index bd1c5ddd..5405e558 100644
 --- a/properties/shorthands.toml
 +++ b/properties/shorthands.toml
 @@ -19,19 +19,22 @@ rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
@@ -2912,7 +3747,38 @@ index bd1c5ddd..d5c2721e 100644
  sub_properties = ["scroll-padding-inline-start", "scroll-padding-inline-end"]
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-inline"
  kind = "two_properties"
-@@ -209,7 +215,8 @@ spec = "https://wicg.github.io/overscroll-behavior/#overscroll-behavior-properti
+@@ -140,22 +146,30 @@ spec = "https://drafts.csswg.org/css-backgrounds-3/#propdef-border-left"
+ kind = "single_border"
+ 
+ [border-block-start]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-before"]
+ sub_properties = ["border-block-start-width", "border-block-start-style", "border-block-start-color"]
+ spec = "https://drafts.csswg.org/css-logical/#propdef-border-block-start"
+ kind = "single_border"
+ 
+ [border-block-end]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-after"]
+ sub_properties = ["border-block-end-width", "border-block-end-style", "border-block-end-color"]
+ spec = "https://drafts.csswg.org/css-logical/#propdef-border-block-end"
+ kind = "single_border"
+ 
+ [border-inline-start]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-start"]
+ sub_properties = ["border-inline-start-width", "border-inline-start-style", "border-inline-start-color"]
+ spec = "https://drafts.csswg.org/css-logical/#propdef-border-inline-start"
+ kind = "single_border"
+ extra_gecko_aliases = ["-moz-border-start"]
+ 
+ [border-inline-end]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-border-end"]
+ sub_properties = ["border-inline-end-width", "border-inline-end-style", "border-inline-end-color"]
+ spec = "https://drafts.csswg.org/css-logical/#propdef-border-inline-end"
+ kind = "single_border"
+@@ -209,7 +223,8 @@ spec = "https://wicg.github.io/overscroll-behavior/#overscroll-behavior-properti
  kind = "two_properties"
  
  [container]
@@ -2922,7 +3788,7 @@ index bd1c5ddd..d5c2721e 100644
  sub_properties = ["container-name", "container-type"]
  spec = "https://drafts.csswg.org/css-contain-3/#container-shorthand"
  
-@@ -218,25 +225,25 @@ sub_properties = ["alignment-baseline", "baseline-shift", "baseline-source"]
+@@ -218,25 +233,25 @@ sub_properties = ["alignment-baseline", "baseline-shift", "baseline-source"]
  spec = "https://drafts.csswg.org/css-inline-3/#transverse-alignment"
  
  [page-break-before]
@@ -2952,7 +3818,7 @@ index bd1c5ddd..d5c2721e 100644
  sub_properties = ["offset-path", "offset-distance", "offset-rotate", "offset-anchor", "offset-position"]
  spec = "https://drafts.fxtf.org/motion-1/#offset-shorthand"
  
-@@ -285,7 +292,8 @@ rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+@@ -285,7 +300,8 @@ rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
  kind = "two_properties"
  
  [contain-intrinsic-size]
@@ -2962,7 +3828,7 @@ index bd1c5ddd..d5c2721e 100644
  sub_properties = ["contain-intrinsic-width", "contain-intrinsic-height"]
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
  kind = "two_properties"
-@@ -350,7 +358,8 @@ sub_properties = ["position-try-order", "position-try-fallbacks"]
+@@ -350,7 +366,8 @@ sub_properties = ["position-try-order", "position-try-fallbacks"]
  spec = "https://drafts.csswg.org/css-anchor-position-1/#position-try-prop"
  
  [marker]
@@ -2972,11 +3838,13 @@ index bd1c5ddd..d5c2721e 100644
  sub_properties = ["marker-start", "marker-end", "marker-mid"]
  spec = "https://svgwg.org/svg2-draft/painting.html#MarkerShorthand"
  
-@@ -476,15 +485,15 @@ sub_properties = ["outline-color", "outline-style", "outline-width"]
+@@ -476,15 +493,19 @@ sub_properties = ["outline-color", "outline-style", "outline-width"]
  spec = "https://drafts.csswg.org/css-ui/#propdef-outline"
  
  [columns]
 -sub_properties = ["column-width", "column-count"]
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-columns"]
 +# Snowlark patch (SNOWLARK-PATCHES.md 57): with Multicol 2's column-height and column-wrap.
 +sub_properties = ["column-width", "column-count", "column-height", "column-wrap"]
  spec = "https://drafts.csswg.org/css-multicol/#propdef-columns"
@@ -2984,6 +3852,8 @@ index bd1c5ddd..d5c2721e 100644
  
  [column-rule]
 -engine = "gecko"
++# Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
++aliases = ["-webkit-column-rule"]
 +# Snowlark patch: also the servo build, SNOWLARK-PATCHES.md 56.
  sub_properties = ["column-rule-width", "column-rule-style", "column-rule-color"]
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-rule"
@@ -2991,7 +3861,7 @@ index bd1c5ddd..d5c2721e 100644
  
  [text-decoration]
  sub_properties = ["text-decoration-color", "text-decoration-line", "text-decoration-style", "text-decoration-thickness"]
-@@ -509,10 +518,10 @@ sub_properties = [
+@@ -509,10 +530,10 @@ sub_properties = [
    "font-kerning",
    "font-feature-settings",
    "font-language-override",
@@ -3003,7 +3873,7 @@ index bd1c5ddd..d5c2721e 100644
  ]
  spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font"
  derive_value_info = false
-@@ -524,19 +533,19 @@ sub_properties = [
+@@ -524,19 +545,19 @@ sub_properties = [
      "font-variant-east-asian",
      "font-variant-ligatures",
      "font-variant-numeric",
@@ -3027,7 +3897,7 @@ index bd1c5ddd..d5c2721e 100644
  sub_properties = ["text-box-trim", "text-box-edge"]
  spec = "https://drafts.csswg.org/css-inline/#text-box-shorthand"
  gecko_pref = "layout.css.text-box.enabled"
-@@ -548,7 +557,7 @@ spec = "https://drafts.csswg.org/css-text-decor-3/#text-emphasis-property"
+@@ -548,7 +569,7 @@ spec = "https://drafts.csswg.org/css-text-decor-3/#text-emphasis-property"
  derive_serialize = true
  
  [text-wrap]
@@ -3036,7 +3906,7 @@ index bd1c5ddd..d5c2721e 100644
  sub_properties = ["text-wrap-mode", "text-wrap-style"]
  spec = "https://www.w3.org/TR/css-text-4/#text-wrap"
  
-@@ -564,7 +573,7 @@ spec = "https://compat.spec.whatwg.org/#the-webkit-text-stroke"
+@@ -564,7 +585,7 @@ spec = "https://compat.spec.whatwg.org/#the-webkit-text-stroke"
  derive_serialize = true
  
  [-webkit-line-clamp]
@@ -3960,10 +4830,21 @@ index dc4aaec6..43f9f8a0 100644
              || self.transform_style == TransformStyle::Preserve3d
      }
 diff --git a/servo/selector_parser.rs b/servo/selector_parser.rs
-index 8db71357..3ba3f5c5 100644
+index 8db71357..60b94584 100644
 --- a/servo/selector_parser.rs
 +++ b/servo/selector_parser.rs
-@@ -68,6 +68,15 @@ pub enum PseudoElement {
+@@ -57,6 +57,10 @@ pub enum PseudoElement {
+     Backdrop,
+     DetailsContent,
+     Marker,
++    // Snowlark patch: the highlight pseudo-elements besides `::selection` (CSS Pseudo 4 §3.1).
++    TargetText,
++    SpellingError,
++    GrammarError,
+ 
+     // Implemented pseudos. These pseudo elements are representing the
+     // elements within an UA shadow DOM, and matching the elements with
+@@ -68,6 +72,59 @@ pub enum PseudoElement {
      SliderThumb,
      SliderTrack,
      MozProgressBar,
@@ -3976,10 +4857,113 @@ index 8db71357..3ba3f5c5 100644
 +    WebkitMeterOptimumValue,
 +    WebkitMeterSuboptimumValue,
 +    WebkitMeterEvenLessGoodValue,
++
++    // Snowlark patch: the parts of a scroll container's custom scroll bars (a compat feature:
++    // their styles, cascaded lazily from the scroll container, say how its bars are drawn). Keep
++    // them together, `WebkitScrollbar` first and `WebkitScrollbarCorner` last.
++    WebkitScrollbar,
++    WebkitScrollbarThumb,
++    WebkitScrollbarTrack,
++    WebkitScrollbarTrackPiece,
++    WebkitScrollbarButton,
++    WebkitScrollbarCorner,
++
++    // Snowlark patch: Selectors 4 §compat, `::-webkit-` pseudo-elements are valid. The parts of
++    // form controls that pages style under these names, which this engine does not have (they
++    // match nothing; the stylist drops their rules), then any other name. Keep them together,
++    // `WebkitInnerSpinButton` first and `UnknownWebkit` last.
++    WebkitInnerSpinButton,
++    WebkitOuterSpinButton,
++    WebkitSearchCancelButton,
++    WebkitSearchDecoration,
++    WebkitSearchResultsButton,
++    WebkitSearchResultsDecoration,
++    WebkitSliderThumb,
++    WebkitSliderRunnableTrack,
++    WebkitSliderContainer,
++    WebkitCalendarPickerIndicator,
++    WebkitClearButton,
++    WebkitColorSwatch,
++    WebkitColorSwatchWrapper,
++    WebkitDatetimeEdit,
++    WebkitDatetimeEditFieldsWrapper,
++    WebkitDatetimeEditText,
++    WebkitDatetimeEditYearField,
++    WebkitDatetimeEditMonthField,
++    WebkitDatetimeEditDayField,
++    WebkitDatetimeEditHourField,
++    WebkitDatetimeEditMinuteField,
++    WebkitDatetimeEditSecondField,
++    WebkitDatetimeEditMillisecondField,
++    WebkitDatetimeEditAmpmField,
++    WebkitDatetimeEditWeekField,
++    WebkitDetailsMarker,
++    WebkitTextfieldDecorationContainer,
++    WebkitResizer,
++    UnknownWebkit,
  
      // Private, Servo-specific implemented pseudos. Only matchable in UA sheet.
      ServoTextControlInnerContainer,
-@@ -106,6 +115,14 @@ impl ToCss for PseudoElement {
+@@ -85,6 +142,48 @@ pub enum PseudoElement {
+ /// The count of all pseudo-elements.
+ pub const PSEUDO_COUNT: usize = PseudoElement::ServoTableWrapper as usize + 1;
+ 
++/// Snowlark patch: the `::-webkit-` parts this engine parses by name: the scroll bar parts, then
++/// the ones it does not have.
++const WEBKIT_PARTS: &[(&str, PseudoElement)] = {
++    use self::PseudoElement::*;
++    &[
++        ("-webkit-inner-spin-button", WebkitInnerSpinButton),
++        ("-webkit-outer-spin-button", WebkitOuterSpinButton),
++        ("-webkit-search-cancel-button", WebkitSearchCancelButton),
++        ("-webkit-search-decoration", WebkitSearchDecoration),
++        ("-webkit-search-results-button", WebkitSearchResultsButton),
++        ("-webkit-search-results-decoration", WebkitSearchResultsDecoration),
++        ("-webkit-slider-thumb", WebkitSliderThumb),
++        ("-webkit-slider-runnable-track", WebkitSliderRunnableTrack),
++        ("-webkit-slider-container", WebkitSliderContainer),
++        ("-webkit-calendar-picker-indicator", WebkitCalendarPickerIndicator),
++        ("-webkit-clear-button", WebkitClearButton),
++        ("-webkit-color-swatch", WebkitColorSwatch),
++        ("-webkit-color-swatch-wrapper", WebkitColorSwatchWrapper),
++        ("-webkit-datetime-edit", WebkitDatetimeEdit),
++        ("-webkit-datetime-edit-fields-wrapper", WebkitDatetimeEditFieldsWrapper),
++        ("-webkit-datetime-edit-text", WebkitDatetimeEditText),
++        ("-webkit-datetime-edit-year-field", WebkitDatetimeEditYearField),
++        ("-webkit-datetime-edit-month-field", WebkitDatetimeEditMonthField),
++        ("-webkit-datetime-edit-day-field", WebkitDatetimeEditDayField),
++        ("-webkit-datetime-edit-hour-field", WebkitDatetimeEditHourField),
++        ("-webkit-datetime-edit-minute-field", WebkitDatetimeEditMinuteField),
++        ("-webkit-datetime-edit-second-field", WebkitDatetimeEditSecondField),
++        ("-webkit-datetime-edit-millisecond-field", WebkitDatetimeEditMillisecondField),
++        ("-webkit-datetime-edit-ampm-field", WebkitDatetimeEditAmpmField),
++        ("-webkit-datetime-edit-week-field", WebkitDatetimeEditWeekField),
++        ("-webkit-details-marker", WebkitDetailsMarker),
++        ("-webkit-textfield-decoration-container", WebkitTextfieldDecorationContainer),
++        ("-webkit-scrollbar", WebkitScrollbar),
++        ("-webkit-scrollbar-thumb", WebkitScrollbarThumb),
++        ("-webkit-scrollbar-track", WebkitScrollbarTrack),
++        ("-webkit-scrollbar-track-piece", WebkitScrollbarTrackPiece),
++        ("-webkit-scrollbar-button", WebkitScrollbarButton),
++        ("-webkit-scrollbar-corner", WebkitScrollbarCorner),
++        ("-webkit-resizer", WebkitResizer),
++    ]
++};
++
+ impl ToCss for PseudoElement {
+     fn to_css<W>(&self, dest: &mut W) -> fmt::Result
+     where
+@@ -99,6 +198,9 @@ impl ToCss for PseudoElement {
+             Backdrop => "::backdrop",
+             DetailsContent => "::details-content",
+             Marker => "::marker",
++            TargetText => "::target-text",
++            SpellingError => "::spelling-error",
++            GrammarError => "::grammar-error",
+             ColorSwatch => "::color-swatch",
+             FileSelectorButton => "::file-selector-button",
+             Placeholder => "::placeholder",
+@@ -106,6 +208,14 @@ impl ToCss for PseudoElement {
              SliderTrack => "::slider-track",
              SliderThumb => "::slider-thumb",
              MozProgressBar => "::-moz-progress-bar",
@@ -3994,7 +4978,25 @@ index 8db71357..3ba3f5c5 100644
              ServoTextControlInnerContainer => "::-servo-text-control-inner-container",
              ServoTextControlInnerEditor => "::-servo-text-control-inner-editor",
              ServoAnonymousBox => "::-servo-anonymous-box",
-@@ -122,6 +139,29 @@ impl ::selectors::parser::PseudoElement for PseudoElement {
+@@ -114,6 +224,17 @@ impl ToCss for PseudoElement {
+             ServoAnonymousTableRow => "::-servo-anonymous-table-row",
+             ServoTableGrid => "::-servo-table-grid",
+             ServoTableWrapper => "::-servo-table-wrapper",
++            // (the name of any other `-webkit-` pseudo-element is not kept)
++            UnknownWebkit => "::-webkit-unknown",
++            ref p => {
++                dest.write_str("::")?;
++                return dest.write_str(
++                    WEBKIT_PARTS
++                        .iter()
++                        .find(|(_, q)| q == p)
++                        .map_or("-webkit-unknown", |(name, _)| name),
++                );
++            },
+         })
+     }
+ }
+@@ -122,6 +243,36 @@ impl ::selectors::parser::PseudoElement for PseudoElement {
      fn parses_as_element_backed(&self) -> bool {
          matches!(self, Self::DetailsContent)
      }
@@ -4021,10 +5023,55 @@ index 8db71357..3ba3f5c5 100644
 +    fn is_before_or_after(&self) -> bool {
 +        matches!(self, Self::Before | Self::After)
 +    }
++
++    /// Snowlark patch: user action pseudo-classes may follow a `::-webkit-` pseudo-element
++    /// (`::-webkit-scrollbar-thumb:hover`), as in Gecko. (A scroll bar part's style is cascaded
++    /// without state, so such a rule does not apply to it.)
++    fn accepts_state_pseudo_classes(&self) -> bool {
++        self.is_unknown_webkit_pseudo_element() || self.is_webkit_scrollbar_part()
++    }
  }
  
  /// The number of eager pseudo-elements. Keep this in sync with cascade_type.
-@@ -265,6 +305,14 @@ impl PseudoElement {
+@@ -143,7 +294,8 @@ impl PseudoElement {
+ 
+     /// An array of `None`, one per pseudo-element.
+     pub fn pseudo_none_array<T>() -> [Option<T>; PSEUDO_COUNT] {
+-        Default::default()
++        // Snowlark patch: more than 32 pseudo-elements (arrays that long have no `Default`).
++        std::array::from_fn(|_| None)
+     }
+ 
+     /// Creates a pseudo-element from an eager index.
+@@ -165,7 +317,17 @@ impl PseudoElement {
+     /// Whether this is an unknown ::-webkit- pseudo-element.
+     #[inline]
+     pub fn is_unknown_webkit_pseudo_element(&self) -> bool {
+-        false
++        // Snowlark patch: the `::-webkit-` parts this engine does not have.
++        (PseudoElement::WebkitInnerSpinButton as u8..=PseudoElement::UnknownWebkit as u8)
++            .contains(&(*self as u8))
++    }
++
++    /// Snowlark patch: whether this is a part of a custom scroll bar (`::-webkit-scrollbar` and
++    /// its `-thumb`, `-track`, `-track-piece`, `-button` and `-corner`).
++    #[inline]
++    pub fn is_webkit_scrollbar_part(&self) -> bool {
++        (PseudoElement::WebkitScrollbar as u8..=PseudoElement::WebkitScrollbarCorner as u8)
++            .contains(&(*self as u8))
+     }
+ 
+     /// Whether this pseudo-element is the ::marker pseudo.
+@@ -259,12 +421,23 @@ impl PseudoElement {
+             | PseudoElement::ColorSwatch
+             | PseudoElement::FileSelectorButton
+             | PseudoElement::Marker
++            | PseudoElement::TargetText
++            | PseudoElement::SpellingError
++            | PseudoElement::GrammarError
+             | PseudoElement::Placeholder
+             | PseudoElement::DetailsContent
+             | PseudoElement::SliderFill
              | PseudoElement::SliderThumb
              | PseudoElement::SliderTrack
              | PseudoElement::MozProgressBar
@@ -4039,7 +5086,46 @@ index 8db71357..3ba3f5c5 100644
              | PseudoElement::ServoTextControlInnerContainer
              | PseudoElement::ServoTextControlInnerEditor => PseudoElementCascadeType::Lazy,
              PseudoElement::ServoAnonymousBox
-@@ -354,6 +402,14 @@ impl PseudoElement {
+@@ -273,6 +446,8 @@ impl PseudoElement {
+             | PseudoElement::ServoAnonymousTableRow
+             | PseudoElement::ServoTableGrid
+             | PseudoElement::ServoTableWrapper => PseudoElementCascadeType::Precomputed,
++            // (the `::-webkit-` parts this engine does not have)
++            _ => PseudoElementCascadeType::Lazy,
+         }
+     }
+ 
+@@ -296,6 +471,11 @@ impl PseudoElement {
+                 PropertyFlags::APPLIES_TO_MARKER
+             },
+             PseudoElement::Placeholder => PropertyFlags::APPLIES_TO_PLACEHOLDER,
++            // Snowlark patch: CSS Pseudo 4 §3.2, the properties that apply to highlights.
++            PseudoElement::Selection
++            | PseudoElement::TargetText
++            | PseudoElement::SpellingError
++            | PseudoElement::GrammarError => PropertyFlags::APPLIES_TO_HIGHLIGHT,
+             _ => return None,
+         })
+     }
+@@ -328,7 +508,16 @@ impl PseudoElement {
+     /// Whether this pseudo-element is the ::target-text pseudo.
+     #[inline]
+     pub fn is_target_text(&self) -> bool {
+-        false
++        *self == PseudoElement::TargetText
++    }
++
++    /// Snowlark patch: whether this is one of the highlight pseudo-elements (CSS Pseudo 4 §3.1).
++    #[inline]
++    pub fn is_highlight_pseudo(&self) -> bool {
++        matches!(
++            self,
++            Self::Selection | Self::TargetText | Self::SpellingError | Self::GrammarError
++        )
+     }
+ 
+     /// Whether this is a highlight pseudo-element that is styled lazily during
+@@ -354,6 +543,14 @@ impl PseudoElement {
                      | Self::SliderThumb
                      | Self::SliderTrack
                      | Self::MozProgressBar
@@ -4054,7 +5140,7 @@ index 8db71357..3ba3f5c5 100644
                      | Self::ServoTextControlInnerContainer
                      | Self::ServoTextControlInnerEditor,
              )
-@@ -386,16 +442,22 @@ pub enum NonTSPseudoClass {
+@@ -386,16 +583,22 @@ pub enum NonTSPseudoClass {
      FocusWithin,
      FocusVisible,
      Fullscreen,
@@ -4077,7 +5163,7 @@ index 8db71357..3ba3f5c5 100644
      Open,
      Optional,
      OutOfRange,
-@@ -442,6 +504,11 @@ impl ToCss for NonTSPseudoClass {
+@@ -442,6 +645,11 @@ impl ToCss for NonTSPseudoClass {
              serialize_identifier(lang, dest)?;
              return dest.write_char(')');
          }
@@ -4089,7 +5175,7 @@ index 8db71357..3ba3f5c5 100644
  
          dest.write_str(match *self {
              Self::Active => ":active",
-@@ -461,15 +528,18 @@ impl ToCss for NonTSPseudoClass {
+@@ -461,15 +669,18 @@ impl ToCss for NonTSPseudoClass {
              Self::FocusVisible => ":focus-visible",
              Self::FocusWithin => ":focus-within",
              Self::Fullscreen => ":fullscreen",
@@ -4108,7 +5194,7 @@ index 8db71357..3ba3f5c5 100644
              Self::Open => ":open",
              Self::Optional => ":optional",
              Self::OutOfRange => ":out-of-range",
-@@ -484,7 +554,7 @@ impl ToCss for NonTSPseudoClass {
+@@ -484,7 +695,7 @@ impl ToCss for NonTSPseudoClass {
              Self::UserValid => ":user-valid",
              Self::Valid => ":valid",
              Self::Visited => ":visited",
@@ -4117,7 +5203,7 @@ index 8db71357..3ba3f5c5 100644
          })
      }
  }
-@@ -506,15 +576,18 @@ impl NonTSPseudoClass {
+@@ -506,15 +717,18 @@ impl NonTSPseudoClass {
              Self::FocusVisible => ElementState::FOCUSRING,
              Self::FocusWithin => ElementState::FOCUS_WITHIN,
              Self::Fullscreen => ElementState::FULLSCREEN,
@@ -4136,7 +5222,7 @@ index 8db71357..3ba3f5c5 100644
              Self::Open => ElementState::OPEN,
              Self::Optional => ElementState::OPTIONAL_,
              Self::OutOfRange => ElementState::OUTOFRANGE,
-@@ -528,7 +601,7 @@ impl NonTSPseudoClass {
+@@ -528,7 +742,7 @@ impl NonTSPseudoClass {
              Self::UserValid => ElementState::USER_VALID,
              Self::Valid => ElementState::VALID,
              Self::Visited => ElementState::VISITED,
@@ -4145,7 +5231,7 @@ index 8db71357..3ba3f5c5 100644
                  ElementState::empty()
              },
          }
-@@ -631,7 +704,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+@@ -631,7 +845,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
              "focus-visible" => NonTSPseudoClass::FocusVisible,
              "focus-within" => NonTSPseudoClass::FocusWithin,
              "fullscreen" => NonTSPseudoClass::Fullscreen,
@@ -4155,7 +5241,15 @@ index 8db71357..3ba3f5c5 100644
              "indeterminate" => NonTSPseudoClass::Indeterminate,
              "invalid" => NonTSPseudoClass::Invalid,
              "link" => NonTSPseudoClass::Link,
-@@ -652,6 +727,18 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+@@ -649,9 +865,26 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+             "user-valid" => NonTSPseudoClass::UserValid,
+             "valid" => NonTSPseudoClass::Valid,
+             "visited" => NonTSPseudoClass::Visited,
++            // Snowlark patch: legacy names. `:-webkit-autofill` is HTML's own alias of `:autofill`
++            // (§4.16.3); the other two are the compat names of `:fullscreen` and `:any-link`.
++            "-webkit-autofill" => NonTSPseudoClass::Autofill,
++            "-webkit-full-screen" => NonTSPseudoClass::Fullscreen,
++            "-webkit-any-link" => NonTSPseudoClass::AnyLink,
              "-moz-meter-optimum" => NonTSPseudoClass::MozMeterOptimum,
              "-moz-meter-sub-optimum" => NonTSPseudoClass::MozMeterSubOptimum,
              "-moz-meter-sub-sub-optimum" => NonTSPseudoClass::MozMeterSubSubOptimum,
@@ -4174,7 +5268,7 @@ index 8db71357..3ba3f5c5 100644
              "-servo-nonzero-border" => {
                  if !self.in_user_agent_stylesheet() {
                      return Err(ParseError::custom(
-@@ -676,6 +763,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+@@ -676,6 +909,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
              "lang" if !after_part => {
                  NonTSPseudoClass::Lang(parser.expect_ident_or_string()?.as_ref().into())
              },
@@ -4184,7 +5278,17 @@ index 8db71357..3ba3f5c5 100644
              "state" => {
                  let result = AtomIdent::from(parser.expect_ident()?.as_ref());
                  NonTSPseudoClass::CustomState(CustomState(result))
-@@ -715,6 +805,14 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+@@ -696,6 +932,9 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+             "file-selector-button" => FileSelectorButton,
+             "first-letter" => FirstLetter,
+             "marker" => Marker,
++            "target-text" => TargetText,
++            "spelling-error" => SpellingError,
++            "grammar-error" => GrammarError,
+             "details-content" => DetailsContent,
+             "color-swatch" => ColorSwatch,
+             "placeholder" => Placeholder,
+@@ -715,6 +954,14 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
              "slider-thumb" => SliderThumb,
              "slider-track" => SliderTrack,
              "-moz-progress-bar" => MozProgressBar,
@@ -4199,6 +5303,33 @@ index 8db71357..3ba3f5c5 100644
              "-servo-anonymous-box" => {
                  if !self.in_user_agent_stylesheet() {
                      return Err(ParseError::custom(SelectorParseErrorKind::UnexpectedIdent))
+@@ -751,7 +998,25 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
+                 }
+                 ServoTableWrapper
+             },
+-            _ => return Err(ParseError::custom(SelectorParseErrorKind::UnexpectedIdent))
++            // Snowlark patch: the legacy names of `::placeholder` and `::file-selector-button`
++            // (CSS Pseudo 4 §5.2, §5.3), then the other `::-webkit-` pseudo-elements, valid by
++            // Selectors 4 §compat (an unknown one is not supported in `@supports`, as CSS
++            // Conditional 4 §8.1's `selector()` asks).
++            "-webkit-input-placeholder" => Placeholder,
++            "-webkit-file-upload-button" => FileSelectorButton,
++            _ => {
++                if let Some((_, part)) = WEBKIT_PARTS
++                    .iter()
++                    .find(|(n, _)| n.eq_ignore_ascii_case(&name))
++                {
++                    return Ok(*part);
++                }
++                let webkit = name.len() > 8 && name.as_bytes()[..8].eq_ignore_ascii_case(b"-webkit-");
++                if webkit && !self.for_supports_rule {
++                    return Ok(UnknownWebkit);
++                }
++                return Err(ParseError::custom(SelectorParseErrorKind::UnexpectedIdent))
++            }
+ 
+         };
+ 
 diff --git a/shared_lock.rs b/shared_lock.rs
 index af0ef122..9d9bfa9d 100644
 --- a/shared_lock.rs
@@ -4410,10 +5541,65 @@ index ef4c5f94..122b5e80 100644
              }
              let data = candidate.element.borrow_data().unwrap();
 diff --git a/style_adjuster.rs b/style_adjuster.rs
-index c14a93fb..d794718a 100644
+index c14a93fb..9b37381e 100644
 --- a/style_adjuster.rs
 +++ b/style_adjuster.rs
-@@ -161,9 +161,13 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
+@@ -131,6 +131,54 @@ where
+     false
+ }
+ 
++/// Snowlark patch 73: the servo build's [unboxing of unusual elements](
++/// https://drafts.csswg.org/css-display/#unbox): the elements whose `display: contents` computes
++/// to `none`, as the gecko build's list above, compared by name (the servo build has no `atom!`).
++#[cfg(feature = "servo")]
++fn is_effective_display_none_for_display_contents<E>(element: E) -> bool
++where
++    E: TElement,
++{
++    // https://drafts.csswg.org/css-display/#unbox-html
++    if element.is_html_element() {
++        return matches!(
++            &**element.local_name(),
++            "br" | "wbr"
++                | "meter"
++                | "progress"
++                | "canvas"
++                | "embed"
++                | "object"
++                | "audio"
++                | "iframe"
++                | "img"
++                | "video"
++                | "frame"
++                | "frameset"
++                | "input"
++                | "textarea"
++                | "select"
++        );
++    }
++    // https://drafts.csswg.org/css-display/#unbox-svg: an `svg` element that is not the topmost
++    // one, or one inside `foreignObject`, unboxes as `svg`, `a`, `g`, `use`, `tspan` and
++    // `textPath` do; any other SVG element computes to `none`.
++    if element.is_svg_element() {
++        let name = &**element.local_name();
++        if name == "svg" {
++            let topmost = element.traversal_parent().map_or(true, |parent| {
++                !parent.is_svg_element() || &**parent.local_name() == "foreignObject"
++            });
++            if topmost {
++                return true;
++            }
++        }
++        return !matches!(name, "svg" | "a" | "g" | "use" | "tspan" | "textPath");
++    }
++    // https://drafts.csswg.org/css-display/#unbox-mathml
++    element.is_mathml_element()
++}
++
+ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
+     /// Trivially constructs a new StyleAdjuster.
+     #[inline]
+@@ -161,9 +209,13 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
      /// This makes the element not be a flex container, with all that it
      /// implies, but it should be safe. It matches blink, see
      /// https://bugzilla.mozilla.org/show_bug.cgi?id=1786147#c10
@@ -4428,7 +5614,7 @@ index c14a93fb..d794718a 100644
          use crate::values::specified::box_::{DisplayInside, DisplayOutside};
          let box_style = self.style.get_box();
          let line_clamp = box_style.clone_line_clamp();
-@@ -172,9 +176,11 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
+@@ -172,9 +224,11 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
          }
  
          let disp = box_style.clone_display();
@@ -4443,7 +5629,19 @@ index c14a93fb..d794718a 100644
              return;
          }
          let new_display = if disp.outside() == DisplayOutside::Block {
-@@ -425,10 +431,17 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
+@@ -235,6 +289,11 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
+         if !self.skip_item_display_fixup(element) {
+             let parent_display = layout_parent_style.get_box().clone_display();
+             blockify_if!(parent_display.is_item_container());
++            // Snowlark patch (SNOWLARK-PATCHES.md 81): an item of a legacy `-webkit-box`.
++            if parent_display.inside() == crate::values::specified::box_::DisplayInside::WebkitBox
++            {
++                self.style.add_flags(ComputedValueFlags::IS_WEBKIT_BOX_ITEM);
++            }
+         }
+ 
+         let is_item_or_root = blockify;
+@@ -425,10 +484,17 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
              return; // optimization for the common case
          }
  
@@ -4463,7 +5661,40 @@ index c14a93fb..d794718a 100644
          }
      }
  
-@@ -1061,7 +1074,6 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
+@@ -539,6 +605,22 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
+         }
+     }
+ 
++    /// Snowlark patch 73: `display: contents` on an element that cannot be unboxed computes to
++    /// `none` (https://drafts.csswg.org/css-display/#unbox). Pseudo-elements keep it.
++    #[cfg(feature = "servo")]
++    fn adjust_for_prohibited_display_contents<E>(&mut self, element: Option<E>)
++    where
++        E: TElement,
++    {
++        if self.style.get_box().clone_display() != Display::Contents || self.style.pseudo.is_some()
++        {
++            return;
++        }
++        if element.is_some_and(is_effective_display_none_for_display_contents) {
++            self.style.mutate_box().set_display(Display::None);
++        }
++    }
++
+     /// <textarea>'s editor root needs to inherit the overflow value from its
+     /// parent, but we need to make sure it's still scrollable.
+     #[cfg(feature = "gecko")]
+@@ -1053,6 +1135,9 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
+         // );
+ 
+         self.adjust_for_visited(element);
++        // (Snowlark patch 73)
++        #[cfg(feature = "servo")]
++        self.adjust_for_prohibited_display_contents(element);
+         #[cfg(feature = "gecko")]
+         {
+             self.adjust_for_prohibited_display_contents(element);
+@@ -1061,7 +1146,6 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
          }
          self.adjust_for_top_layer();
          self.blockify_if_necessary(layout_parent_style, element);
@@ -4472,7 +5703,7 @@ index c14a93fb..d794718a 100644
          self.adjust_for_position();
          self.adjust_for_overflow();
 diff --git a/style_resolver.rs b/style_resolver.rs
-index 0cc0c379..3b0da60b 100644
+index 0cc0c379..ee4e0672 100644
 --- a/style_resolver.rs
 +++ b/style_resolver.rs
 @@ -160,6 +160,36 @@ fn eager_pseudo_is_definitely_not_generated(
@@ -4512,7 +5743,7 @@ index 0cc0c379..3b0da60b 100644
  impl<'a, 'ctx, 'le, E> StyleResolverForElement<'a, 'ctx, 'le, E>
  where
      'ctx: 'a,
-@@ -382,6 +412,64 @@ where
+@@ -382,6 +412,99 @@ where
      ) -> ResolvedStyle {
          debug_assert!(pseudo.is_none_or(|p| p.is_eager()));
  
@@ -4528,13 +5759,29 @@ index 0cc0c379..3b0da60b 100644
 +                    && inputs.visited_rules.is_none()
 +                    && self.element.style_attribute().is_none()
 +                    && !self.element.is_svg_element()
-+                    && !crate::rule_cache::MatchedPropertiesCache::animated(rules)
 +                    && !inputs
 +                        .included_cascade_flags
 +                        .contains(RuleCascadeFlags::STARTING_STYLE) =>
 +            {
 +                let layout_parent = layout_parent_style.unwrap_or(parent);
 +                let device = self.context.shared.stylist.device();
++                // Snowlark patch 72: an element with running transitions looks up the style of
++                // its rules without them (its after-change rules, whose style was kept when its
++                // transitions started) and gets that style with the transitions' values applied
++                // over it (`apply_transitions_to_base`).
++                let animated = crate::rule_cache::MatchedPropertiesCache::animated(rules);
++                let base_rules;
++                let lookup = if animated {
++                    base_rules = self
++                        .context
++                        .shared
++                        .stylist
++                        .rule_tree()
++                        .remove_animation_rules(rules);
++                    &base_rules
++                } else {
++                    rules
++                };
 +                let kept = self
 +                    .context
 +                    .shared
@@ -4542,7 +5789,7 @@ index 0cc0c379..3b0da60b 100644
 +                    .and_then(|cache| {
 +                        cache.find(
 +                            device,
-+                            rules,
++                            lookup,
 +                            self.element.local_name(),
 +                            self.element.namespace(),
 +                            inputs.flags,
@@ -4553,7 +5800,7 @@ index 0cc0c379..3b0da60b 100644
 +                    .or_else(|| {
 +                        self.context.thread_local.matched_properties.find(
 +                            device,
-+                            rules,
++                            lookup,
 +                            self.element.local_name(),
 +                            self.element.namespace(),
 +                            inputs.flags,
@@ -4561,15 +5808,34 @@ index 0cc0c379..3b0da60b 100644
 +                            layout_parent,
 +                        )
 +                    });
-+                if let Some(style) = kept {
++                if animated {
++                    let base = kept.cloned();
++                    let applied = base.and_then(|base| {
++                        crate::properties::cascade::apply_transitions_to_base(
++                            self.context.shared.stylist,
++                            rules,
++                            &self.context.shared.guards,
++                            &base,
++                            parent,
++                            self.element,
++                            &mut self.context.thread_local.tree_counting_caches,
++                        )
++                    });
++                    if let Some(style) = applied {
++                        return ResolvedStyle(style);
++                    }
++                    // (a style with animation rules is not kept: their values change every frame)
++                    false
++                } else if let Some(style) = kept {
 +                    // A copy of its own (the style structs stay shared): the style sharing cache
 +                    // takes two parents with one style `Arc` for parents that matched the same
 +                    // selectors, and lets their children share as cousins. Elements of other
 +                    // classes may get the same kept style, so it must not make them one `Arc`;
 +                    // elements that share this copy later do so through the sharing cache.
 +                    return ResolvedStyle(style.clone_with_flags(style.flags, None));
++                } else {
++                    self.context.shared.matched_properties_sink.is_some()
 +                }
-+                self.context.shared.matched_properties_sink.is_some()
 +            },
 +            _ => false,
 +        };
@@ -4577,7 +5843,7 @@ index 0cc0c379..3b0da60b 100644
          let mut conditions = Default::default();
          let values = self.context.shared.stylist.cascade_style_and_visited(
              Some(self.element),
-@@ -405,6 +493,20 @@ where
+@@ -405,6 +528,20 @@ where
              &conditions,
          );
  
@@ -4598,7 +5864,7 @@ index 0cc0c379..3b0da60b 100644
          ResolvedStyle(values)
      }
  
-@@ -430,6 +532,20 @@ where
+@@ -430,6 +567,20 @@ where
                      if let Some(inputs) = inputs.take() {
                          let pseudo = PseudoElement::from_eager_index(i);
  
@@ -4619,7 +5885,7 @@ index 0cc0c379..3b0da60b 100644
                          let style = self.cascade_style_and_visited(
                              inputs,
                              Some(primary_style.style()),
-@@ -484,6 +600,18 @@ where
+@@ -484,6 +635,18 @@ where
                  });
          }
  
@@ -4806,7 +6072,7 @@ index 2b14775f..62635823 100644
  
  /// supports_condition | declaration
 diff --git a/stylist.rs b/stylist.rs
-index c70dd85a..aba4a2e3 100644
+index c70dd85a..e12c2376 100644
 --- a/stylist.rs
 +++ b/stylist.rs
 @@ -1825,6 +1825,54 @@ impl Stylist {
@@ -4872,7 +6138,24 @@ index c70dd85a..aba4a2e3 100644
      Cached(usize),
  }
  // Should be safe, only mutated through mutable methods in `Stylist`.
-@@ -4377,6 +4426,14 @@ impl CascadeData {
+@@ -3890,6 +3939,16 @@ impl CascadeData {
+                 {
+                     continue;
+                 }
++                // Snowlark patch: a scroll bar part's style is cascaded without state, so a rule
++                // whose part takes a state pseudo-class (`::-webkit-scrollbar-thumb:hover`) never
++                // applies; it is left out (and its state is not watched).
++                if pseudo.is_webkit_scrollbar_part() && {
++                    let mut part = selector.iter();
++                    part.next();
++                    part.any(|c| matches!(c, Component::NonTSPseudoClass(_)))
++                } {
++                    continue;
++                }
+             }
+ 
+             debug_assert!(!pseudo_elements
+@@ -4377,6 +4436,14 @@ impl CascadeData {
                                  | ImplicitScopeRoot::DocumentElement => {
                                      StylistImplicitScopeRoot::Normal(root)
                                  },
@@ -5247,7 +6530,7 @@ index da529868..f9958f5e 100644
      /// corresponding values, returning error if the resolution is invalid.
      #[inline]
 diff --git a/values/computed/mod.rs b/values/computed/mod.rs
-index 12e39ea4..5322e57d 100644
+index 12e39ea4..f0a09a5d 100644
 --- a/values/computed/mod.rs
 +++ b/values/computed/mod.rs
 @@ -51,7 +51,7 @@ pub use self::animation::{
@@ -5259,6 +6542,27 @@ index 12e39ea4..5322e57d 100644
  pub use self::border::{
      BorderCornerRadius, BorderImageRepeat, BorderImageSideWidth, BorderImageSlice,
      BorderImageWidth, BorderRadius, BorderSideOffset, BorderSideWidth, BorderSpacing, LineWidth,
+@@ -119,6 +119,8 @@ pub use self::text::{OverflowWrap, RubyPosition, TextOverflow, WordBreak, WordSp
+ pub use self::text::{TextAlign, TextAlignLast, TextEmphasisPosition, TextEmphasisStyle};
+ pub use self::text::{TextAutospace, TextUnderlinePosition};
+ pub use self::text::{TextBoxEdge, TextBoxTrim};
++// Snowlark patch (SNOWLARK-PATCHES.md 83).
++pub use self::text::TextSizeAdjust;
+ pub use self::text::{
+     TextDecorationInset, TextDecorationLength, TextDecorationSkipInk, TextJustify,
+ };
+diff --git a/values/computed/text.rs b/values/computed/text.rs
+index b4ef49b3..ebc0a0dd 100644
+--- a/values/computed/text.rs
++++ b/values/computed/text.rs
+@@ -197,3 +197,7 @@ pub enum TextEmphasisStyle {
+     /// `<string>` (of which only the first grapheme cluster will be used).
+     String(crate::OwnedStr),
+ }
++
++/// Snowlark patch (SNOWLARK-PATCHES.md 83): the computed value of `text-size-adjust`.
++pub type TextSizeAdjust =
++    crate::values::generics::text::GenericTextSizeAdjust<crate::values::computed::NonNegativePercentage>;
 diff --git a/values/generics/basic_shape.rs b/values/generics/basic_shape.rs
 index 70386d67..63203dd9 100644
 --- a/values/generics/basic_shape.rs
@@ -5756,6 +7060,66 @@ index c7d678eb..584923e8 100644
  )]
  #[repr(transparent)]
  pub struct GreaterThanOrEqualToOne<T>(pub T);
+diff --git a/values/generics/text.rs b/values/generics/text.rs
+index 412e3464..4d9580ef 100644
+--- a/values/generics/text.rs
++++ b/values/generics/text.rs
+@@ -266,3 +266,34 @@ impl<LengthPercentage: Zero> GenericTextIndent<LengthPercentage> {
+         }
+     }
+ }
++
++/// Snowlark patch (SNOWLARK-PATCHES.md 83): the value of `text-size-adjust`.
++///
++/// <https://drafts.csswg.org/css-size-adjust/#adjustment-control>
++#[derive(
++    Animate,
++    Clone,
++    ComputeSquaredDistance,
++    Copy,
++    Debug,
++    MallocSizeOf,
++    Parse,
++    PartialEq,
++    SpecifiedValueInfo,
++    ToAnimatedValue,
++    ToAnimatedZero,
++    ToComputedValue,
++    ToCss,
++    ToResolvedValue,
++    ToShmem,
++    ToTyped,
++)]
++#[repr(C, u8)]
++pub enum GenericTextSizeAdjust<P> {
++    /// `auto`
++    Auto,
++    /// `none`
++    None,
++    /// `<percentage [0,∞]>`
++    Percentage(P),
++}
+diff --git a/values/specified/background.rs b/values/specified/background.rs
+index 405d50e1..760f0667 100644
+--- a/values/specified/background.rs
++++ b/values/specified/background.rs
+@@ -210,7 +210,7 @@ pub enum BackgroundClip {
+     #[value_info(skip)]
+     NoClip,
+     // TODO: text and border-area are supposed to combine in backgrounds-4...
+-    #[cfg(feature = "gecko")]
++    // (Snowlark patch: in the servo build too)
+     Text,
+     #[parse(condition = "background_clip_border_area_enabled")]
+     #[value_info(skip)]
+@@ -241,7 +241,6 @@ impl BackgroundClip {
+             Self::ViewBox => ClipValidity::MASK,
+             #[cfg(feature = "gecko")]
+             Self::NoClip => ClipValidity::MASK,
+-            #[cfg(feature = "gecko")]
+             Self::Text => ClipValidity::BACKGROUND,
+             Self::BorderArea => ClipValidity::BACKGROUND,
+         }
 diff --git a/values/specified/basic_shape.rs b/values/specified/basic_shape.rs
 index bdedc609..d9aaae3c 100644
 --- a/values/specified/basic_shape.rs
@@ -5832,7 +7196,7 @@ index bdedc609..d9aaae3c 100644
 +    }
 +}
 diff --git a/values/specified/box.rs b/values/specified/box.rs
-index 1e4fb978..c34fa6c9 100644
+index 1e4fb978..ac744cf7 100644
 --- a/values/specified/box.rs
 +++ b/values/specified/box.rs
 @@ -14,7 +14,7 @@ use crate::values::generics::box_::{
@@ -5941,7 +7305,47 @@ index 1e4fb978..c34fa6c9 100644
              Display::TableCaption => dest.write_str("table-caption"),
              _ => match (outside, inside) {
                  (DisplayOutside::Inline, DisplayInside::Grid) => dest.write_str("inline-grid"),
-@@ -1246,8 +1251,11 @@ fn change_bits_for_longhand(longhand: LonghandId) -> WillChangeBits {
+@@ -937,6 +942,19 @@ impl ScrollSnapType {
+             strictness: ScrollSnapStrictness::None,
+         }
+     }
++
++    // Snowlark patch (SNOWLARK-PATCHES.md 85): read by the embedder's scroll snapping.
++    /// The axis the box snaps on.
++    #[inline]
++    pub fn axis(&self) -> ScrollSnapAxis {
++        self.axis
++    }
++
++    /// How strictly the box snaps (`None` for `scroll-snap-type: none`).
++    #[inline]
++    pub fn strictness(&self) -> ScrollSnapStrictness {
++        self.strictness
++    }
+ }
+ 
+ impl Parse for ScrollSnapType {
+@@ -1031,6 +1049,19 @@ impl ScrollSnapAlign {
+             inline: ScrollSnapAlignKeyword::None,
+         }
+     }
++
++    // Snowlark patch (SNOWLARK-PATCHES.md 85): read by the embedder's scroll snapping.
++    /// The alignment in the block axis.
++    #[inline]
++    pub fn block(&self) -> ScrollSnapAlignKeyword {
++        self.block
++    }
++
++    /// The alignment in the inline axis.
++    #[inline]
++    pub fn inline(&self) -> ScrollSnapAlignKeyword {
++        self.inline
++    }
+ }
+ 
+ impl Parse for ScrollSnapAlign {
+@@ -1246,8 +1277,11 @@ fn change_bits_for_longhand(longhand: LonghandId) -> WillChangeBits {
          LonghandId::MixBlendMode => {
              WillChangeBits::STACKING_CONTEXT_UNCONDITIONAL | WillChangeBits::BACKDROP_ROOT
          },
@@ -5955,7 +7359,7 @@ index 1e4fb978..c34fa6c9 100644
          },
          LonghandId::ClipPath => {
              WillChangeBits::STACKING_CONTEXT_UNCONDITIONAL | WillChangeBits::BACKDROP_ROOT
-@@ -2003,6 +2011,12 @@ pub enum BreakBetween {
+@@ -2003,6 +2037,12 @@ pub enum BreakBetween {
      Avoid,
      Left,
      Right,
@@ -5968,7 +7372,7 @@ index 1e4fb978..c34fa6c9 100644
  }
  
  impl BreakBetween {
-@@ -2018,7 +2032,14 @@ impl BreakBetween {
+@@ -2018,7 +2058,14 @@ impl BreakBetween {
              BreakBetween::Auto | BreakBetween::Avoid | BreakBetween::Left | BreakBetween::Right => {
                  Ok(break_value)
              },
@@ -5984,7 +7388,7 @@ index 1e4fb978..c34fa6c9 100644
          }
      }
  
-@@ -2035,7 +2056,12 @@ impl BreakBetween {
+@@ -2035,7 +2082,12 @@ impl BreakBetween {
                  self.to_css(dest)
              },
              BreakBetween::Page => dest.write_str("always"),
@@ -6033,6 +7437,72 @@ index 4ac4b916..d01cf34d 100644
              },
              (&mut Angle(ref mut one), Angle(other)) => {
                  *one = NoCalcAngle::from_degrees(one.degrees() + other.degrees());
+diff --git a/values/specified/color.rs b/values/specified/color.rs
+index 9e85b873..3e0898fd 100644
+--- a/values/specified/color.rs
++++ b/values/specified/color.rs
+@@ -515,10 +515,23 @@ pub enum SystemColor {
+     Menutext,
+     Windowtext,
+     Inactivecaptiontext,
++
++    // Snowlark patch (SNOWLARK-PATCHES.md 83): the platform's focus ring colour (Compat). Authors may
++    // name it only in `outline-color` and `outline`, or anywhere in quirks mode
++    // (`SystemColor::allowed_in`, `Color::parse_outline_color`).
++    WebkitFocusRingColor,
+ }
+ 
+ #[cfg(feature = "servo")]
+ impl SystemColor {
++    /// Whether this keyword may be used by a colour value parsed in `context` outside
++    /// `outline-color`.
++    fn allowed_in(self, context: &ParserContext) -> bool {
++        self != SystemColor::WebkitFocusRingColor
++            || context.in_ua_sheet()
++            || context.quirks_mode == crate::context::QuirksMode::Quirks
++    }
++
+     #[inline]
+     fn compute(&self, cx: &Context) -> ComputedColor {
+         if cx.for_non_inherited_property {
+@@ -580,7 +593,13 @@ impl Color {
+                         return Ok(Color::System(system));
+                     }
+                     #[cfg(feature = "servo")]
+-                    if let Ok(system) = input.try_parse(SystemColor::parse) {
++                    if let Ok(system) = input.try_parse(|i| {
++                        let system = SystemColor::parse(i)?;
++                        if !system.allowed_in(context) {
++                            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
++                        }
++                        Ok(system)
++                    }) {
+                         return Ok(Color::System(system));
+                     }
+                 }
+@@ -737,6 +756,22 @@ impl Color {
+         }))
+     }
+ 
++    /// Snowlark patch (SNOWLARK-PATCHES.md 83): parse the value of `outline-color`, which also takes
++    /// `-webkit-focus-ring-color` in standards mode.
++    pub fn parse_outline_color(
++        context: &ParserContext,
++        input: &mut Parser,
++    ) -> Result<Self, ParseError> {
++        #[cfg(feature = "servo")]
++        if input
++            .try_parse(|i| i.expect_ident_matching("-webkit-focus-ring-color"))
++            .is_ok()
++        {
++            return Ok(Color::System(SystemColor::WebkitFocusRingColor));
++        }
++        Self::parse(context, input)
++    }
++
+     /// Parse a color, with quirks.
+     ///
+     /// <https://quirks.spec.whatwg.org/#the-hashless-hex-color-quirk>
 diff --git a/values/specified/effects.rs b/values/specified/effects.rs
 index 4420c335..30bed228 100644
 --- a/values/specified/effects.rs
@@ -6546,7 +8016,7 @@ index ac10b898..5a47d0f4 100644
  }
  
 diff --git a/values/specified/length.rs b/values/specified/length.rs
-index 74908fe1..40f1d12f 100644
+index 74908fe1..6d329a59 100644
 --- a/values/specified/length.rs
 +++ b/values/specified/length.rs
 @@ -139,6 +139,8 @@ impl LengthUnit {
@@ -6608,8 +8078,22 @@ index 74908fe1..40f1d12f 100644
      }
  
      /// Construct a font-relative em value.
+@@ -1764,9 +1770,10 @@ macro_rules! parse_size_non_length {
+      $auto_or_none:expr => $auto_or_none_ident:ident) => {{
+         let size = $input.try_parse(|input| {
+             Ok(try_match_ident_ignore_ascii_case! { input,
+-                "min-content" | "-moz-min-content" => $size::MinContent,
+-                "max-content" | "-moz-max-content" => $size::MaxContent,
+-                "fit-content" | "-moz-fit-content" => $size::FitContent,
++                // Snowlark patch (SNOWLARK-PATCHES.md 82): the `-webkit-` sizing keywords.
++                "min-content" | "-moz-min-content" | "-webkit-min-content" => $size::MinContent,
++                "max-content" | "-moz-max-content" | "-webkit-max-content" => $size::MaxContent,
++                "fit-content" | "-moz-fit-content" | "-webkit-fit-content" => $size::FitContent,
+                 #[cfg(feature = "gecko")]
+                 "-moz-available" => $size::MozAvailable,
+                 "-webkit-fill-available" if $allow_webkit_fill_available => $size::WebkitFillAvailable,
 diff --git a/values/specified/mod.rs b/values/specified/mod.rs
-index 5191f96e..af4b8417 100644
+index 5191f96e..41dedfb6 100644
 --- a/values/specified/mod.rs
 +++ b/values/specified/mod.rs
 @@ -34,7 +34,7 @@ pub use self::animation::{
@@ -6621,8 +8105,17 @@ index 5191f96e..af4b8417 100644
  pub use self::border::{
      BorderCornerRadius, BorderImageRepeat, BorderImageSideWidth, BorderImageSlice,
      BorderImageWidth, BorderRadius, BorderSideOffset, BorderSideWidth, BorderSpacing, BorderStyle,
+@@ -108,6 +108,8 @@ pub use self::text::{OverflowWrap, TextEmphasisPosition, TextEmphasisStyle, Word
+ pub use self::text::{TextAlignKeyword, TextDecorationLine, TextOverflow, WordSpacing};
+ pub use self::text::{TextAlignLast, TextAutospace, TextUnderlinePosition};
+ pub use self::text::{TextBoxEdge, TextBoxTrim};
++// Snowlark patch (SNOWLARK-PATCHES.md 83).
++pub use self::text::TextSizeAdjust;
+ pub use self::text::{
+     TextDecorationInset, TextDecorationLength, TextDecorationSkipInk, TextJustify, TextTransform,
+ };
 diff --git a/values/specified/text.rs b/values/specified/text.rs
-index c4284cb0..c2501904 100644
+index c4284cb0..229ed3a8 100644
 --- a/values/specified/text.rs
 +++ b/values/specified/text.rs
 @@ -459,7 +459,6 @@ impl TextTransform {
@@ -6671,6 +8164,15 @@ index c4284cb0..c2501904 100644
  }
  
  /// Specified value of text-align keyword value.
+@@ -856,7 +886,7 @@ pub enum WordBreak {
+     ///
+     /// Specifying `word-break: break-word` makes `overflow-wrap` behave as
+     /// `anywhere`, and `word-break` behave like `normal`.
+-    #[cfg(feature = "gecko")]
++    // (Snowlark patch: in the servo build too; CSS Text 3 §5.2 keeps it for compatibility)
+     BreakWord,
+ }
+ 
 @@ -996,11 +1026,7 @@ impl Parse for TextIndent {
                  }
              }
@@ -6684,6 +8186,14 @@ index c4284cb0..c2501904 100644
              // Check for the keywords (boolean flags).
              try_match_ident_ignore_ascii_case! { input,
                  "hanging" if !hanging => hanging = true,
+@@ -1559,3 +1585,7 @@ impl TextBoxTrim {
+         TextBoxTrim::NONE
+     }
+ }
++
++/// Snowlark patch (SNOWLARK-PATCHES.md 83): the specified value of `text-size-adjust`.
++pub type TextSizeAdjust =
++    crate::values::generics::text::GenericTextSizeAdjust<crate::values::specified::NonNegativePercentage>;
 diff --git a/values/specified/transform.rs b/values/specified/transform.rs
 index 63d1f483..04ae19c6 100644
 --- a/values/specified/transform.rs

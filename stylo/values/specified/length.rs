@@ -1770,9 +1770,10 @@ macro_rules! parse_size_non_length {
      $auto_or_none:expr => $auto_or_none_ident:ident) => {{
         let size = $input.try_parse(|input| {
             Ok(try_match_ident_ignore_ascii_case! { input,
-                "min-content" | "-moz-min-content" => $size::MinContent,
-                "max-content" | "-moz-max-content" => $size::MaxContent,
-                "fit-content" | "-moz-fit-content" => $size::FitContent,
+                // Snowlark patch (SNOWLARK-PATCHES.md 82): the `-webkit-` sizing keywords.
+                "min-content" | "-moz-min-content" | "-webkit-min-content" => $size::MinContent,
+                "max-content" | "-moz-max-content" | "-webkit-max-content" => $size::MaxContent,
+                "fit-content" | "-moz-fit-content" | "-webkit-fit-content" => $size::FitContent,
                 #[cfg(feature = "gecko")]
                 "-moz-available" => $size::MozAvailable,
                 "-webkit-fill-available" if $allow_webkit_fill_available => $size::WebkitFillAvailable,

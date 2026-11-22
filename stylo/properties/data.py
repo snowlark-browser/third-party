@@ -1367,6 +1367,28 @@ class PropertyRestrictions:
             + PropertyRestrictions.shorthand(data, "font-synthesis")
         )
 
+    # Snowlark patch: https://drafts.csswg.org/css-pseudo-4/#highlight-styling (custom
+    # properties apply too; the cascade lets them through).
+    @staticmethod
+    def highlight(data):
+        return set(
+            [
+                "color",
+                "background-color",
+                "text-shadow",
+                "text-underline-offset",
+                "text-underline-position",
+                "text-decoration-skip-ink",
+                "stroke",
+                "fill",
+                "stroke-width",
+                "-webkit-text-fill-color",
+                "-webkit-text-stroke-color",
+                "-webkit-text-stroke-width",
+            ]
+            + PropertyRestrictions.shorthand(data, "text-decoration")
+        )
+
 
 class CountedUnknownProperty:
     def __init__(self, name):

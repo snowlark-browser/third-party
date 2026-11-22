@@ -401,6 +401,98 @@ the source; `git log -p vendor/stylo` shows the diff.
    a slot of its own in `ScopedTLS` (one more than the pool's threads) and the workers' local queue
    size; work goes to the pool only when a level of the tree has enough elements to share, as the
    traversal does on a thread of the pool. The embedder can then offer the pool to every restyle.
+72. **Running transitions applied over a kept base style** (`style_resolver.rs`
+   `cascade_style_and_visited`, `properties/cascade.rs` `apply_transitions_to_base`): an element with
+   a running transition was cascaded in full on every restyle (patch 66 keeps no style with animation
+   rules). Its rules without the transitions (`remove_animation_rules`) are its after-change rules,
+   whose style patch 66 keeps; the element now gets that style with the transitions' computed values
+   applied over it, as the cascade ends with the transitions origin. Only when the rules hold no
+   other animation level and every transitioning property is one no other property of the element
+   reads or adjusts (opacity, transforms, colors, shadows, filters, visibility, sizes, insets,
+   margins, paddings, radii, background position and size, clip path, spacing, SVG paint, flex and
+   gap; not the font properties, `line-height`, `zoom`, the writing mode, `display`, `position`,
+   `float`, border or outline styles, `overflow`, containment). Otherwise the rules are cascaded as
+   before. No style changes.
+
+73. **Unusual elements' `display: contents` in the servo build** (`style_adjuster.rs`, CSS Display 3
+   §2.5, "Unboxing"): upstream computes `display: contents` to `none` for the elements that cannot be
+   unboxed (`br`, `wbr`, `meter`, `progress`, `canvas`, `embed`, `object`, `audio`, `iframe`, `img`,
+   `video`, `frame`, `frameset`, `input`, `textarea`, `select`; SVG elements other than a nested `svg`,
+   `a`, `g`, `use`, `tspan` and `textPath`; MathML elements) only in the gecko build. The servo build now
+   does the same, comparing local names as strings; pseudo-elements keep `contents`.
+
+74. **The highlight pseudo-elements** (`servo/selector_parser.rs`, `properties/data.py`, `properties/mod.rs`,
+   `properties/properties.mako.rs`; CSS Pseudo-Elements 4 §3): the servo build parses `::target-text`,
+   `::spelling-error` and `::grammar-error` (lazy, like the other pseudo-elements the traversal does not
+   style) and has `is_highlight_pseudo()`. A new property flag, `APPLIES_TO_HIGHLIGHT` (`color`,
+   `background-color`, `text-decoration` and its longhands, `text-underline-offset`, `text-underline-position`,
+   `text-shadow`, `fill`, `stroke`, `stroke-width`; §3.2), is the property restriction of those three and of
+   `::selection`, so their cascade ignores every other property (custom properties pass, as for the other
+   restrictions). `pseudo_none_array` is built with `std::array::from_fn`: with more than 32 pseudo-elements
+   the array has no `Default`.
+
+75. **`Highlight` and `HighlightText`** (`device/servo.rs`, CSS Color 4 §6.2): in the light color scheme the
+   system colors of selected text are Windows' default selection colors, rgb(0, 120, 215) and white (upstream:
+   rgb(0, 65, 198) and black), the colors the engine paints a selection in where no `::selection` colors are
+   declared. The dark scheme keeps upstream's values.
+
+76. **`word-break: break-word` in the servo build** (`values/specified/text.rs`, CSS Text 3 §5.2): upstream
+   parses the value only with the `gecko` feature. It is the deprecated value the spec keeps for
+   compatibility: `word-break: normal` with `overflow-wrap: anywhere`, which snowlark-layout's line
+   breaking applies.
+
+77. **`::-webkit-` pseudo-elements and legacy pseudo-class names** (`servo/selector_parser.rs`, Selectors 4
+   §compat): any `::-webkit-` pseudo-element is valid. The form control and scrollbar parts pages style under
+   these names (`::-webkit-inner-spin-button`, `::-webkit-scrollbar-thumb` and others, by name) and any other
+   `-webkit-` name (`UnknownWebkit`, serialized as `::-webkit-unknown`; not supported in `@supports`, as in
+   Gecko) parse as pseudo-elements the stylist drops (`is_unknown_webkit_pseudo_element`), after which user
+   action pseudo-classes may follow. `::-webkit-input-placeholder` and `::-webkit-file-upload-button` are
+   `::placeholder` and `::file-selector-button`; `:-webkit-autofill`, `:-webkit-full-screen` and
+   `:-webkit-any-link` are `:autofill`, `:fullscreen` and `:any-link`.
+78. **Custom scroll bar parts** (`servo/selector_parser.rs`): `::-webkit-scrollbar`, `-thumb`, `-track`,
+   `-track-piece`, `-button` and `-corner` are lazily cascaded pseudo-elements (`is_webkit_scrollbar_part`),
+   no longer among the parts patch 77 drops: the engine reads them from a scroll container to draw its scroll
+   bars. A user action pseudo-class may follow them; their styles are cascaded without state, so the stylist
+   (`stylist.rs` `add_styles`) leaves such rules out.
+79. **`resize` in the servo build** (`properties/longhands.toml`, CSS UI 4 §5.1): upstream builds the
+   longhand only for the `gecko` engine. The computed value (logical `block`/`inline` resolved against the
+   writing mode) is upstream's; snowlark-layout reads it to place the resizer of a scroll container.
+80. **Gradient text in the servo build** (`values/specified/background.rs`, `properties/longhands.toml`): upstream
+   parses `background-clip: text` (CSS Backgrounds 4 §2.1) and builds `-webkit-text-fill-color` (Compat §5.4)
+   only with the `gecko` feature. Both are in the servo build: snowlark-layout clips a `text` layer to the
+   glyphs of the box's text and fills glyphs with the fill colour.
+81. **The legacy `-webkit-box` properties in the servo build** (`properties/longhands.toml`,
+   `properties/computed_value_flags.rs`, `style_adjuster.rs`): upstream has `-webkit-box-align`, `-direction`,
+   `-pack`, `-flex` and `-ordinal-group` only as Gecko aliases of its XUL properties. They are servo longhands
+   in the box struct, as `-webkit-box-orient` is (patch 11). An element whose layout parent is a `-webkit-box`
+   gets the flag `IS_WEBKIT_BOX_ITEM`, so snowlark-render can give it the legacy box's item rules (its flex
+   from `-webkit-box-flex`, its order from `-webkit-box-ordinal-group`) without changing computed values.
+82. **The legacy `-webkit-` names of logical, multi-column and fragmentation properties**
+   (`properties/longhands.toml`, `properties/shorthands.toml`, `properties/counted_unknown_properties.py`,
+   `values/specified/length.rs`): upstream has none
+   of them. They are aliases, as the web relies on: `-webkit-margin-`/`-padding-`/`-border-` `start`/`end`/
+   `before`/`after` (and the borders' `-color`/`-style`/`-width`) of the inline and block start and end
+   properties, `-webkit-column-count`/`-gap`/`-width`/`-span`/`-rule` (and its longhands)/`-webkit-columns`,
+   `-webkit-box-decoration-break` and `-webkit-writing-mode`. Sizes take `-webkit-min-content`,
+   `-webkit-max-content` and `-webkit-fit-content` as the keywords without the prefix (as `-moz-` ones).
+83. **`-webkit-focus-ring-color`, `-webkit-tap-highlight-color`, `-webkit-font-smoothing` and
+   `text-size-adjust`** (`values/specified/color.rs`, `device/servo.rs`, `properties/longhands.toml`,
+   `properties/shorthands.rs`, `properties/counted_unknown_properties.py`, `values/*/text.rs`, Compat and CSS
+   Size Adjust 1): the servo `SystemColor` gets `-webkit-focus-ring-color` (rgb(16, 16, 16), or
+   rgb(238, 238, 238) in a dark scheme), which `outline-color` and `outline` take (`Color::parse_outline_color`)
+   and any colour takes in a UA sheet or in quirks mode. `-webkit-tap-highlight-color` (inherited colour,
+   initially 18% black) and `-webkit-font-smoothing` (`auto | none | antialiased | subpixel-antialiased`) are
+   inherited servo longhands that nothing reads yet; `text-size-adjust` (`auto | none | <percentage [0,∞]>`,
+   alias `-webkit-text-size-adjust`, `GenericTextSizeAdjust`) is one too: text autosizing is for small
+   screens, so no desktop layout changes with it.
+84. **`-webkit-user-drag` in the servo build** (`properties/longhands.toml`,
+   `properties/counted_unknown_properties.py`, Compat): a servo longhand of the box struct, `auto | none |
+   element`, not inherited. snowlark-page reads it to choose what a press drags: `element` makes a box a drag
+   source, `none` keeps an image, a link or a `draggable` element from being one.
+85. **Scroll snap properties in the servo build** (`properties/longhands.toml`, `values/specified/box.rs`, CSS
+   Scroll Snap 1): `scroll-snap-type`, `scroll-snap-align` and `scroll-snap-stop` lose their gecko-only engine
+   line, and `ScrollSnapType` (`axis`, `strictness`) and `ScrollSnapAlign` (`block`, `inline`) get public
+   getters. snowlark-page snaps scrolls with them; `scroll-margin` and `scroll-padding` were already there.
 
 To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 still lacks, and run `cargo test -p snowlark-style`.

@@ -3939,6 +3939,16 @@ impl CascadeData {
                 {
                     continue;
                 }
+                // Snowlark patch: a scroll bar part's style is cascaded without state, so a rule
+                // whose part takes a state pseudo-class (`::-webkit-scrollbar-thumb:hover`) never
+                // applies; it is left out (and its state is not watched).
+                if pseudo.is_webkit_scrollbar_part() && {
+                    let mut part = selector.iter();
+                    part.next();
+                    part.any(|c| matches!(c, Component::NonTSPseudoClass(_)))
+                } {
+                    continue;
+                }
             }
 
             debug_assert!(!pseudo_elements

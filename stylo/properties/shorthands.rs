@@ -2129,7 +2129,9 @@ pub mod outline {
         let mut parsed = 0;
         loop {
             parsed += 1;
-            try_parse_one!(context, input, color, specified::Color::parse);
+            // Snowlark patch (SNOWLARK-PATCHES.md 83): `outline-color`'s own parse, which takes
+            // `-webkit-focus-ring-color`.
+            try_parse_one!(context, input, color, specified::Color::parse_outline_color);
             try_parse_one!(context, input, style, outline_style::parse);
             try_parse_one!(context, input, width, outline_width::parse);
             parsed -= 1;

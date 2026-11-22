@@ -515,10 +515,23 @@ pub enum SystemColor {
     Menutext,
     Windowtext,
     Inactivecaptiontext,
+
+    // Snowlark patch (SNOWLARK-PATCHES.md 83): the platform's focus ring colour (Compat). Authors may
+    // name it only in `outline-color` and `outline`, or anywhere in quirks mode
+    // (`SystemColor::allowed_in`, `Color::parse_outline_color`).
+    WebkitFocusRingColor,
 }
 
 #[cfg(feature = "servo")]
 impl SystemColor {
+    /// Whether this keyword may be used by a colour value parsed in `context` outside
+    /// `outline-color`.
+    fn allowed_in(self, context: &ParserContext) -> bool {
+        self != SystemColor::WebkitFocusRingColor
+            || context.in_ua_sheet()
+            || context.quirks_mode == crate::context::QuirksMode::Quirks
+    }
+
     #[inline]
     fn compute(&self, cx: &Context) -> ComputedColor {
         if cx.for_non_inherited_property {
@@ -580,7 +593,13 @@ impl Color {
                         return Ok(Color::System(system));
                     }
                     #[cfg(feature = "servo")]
-                    if let Ok(system) = input.try_parse(SystemColor::parse) {
+                    if let Ok(system) = input.try_parse(|i| {
+                        let system = SystemColor::parse(i)?;
+                        if !system.allowed_in(context) {
+                            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
+                        }
+                        Ok(system)
+                    }) {
                         return Ok(Color::System(system));
                     }
                 }
@@ -735,6 +754,22 @@ impl Color {
             color,
             authored: None,
         }))
+    }
+
+    /// Snowlark patch (SNOWLARK-PATCHES.md 83): parse the value of `outline-color`, which also takes
+    /// `-webkit-focus-ring-color` in standards mode.
+    pub fn parse_outline_color(
+        context: &ParserContext,
+        input: &mut Parser,
+    ) -> Result<Self, ParseError> {
+        #[cfg(feature = "servo")]
+        if input
+            .try_parse(|i| i.expect_ident_matching("-webkit-focus-ring-color"))
+            .is_ok()
+        {
+            return Ok(Color::System(SystemColor::WebkitFocusRingColor));
+        }
+        Self::parse(context, input)
     }
 
     /// Parse a color, with quirks.
