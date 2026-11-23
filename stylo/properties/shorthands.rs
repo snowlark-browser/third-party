@@ -1045,7 +1045,6 @@ pub mod white_space {
     }
 }
 
-#[cfg(feature = "gecko")]
 pub mod _webkit_text_stroke {
     pub use crate::properties::generated::shorthands::_webkit_text_stroke::*;
 
@@ -3522,6 +3521,19 @@ pub mod mask {
     use crate::properties::longhands::{mask_image, mask_size};
     use crate::values::specified::{Position, PositionComponent};
 
+    /// One of `mask-composite`'s own values: the shorthand takes none of the legacy
+    /// `-webkit-mask-composite` operators.
+    fn parse_standard_composite(
+        context: &ParserContext,
+        input: &mut Parser,
+    ) -> Result<mask_composite::single_value::SpecifiedValue, ParseError> {
+        let value = mask_composite::single_value::parse(context, input)?;
+        if !crate::properties::is_standard_mask_composite(value) {
+            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
+        }
+        Ok(value)
+    }
+
     impl From<mask_origin::single_value::SpecifiedValue> for mask_clip::single_value::SpecifiedValue {
         fn from(
             origin: mask_origin::single_value::SpecifiedValue,
@@ -3596,12 +3608,7 @@ pub mod mask {
                 try_parse_one!(context, input, repeat, mask_repeat::single_value::parse);
                 try_parse_one!(context, input, origin, mask_origin::single_value::parse);
                 try_parse_one!(context, input, clip, mask_clip::single_value::parse);
-                try_parse_one!(
-                    context,
-                    input,
-                    composite,
-                    mask_composite::single_value::parse
-                );
+                try_parse_one!(context, input, composite, parse_standard_composite);
                 try_parse_one!(context, input, mode, mask_mode::single_value::parse);
 
                 parsed -= 1;

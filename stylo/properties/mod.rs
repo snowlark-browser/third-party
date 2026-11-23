@@ -48,6 +48,16 @@ use style_traits::{
 };
 use thin_vec::ThinVec;
 
+/// Whether `value` is one of `mask-composite`'s own values (CSS Masking 1 §7.7) rather than a
+/// legacy `-webkit-mask-composite` operator (Snowlark).
+#[inline]
+pub fn is_standard_mask_composite(
+    value: longhands::mask_composite::single_value::SpecifiedValue,
+) -> bool {
+    use longhands::mask_composite::single_value::SpecifiedValue as V;
+    matches!(value, V::Add | V::Subtract | V::Intersect | V::Exclude)
+}
+
 bitflags! {
     /// A set of flags for properties.
     #[derive(Clone, Copy)]
@@ -949,6 +959,18 @@ impl PropertyDeclaration {
                     |declarations, input| {
                         let decl = input
                             .parse_entirely(|input| longhand_id.parse_value(context, input))?;
+                        // Snowlark: the legacy `<composite-style>` operators are values of
+                        // `-webkit-mask-composite` only (Compat: what pages written for WebKit set).
+                        #[cfg(feature = "servo")]
+                        if let PropertyDeclaration::MaskComposite(ref value) = decl {
+                            if non_custom_id.as_alias() != Some(AliasId::WebkitMaskComposite)
+                                && !value.0.iter().all(|v| is_standard_mask_composite(*v))
+                            {
+                                return Err(ParseError::custom(
+                                    style_traits::StyleParseErrorKind::UnspecifiedError,
+                                ));
+                            }
+                        }
                         declarations.push(decl);
                         Ok(())
                     },

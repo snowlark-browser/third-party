@@ -134,7 +134,6 @@ affects = "layout"
 type = "ColorOrAuto"
 initial = "generics::color::ColorOrAuto::Auto"
 struct = "inherited_ui"
-engine = "gecko"
 spec = "https://drafts.csswg.org/css-ui-4/#widget-accent"
 ignored_when_colors_disabled = true
 affects = "paint"
@@ -1619,10 +1618,10 @@ affects = "overflow"
 type = "OverflowAnchor"
 initial = "computed::OverflowAnchor::Auto"
 struct = "box"
-engine = "gecko"
 gecko_pref = "layout.css.scroll-anchoring.enabled"
 spec = "https://drafts.csswg.org/css-scroll-anchoring/#exclusion-api"
 animation_type = "discrete"
+servo_restyle_damage = "repaint"
 affects = ""
 
 [overflow-block]
@@ -2600,7 +2599,6 @@ affects = "paint"
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "inherited_text"
-engine = "gecko"
 ignored_when_colors_disabled = true
 spec = "https://compat.spec.whatwg.org/#the-webkit-text-stroke-color"
 affects = "paint"
@@ -2609,7 +2607,6 @@ affects = "paint"
 type = "LineWidth"
 initial = "app_units::Au(0)"
 struct = "inherited_text"
-engine = "gecko"
 spec = "https://compat.spec.whatwg.org/#the-webkit-text-stroke-width"
 animation_type = "discrete"
 affects = "overflow"
@@ -2704,7 +2701,6 @@ affects = "layout"
 type = "TextDecorationSkipInk"
 initial = "computed::TextDecorationSkipInk::Auto"
 struct = "inherited_text"
-engine = "gecko"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-text-decor-4/#text-decoration-skip-ink-property"
 affects = "overflow"
@@ -3869,6 +3865,16 @@ animation_type = "discrete"
 affects = ""
 keyword = { values = ["auto", "smooth"] }
 
+# Snowlark: CSS Values 5 interpolate-size, parsed and computed; transitions and animations do not
+# interpolate to or from intrinsic size keywords yet.
+[interpolate-size]
+struct = "inherited_box"
+engine = "servo"
+spec = "https://drafts.csswg.org/css-values-5/#interpolate-size"
+animation_type = "none"
+affects = ""
+keyword = { values = ["numeric-only", "allow-keywords"] }
+
 [isolation]
 struct = "box"
 spec = "https://drafts.fxtf.org/compositing/#isolation"
@@ -4286,7 +4292,9 @@ animation_type = "discrete"
 affects = "paint"
 vector = {}
 extra_prefixes = ["webkit"]
-keyword = { values = ["add", "subtract", "intersect", "exclude"] }
+# Snowlark: the servo values after `exclude` are the legacy `-webkit-mask-composite` operators
+# (`<composite-style>`); only that alias parses them (`properties/mod.rs` `parse_into`).
+keyword = { values = ["add", "subtract", "intersect", "exclude"], extra_servo_values = ["clear", "copy", "source-over", "source-in", "source-out", "source-atop", "destination-over", "destination-in", "destination-out", "destination-atop", "xor", "plus-lighter"] }
 
 [table-layout]
 struct = "table"
@@ -4376,7 +4384,6 @@ keyword = { values = ["auto", "none"] }
 
 [field-sizing]
 struct = "ui"
-engine = "gecko"
 spec = "https://drafts.csswg.org/css-ui/#field-sizing"
 animation_type = "discrete"
 affects = "layout"

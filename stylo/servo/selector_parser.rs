@@ -613,6 +613,177 @@ pub enum NonTSPseudoClass {
     UserValid,
     Valid,
     Visited,
+    /// Snowlark patch: the scroll bar pseudo-classes (`:horizontal`, `:vertical`, `:decrement`,
+    /// `:increment`, `:start`, `:end`, `:double-button`, `:single-button`, `:no-button`,
+    /// `:corner-present`, `:window-inactive`), a compat feature of custom scroll bars: they match
+    /// only a `::-webkit-scrollbar` part cascaded with a [`ScrollbarPartState`], never an element.
+    Scrollbar(ScrollbarPseudoClass),
+}
+
+/// Snowlark patch: a scroll bar pseudo-class ([`NonTSPseudoClass::Scrollbar`]).
+#[derive(Clone, Copy, Debug, Eq, Hash, MallocSizeOf, PartialEq, ToShmem)]
+#[allow(missing_docs)]
+pub enum ScrollbarPseudoClass {
+    Horizontal,
+    Vertical,
+    Decrement,
+    Increment,
+    Start,
+    End,
+    DoubleButton,
+    SingleButton,
+    NoButton,
+    CornerPresent,
+    WindowInactive,
+}
+
+impl ScrollbarPseudoClass {
+    const NAMES: [(&'static str, Self); 11] = [
+        ("horizontal", Self::Horizontal),
+        ("vertical", Self::Vertical),
+        ("decrement", Self::Decrement),
+        ("increment", Self::Increment),
+        ("start", Self::Start),
+        ("end", Self::End),
+        ("double-button", Self::DoubleButton),
+        ("single-button", Self::SingleButton),
+        ("no-button", Self::NoButton),
+        ("corner-present", Self::CornerPresent),
+        ("window-inactive", Self::WindowInactive),
+    ];
+
+    /// The pseudo-class named `name` (ASCII case-insensitive).
+    pub fn from_name(name: &str) -> Option<Self> {
+        Self::NAMES
+            .iter()
+            .find(|(n, _)| n.eq_ignore_ascii_case(name))
+            .map(|&(_, p)| p)
+    }
+
+    /// Its name, without the colon.
+    pub fn name(self) -> &'static str {
+        Self::NAMES.iter().find(|&&(_, p)| p == self).unwrap().0
+    }
+}
+
+/// Snowlark patch: a part of a custom scroll bar, as the scroll bar pseudo-classes see it (the
+/// track pieces are the track before and after the thumb).
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+#[allow(missing_docs)]
+pub enum ScrollbarPart {
+    #[default]
+    None,
+    BackButtonStart,
+    ForwardButtonStart,
+    BackTrack,
+    Thumb,
+    ForwardTrack,
+    BackButtonEnd,
+    ForwardButtonEnd,
+    /// The bar itself (`::-webkit-scrollbar`).
+    Bar,
+    /// The track (`::-webkit-scrollbar-track`).
+    Track,
+    /// The scroll corner (`::-webkit-scrollbar-corner`), which has no bar.
+    Corner,
+}
+
+bitflags! {
+    /// Snowlark patch: the state of the scroll bar a part belongs to.
+    #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+    pub struct ScrollbarStateFlags: u8 {
+        /// The vertical bar (else the horizontal one).
+        const VERTICAL = 1 << 0;
+        /// There is something to scroll (`:enabled`; else `:disabled`).
+        const ENABLED = 1 << 1;
+        /// The scroll corner shows (both bars, or a resizer).
+        const CORNER_PRESENT = 1 << 2;
+        /// The window is not the active one.
+        const WINDOW_INACTIVE = 1 << 3;
+        /// The platform's bars have buttons (`:single-button`; else `:no-button`).
+        const HAS_BUTTONS = 1 << 4;
+    }
+}
+
+/// Snowlark patch: the scroll bar part being cascaded and the state of its bar, which the
+/// pseudo-classes after a `::-webkit-scrollbar` part match against (`::-webkit-scrollbar:vertical`,
+/// `::-webkit-scrollbar-thumb:hover`, `::-webkit-scrollbar-button:start:decrement`).
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
+pub struct ScrollbarPartState {
+    /// The part being cascaded.
+    pub part: ScrollbarPart,
+    /// The part the pointer is over (`ScrollbarPart::None`: none of this bar's).
+    pub hovered: ScrollbarPart,
+    /// The part being pressed.
+    pub pressed: ScrollbarPart,
+    /// The bar's state.
+    pub flags: ScrollbarStateFlags,
+}
+
+impl ScrollbarPartState {
+    /// Whether `pc`, after the part's pseudo-element, matches it. Only the scroll bar
+    /// pseudo-classes, `:hover`, `:active`, `:enabled` and `:disabled` can; the scroll corner has
+    /// no bar, so of those only `:window-inactive` matches it.
+    pub fn matches(&self, pc: &NonTSPseudoClass) -> bool {
+        use self::ScrollbarPart as P;
+        use self::ScrollbarPseudoClass as S;
+        let part = self.part;
+        let flags = self.flags;
+        if let NonTSPseudoClass::Scrollbar(S::WindowInactive) = pc {
+            return flags.contains(ScrollbarStateFlags::WINDOW_INACTIVE);
+        }
+        if part == P::Corner {
+            return false;
+        }
+        // (the bar is hovered or pressed when any of its parts is; the track when the thumb or a
+        // track piece is)
+        let state_of = |on: P| match part {
+            P::Bar => on != P::None,
+            P::Track => matches!(on, P::BackTrack | P::ForwardTrack | P::Thumb),
+            _ => on == part,
+        };
+        match pc {
+            NonTSPseudoClass::Hover => state_of(self.hovered),
+            NonTSPseudoClass::Active => state_of(self.pressed),
+            NonTSPseudoClass::Enabled => flags.contains(ScrollbarStateFlags::ENABLED),
+            NonTSPseudoClass::Disabled => !flags.contains(ScrollbarStateFlags::ENABLED),
+            NonTSPseudoClass::Scrollbar(s) => match s {
+                S::Horizontal => !flags.contains(ScrollbarStateFlags::VERTICAL),
+                S::Vertical => flags.contains(ScrollbarStateFlags::VERTICAL),
+                S::Decrement => {
+                    matches!(part, P::BackButtonStart | P::BackButtonEnd | P::BackTrack)
+                },
+                S::Increment => matches!(
+                    part,
+                    P::ForwardButtonStart | P::ForwardButtonEnd | P::ForwardTrack
+                ),
+                S::Start => matches!(
+                    part,
+                    P::BackButtonStart | P::ForwardButtonStart | P::BackTrack
+                ),
+                S::End => matches!(
+                    part,
+                    P::BackButtonEnd | P::ForwardButtonEnd | P::ForwardTrack
+                ),
+                // (no platform places two buttons at one end)
+                S::DoubleButton => false,
+                S::SingleButton => {
+                    flags.contains(ScrollbarStateFlags::HAS_BUTTONS)
+                        && matches!(
+                            part,
+                            P::BackButtonStart | P::ForwardButtonEnd | P::BackTrack | P::ForwardTrack
+                        )
+                },
+                S::NoButton => {
+                    !flags.contains(ScrollbarStateFlags::HAS_BUTTONS)
+                        && matches!(part, P::BackTrack | P::ForwardTrack)
+                },
+                S::CornerPresent => flags.contains(ScrollbarStateFlags::CORNER_PRESENT),
+                S::WindowInactive => unreachable!(),
+            },
+            _ => false,
+        }
+    }
 }
 
 impl ::selectors::parser::NonTSPseudoClass for NonTSPseudoClass {
@@ -623,9 +794,17 @@ impl ::selectors::parser::NonTSPseudoClass for NonTSPseudoClass {
 
     #[inline]
     fn is_user_action_state(&self) -> bool {
+        // Snowlark patch: the scroll bar pseudo-classes and `:enabled`/`:disabled` may follow a
+        // pseudo-element that takes state (a `::-webkit-scrollbar` part, see
+        // `PseudoElement::accepts_state_pseudo_classes`).
         matches!(
             *self,
-            NonTSPseudoClass::Active | NonTSPseudoClass::Hover | NonTSPseudoClass::Focus
+            NonTSPseudoClass::Active
+                | NonTSPseudoClass::Hover
+                | NonTSPseudoClass::Focus
+                | NonTSPseudoClass::Enabled
+                | NonTSPseudoClass::Disabled
+                | NonTSPseudoClass::Scrollbar(_)
         )
     }
 
@@ -649,6 +828,10 @@ impl ToCss for NonTSPseudoClass {
             dest.write_str(":dir(")?;
             serialize_identifier(dir, dest)?;
             return dest.write_char(')');
+        }
+        if let Scrollbar(s) = *self {
+            dest.write_char(':')?;
+            return dest.write_str(s.name());
         }
 
         dest.write_str(match *self {
@@ -695,7 +878,7 @@ impl ToCss for NonTSPseudoClass {
             Self::UserValid => ":user-valid",
             Self::Valid => ":valid",
             Self::Visited => ":visited",
-            Self::Lang(_) | Self::Dir(_) => unreachable!(),
+            Self::Lang(_) | Self::Dir(_) | Self::Scrollbar(_) => unreachable!(),
         })
     }
 }
@@ -742,9 +925,11 @@ impl NonTSPseudoClass {
             Self::UserValid => ElementState::USER_VALID,
             Self::Valid => ElementState::VALID,
             Self::Visited => ElementState::VISITED,
-            Self::CustomState(_) | Self::Lang(_) | Self::Dir(_) | Self::ServoNonZeroBorder => {
-                ElementState::empty()
-            },
+            Self::CustomState(_)
+            | Self::Lang(_)
+            | Self::Dir(_)
+            | Self::ServoNonZeroBorder
+            | Self::Scrollbar(_) => ElementState::empty(),
         }
     }
 
@@ -755,7 +940,8 @@ impl NonTSPseudoClass {
 
     /// Returns true if the given pseudoclass should trigger style sharing cache revalidation.
     pub fn needs_cache_revalidation(&self) -> bool {
-        self.state_flag().is_empty()
+        // Snowlark patch: the scroll bar pseudo-classes never match an element.
+        self.state_flag().is_empty() && !matches!(*self, Self::Scrollbar(_))
     }
 }
 
@@ -778,6 +964,10 @@ pub struct ExtraMatchingData<'a> {
     /// The style of the originating element in order to evaluate @container
     /// size queries affecting pseudo-elements.
     pub originating_element_style: Option<&'a ComputedValues>,
+
+    /// Snowlark patch: the scroll bar part whose style is being cascaded, which the pseudo-classes
+    /// after its pseudo-element match (`Rule::matches_selector`).
+    pub scrollbar_part: Option<ScrollbarPartState>,
 }
 
 impl ::selectors::SelectorImpl for SelectorImpl {
@@ -893,7 +1083,10 @@ impl<'a, 'i> ::selectors::Parser<'i> for SelectorParser<'a> {
                 }
                 NonTSPseudoClass::ServoNonZeroBorder
             },
-            _ => return Err(ParseError::custom(SelectorParseErrorKind::UnexpectedIdent)),
+            _ => match ScrollbarPseudoClass::from_name(&name) {
+                Some(s) => NonTSPseudoClass::Scrollbar(s),
+                None => return Err(ParseError::custom(SelectorParseErrorKind::UnexpectedIdent)),
+            },
         };
 
         Ok(pseudo_class)

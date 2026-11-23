@@ -1328,8 +1328,43 @@ impl Stylist {
             is_probe,
             rule_inclusion,
             matching_fn,
+            None,
         )?;
 
+        Some(self.compute_pseudo_element_style_with_inputs(
+            cascade_inputs,
+            pseudo,
+            guards,
+            Some(originating_element_style),
+            Some(element),
+        ))
+    }
+
+    /// Snowlark patch: the style of a `::-webkit-scrollbar` part of `element` cascaded with the
+    /// part's `state` (which the scroll bar pseudo-classes after the part match), or `None` when
+    /// no rule matches it.
+    pub fn lazily_compute_scrollbar_part_style<E>(
+        &self,
+        guards: &StylesheetGuards,
+        element: E,
+        pseudo: &PseudoElement,
+        originating_element_style: &ComputedValues,
+        state: crate::selector_parser::ScrollbarPartState,
+    ) -> Option<Arc<ComputedValues>>
+    where
+        E: TElement,
+    {
+        debug_assert!(pseudo.is_webkit_scrollbar_part());
+        let cascade_inputs = self.lazy_pseudo_rules(
+            guards,
+            element,
+            originating_element_style,
+            pseudo,
+            /* is_probe = */ true,
+            RuleInclusion::All,
+            None,
+            Some(state),
+        )?;
         Some(self.compute_pseudo_element_style_with_inputs(
             cascade_inputs,
             pseudo,
@@ -1552,6 +1587,7 @@ impl Stylist {
         is_probe: bool,
         rule_inclusion: RuleInclusion,
         matching_fn: Option<&dyn Fn(&PseudoElement) -> bool>,
+        scrollbar_part: Option<crate::selector_parser::ScrollbarPartState>,
     ) -> Option<CascadeInputs>
     where
         E: TElement,
@@ -1579,6 +1615,7 @@ impl Stylist {
 
         matching_context.pseudo_element_matching_fn = matching_fn;
         matching_context.extra_data.originating_element_style = Some(originating_element_style);
+        matching_context.extra_data.scrollbar_part = scrollbar_part;
 
         self.push_applicable_declarations(
             element,
@@ -1613,6 +1650,7 @@ impl Stylist {
             );
             matching_context.pseudo_element_matching_fn = matching_fn;
             matching_context.extra_data.originating_element_style = Some(originating_element_style);
+            matching_context.extra_data.scrollbar_part = scrollbar_part;
 
             self.push_applicable_declarations(
                 element,
@@ -3939,13 +3977,24 @@ impl CascadeData {
                 {
                     continue;
                 }
-                // Snowlark patch: a scroll bar part's style is cascaded without state, so a rule
-                // whose part takes a state pseudo-class (`::-webkit-scrollbar-thumb:hover`) never
-                // applies; it is left out (and its state is not watched).
+                // Snowlark patch: a scroll bar part's style is cascaded without the pointer's
+                // state (`ScrollbarPartState::hovered` and `pressed` are not set yet), so a rule
+                // whose part takes `:hover`, `:active` or `:focus`
+                // (`::-webkit-scrollbar-thumb:hover`) never applies; it is left out, so that its
+                // state is not watched on every element.
                 if pseudo.is_webkit_scrollbar_part() && {
                     let mut part = selector.iter();
                     part.next();
-                    part.any(|c| matches!(c, Component::NonTSPseudoClass(_)))
+                    part.any(|c| {
+                        matches!(
+                            c,
+                            Component::NonTSPseudoClass(
+                                NonTSPseudoClass::Hover
+                                    | NonTSPseudoClass::Active
+                                    | NonTSPseudoClass::Focus
+                            )
+                        )
+                    })
                 } {
                     continue;
                 }
@@ -5078,6 +5127,65 @@ impl Rule {
         (element, selector.iter_from(offset))
     }
 
+    /// Snowlark patch: a selector for a `::-webkit-scrollbar` part, matched while that part's
+    /// style is cascaded with `state` (`ExtraMatchingData::scrollbar_part`). The pseudo-classes
+    /// after the part's pseudo-element (`::-webkit-scrollbar:vertical`,
+    /// `::-webkit-scrollbar-thumb:hover`, and `:not()` of them) match the part's state, the rest
+    /// of the selector the element as usual. `None` when nothing follows the pseudo-element (the
+    /// usual matching applies).
+    #[inline(never)]
+    fn matches_scrollbar_part<E: TElement>(
+        selector: &Selector<SelectorImpl>,
+        element: E,
+        context: &mut MatchingContext<E::Impl>,
+        state: crate::selector_parser::ScrollbarPartState,
+    ) -> Option<bool> {
+        fn part_matches(
+            c: &Component<SelectorImpl>,
+            state: &crate::selector_parser::ScrollbarPartState,
+        ) -> bool {
+            match c {
+                Component::NonTSPseudoClass(pc) => state.matches(pc),
+                Component::Negation(list) => !list.slice().iter().any(|s| {
+                    s.iter_raw_match_order().all(|c| part_matches(c, state))
+                }),
+                Component::Is(list) | Component::Where(list) => list
+                    .slice()
+                    .iter()
+                    .any(|s| s.iter_raw_match_order().all(|c| part_matches(c, state))),
+                _ => false,
+            }
+        }
+        let mut iter = selector.iter();
+        match iter.next() {
+            Some(Component::PseudoElement(p)) if p.is_webkit_scrollbar_part() => {
+                if let Some(ref f) = context.pseudo_element_matching_fn {
+                    if !f(p) {
+                        return Some(false);
+                    }
+                }
+            },
+            _ => return None,
+        }
+        let mut offset = 1;
+        let mut any = false;
+        for c in &mut iter {
+            if !part_matches(c, &state) {
+                return Some(false);
+            }
+            offset += 1;
+            any = true;
+        }
+        if !any {
+            return None;
+        }
+        if iter.next_sequence() != Some(Combinator::PseudoElement) {
+            return Some(false);
+        }
+        let rest = selector.iter_from(offset + 1);
+        Some(matches_complex_selector(rest, &element, context, SubjectOrPseudoElement::No).to_bool(true))
+    }
+
     /// Tests a given element against our selector.
     #[inline(always)]
     pub fn matches_selector<E: TElement>(
@@ -5093,6 +5201,12 @@ impl Rule {
             .is_some_and(|f| !selector_may_match(&self.hashes, f))
         {
             return false;
+        }
+        if let Some(state) = context.extra_data.scrollbar_part {
+            if let Some(matches) = Self::matches_scrollbar_part(&self.selector, element, context, state)
+            {
+                return matches;
+            }
         }
         let mut iter = self.selector.iter();
         let mut subject = SubjectOrPseudoElement::Yes;

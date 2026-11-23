@@ -156,7 +156,9 @@ pub type AnimationDuration = generics::GenericAnimationDuration<Time>;
 
 impl Parse for AnimationDuration {
     fn parse(context: &ParserContext, input: &mut Parser) -> Result<Self, ParseError> {
-        if crate::pref!("layout.css.scroll-driven-animations.enabled")
+        // Snowlark: `auto` (CSS Animations 2 §3.3, 0s for a document timeline) parses in the
+        // servo build, without the rest of scroll-driven animations.
+        if crate::pref!("layout.css.scroll-driven-animations.enabled", servo = true)
             && input.try_parse(|i| i.expect_ident_matching("auto")).is_ok()
         {
             return Ok(Self::auto());

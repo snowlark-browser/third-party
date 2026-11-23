@@ -888,6 +888,9 @@ pub enum WordBreak {
     /// `anywhere`, and `word-break` behave like `normal`.
     // (Snowlark patch: in the servo build too; CSS Text 3 §5.2 keeps it for compatibility)
     BreakWord,
+    /// CSS Text 4 §5.2 `auto-phrase`: `normal`, with phrases of languages the UA can analyze
+    /// kept together (Snowlark patch 91).
+    AutoPhrase,
 }
 
 /// Values for the `text-justify` CSS property.

@@ -452,8 +452,8 @@ the source; `git log -p vendor/stylo` shows the diff.
 78. **Custom scroll bar parts** (`servo/selector_parser.rs`): `::-webkit-scrollbar`, `-thumb`, `-track`,
    `-track-piece`, `-button` and `-corner` are lazily cascaded pseudo-elements (`is_webkit_scrollbar_part`),
    no longer among the parts patch 77 drops: the engine reads them from a scroll container to draw its scroll
-   bars. A user action pseudo-class may follow them; their styles are cascaded without state, so the stylist
-   (`stylist.rs` `add_styles`) leaves such rules out.
+   bars. A user action pseudo-class may follow them; the pointer's state is not given to their cascade yet, so
+   the stylist (`stylist.rs` `add_styles`) leaves rules whose part takes `:hover`, `:active` or `:focus` out.
 79. **`resize` in the servo build** (`properties/longhands.toml`, CSS UI 4 §5.1): upstream builds the
    longhand only for the `gecko` engine. The computed value (logical `block`/`inline` resolved against the
    writing mode) is upstream's; snowlark-layout reads it to place the resizer of a scroll container.
@@ -493,6 +493,62 @@ the source; `git log -p vendor/stylo` shows the diff.
    Scroll Snap 1): `scroll-snap-type`, `scroll-snap-align` and `scroll-snap-stop` lose their gecko-only engine
    line, and `ScrollSnapType` (`axis`, `strictness`) and `ScrollSnapAlign` (`block`, `inline`) get public
    getters. snowlark-page snaps scrolls with them; `scroll-margin` and `scroll-padding` were already there.
+86. **`animation-duration: auto` in the servo build** (`values/specified/animation.rs`,
+   `values/generics/animation.rs`, CSS Animations 2 §3.3): upstream parses and serializes `auto` only with the
+   scroll-driven animations pref; the servo build takes it without the rest of scroll-driven animations (its
+   computed value is upstream's: 0s on the document timeline, resolved as `0s` while `animation-timeline` is
+   `auto`).
+87. **Legacy `-webkit-mask-composite` operators** (`properties/longhands.toml`, `properties/mod.rs`,
+   `properties/shorthands.rs`): `mask-composite`'s keyword gets the `<composite-style>` operators (`clear`,
+   `copy`, `source-over` ... `xor`, `plus-lighter`) as servo values; `parse_into` refuses them unless the
+   declaration was spelled `-webkit-mask-composite`, and the `mask` shorthand never takes them
+   (`is_standard_mask_composite`). snowlark-layout composites mask layers with them.
+88. **`-webkit-text-stroke` in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`,
+   `properties/shorthands.rs`, Compat §5.5-5.7): the shorthand and its two longhands lose their gecko-only
+   lines; snowlark-layout strokes glyph outlines with them.
+89. **`text-decoration-skip-ink`, `accent-color` and `field-sizing` in the servo build**
+   (`properties/longhands.toml`; CSS Text Decoration 4 §2.6, CSS UI 4 §6.2-6.3): the three lose their
+   gecko-only lines (`field-sizing`'s gecko pref does not apply to servo). snowlark-layout interrupts
+   underlines and overlines at glyph outlines, paints form controls' accents and sizes form controls
+   from their values with them.
+90. **`interpolate-size` in the servo build** (`properties/longhands.toml`, CSS Values 5 §11.1): a servo
+   longhand of the inherited box struct, `numeric-only | allow-keywords`, not animatable. It is parsed
+   and computed only: transitions and animations do not interpolate to or from intrinsic size keywords.
+91. **`word-break: auto-phrase`** (`values/specified/text.rs`, CSS Text 4 §5.2): a `WordBreak` value.
+   snowlark-layout breaks it as `normal`, which the specification allows for languages without phrase
+   analysis (all of them here).
+92. **CSS animations of zero duration run** (`servo/animation.rs`, CSS Animations 1 §3.4, Web Animations 1
+   §4.6.5.2 and §4.7): `maybe_start_animations` no longer skips a 0s animation and
+   `is_cancelled_in_new_style` no longer cancels one whose duration becomes 0s. A zero-length iteration is
+   over as soon as the delay is: `progress_since` gives negative infinity before the start and infinity
+   after it in place of dividing by the duration (`has_ended`, the value at a time, the starting and paused
+   progress, `update_from_other`), `iterate_if_necessary` moves to the last iteration at once, an infinite
+   count of zero-length iterations counts as one (`remaining_iterations`, now public) whose
+   `alternate-reverse` direction is forwards (an infinite current iteration), and a keyframe interval's
+   easing precision stays finite. Fills apply and `animationstart`/`animationend` fire as for any other
+   animation (snowlark-style's event tracker already follows the Web Animations timing model).
+93. **`overflow-anchor` in the servo build** (`properties/longhands.toml`, CSS Scroll Anchoring 1 §2.2): the
+   longhand loses its gecko-only engine line (its gecko pref does not apply to servo) and changes to it
+   repaint instead of rebuilding boxes. snowlark-render leaves boxes with `none` and their subtrees out of
+   the scroll anchor selection.
+94. **A running CSS animation follows edits of its `@keyframes` rule** (`servo/animation.rs`, CSS Animations 1
+   §3): `maybe_start_animations`, which snowlark-style has run for every restyled element with animations
+   after a change of the rules (`TraversalFlags::ForCSSRuleChanges`), gives an existing animation whose
+   timing is unchanged (`Animation::has_timing_of`: duration, delay, iteration count, direction, fill mode,
+   paused or not) the keyframes as they are now and keeps the rest of it (its iteration, state and start
+   time; `update_from_other` reset the current iteration of an infinite one), cancels an animation whose name
+   no longer matches a `@keyframes` rule (removed or renamed), and goes on to the next name of the list
+   where upstream returned after the first animation it found again.
+95. **Scroll bar pseudo-classes** (`servo/selector_parser.rs`, `stylist.rs`): `:horizontal`, `:vertical`,
+   `:decrement`, `:increment`, `:start`, `:end`, `:double-button`, `:single-button`, `:no-button`,
+   `:corner-present` and `:window-inactive` parse (`NonTSPseudoClass::Scrollbar`; they never match an element and
+   need no style sharing revalidation) and may follow a scroll bar part, as may `:enabled` and `:disabled`.
+   `Stylist::lazily_compute_scrollbar_part_style` cascades a part with a `ScrollbarPartState` (the part, its
+   bar's orientation and state, the hovered and pressed part) in `ExtraMatchingData::scrollbar_part`;
+   `Rule::matches_selector` then matches the pseudo-classes after the part's pseudo-element against it
+   (`ScrollbarPartState::matches`) and the rest of the
+   selector against the element, where the selectors crate's stateless pseudo-element matching refuses any
+   pseudo-class after the pseudo-element.
 
 To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 still lacks, and run `cargo test -p snowlark-style`.
