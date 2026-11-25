@@ -22,13 +22,16 @@ use crate::properties_and_values::value::{
 use crate::stylesheets::container_rule::AttrReferenceSet;
 use crate::stylesheets::{CssRuleType, CustomMediaEvaluator, Origin, UrlExtraData};
 use crate::stylist::Stylist;
-use crate::values::{computed, AtomString, DashedIdent};
+use crate::substitution;
+use crate::substitution::AttrTaint;
+use crate::values::{AtomString, DashedIdent, computed};
 use crate::{error_reporting::ContextualParseError, parser::Parse, parser::ParserContext};
 use cssparser::{
-    match_ignore_ascii_case, parse_important, Parser, SourceLocation, SourcePosition, Token,
+    Parser, SourceLocation, SourcePosition, Token, match_ignore_ascii_case, parse_important,
 };
 use selectors::kleene_value::KleeneValue;
 use servo_arc::Arc;
+use std::borrow::Cow;
 use std::fmt::{self, Write};
 use style_traits::{CssWriter, ParseError, ParsingMode, StyleParseErrorKind, ToCss};
 
@@ -129,14 +132,14 @@ where
     input
         .try_parse(|input| {
             let result = input.parse_nested_block(parse);
-            if let Err(ref e) = result {
-                if context.error_reporting_enabled() {
-                    // We're about to swallow the error in a `<general-enclosed>` condition, so report
-                    // it while we can.
-                    let error =
-                        ContextualParseError::InvalidMediaRule(input.slice_from(start), e.clone());
-                    context.log_css_error(start_location, error);
-                }
+            if let Err(ref e) = result
+                && context.error_reporting_enabled()
+            {
+                // We're about to swallow the error in a `<general-enclosed>` condition, so report
+                // it while we can.
+                let error =
+                    ContextualParseError::InvalidMediaRule(input.slice_from(start), e.clone());
+                context.log_css_error(start_location, error);
             }
             result
         })
@@ -211,17 +214,15 @@ impl StyleQuery {
         }
     }
 
+    fn enabled(feature_type: FeatureType) -> bool {
+        crate::pref!("layout.css.style-queries.enabled") && feature_type == FeatureType::Container
+    }
+
     fn parse(
         context: &ParserContext,
         input: &mut Parser,
         feature_type: FeatureType,
     ) -> Result<Self, ParseError> {
-        if !crate::pref!("layout.css.style-queries.enabled")
-            || feature_type != FeatureType::Container
-        {
-            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
-        }
-
         if let Ok(feature) = input.try_parse(|input| StyleFeature::parse(context, input)) {
             return Ok(Self::Feature(feature));
         }
@@ -407,11 +408,7 @@ impl StyleFeaturePlain {
             if let Ok(keyword) = input.try_parse(|i| CSSWideKeyword::parse(i)) {
                 StyleFeatureValue::Keyword(keyword)
             } else {
-                let value = custom_properties::SpecifiedValue::parse(
-                    input,
-                    Some(&context.namespaces.prefixes),
-                    context.url_data,
-                )?;
+                let value = custom_properties::SpecifiedValue::parse(context, input)?;
                 // `!important` is allowed (but ignored) after the value.
                 let _ = input.try_parse(parse_important);
                 StyleFeatureValue::Value(Some(Arc::new(value)))
@@ -436,17 +433,17 @@ impl StyleFeaturePlain {
             Some(ctx.inherited_custom_properties().clone()),
             None,
         );
-        let custom_properties::SubstitutionResult { css, attr_taint } =
-            match custom_properties::substitute(
-                value,
-                &substitution_functions,
-                stylist,
-                ctx,
-                attribute_tracker,
-            ) {
-                Ok(sub) => sub,
-                Err(_) => return current_value.is_none(),
-            };
+        let substitution::SubstitutionResult { css, attr_taint } = match substitution::substitute(
+            value,
+            /* property_id */ None,
+            &substitution_functions,
+            stylist,
+            ctx,
+            attribute_tracker,
+        ) {
+            Ok(sub) => sub,
+            Err(_) => return current_value.is_none(),
+        };
         if registration.is_universal() {
             return match current_value {
                 Some(v) => v.as_universal().is_some_and(|v| v.css == css),
@@ -457,11 +454,11 @@ impl StyleFeaturePlain {
         let computed = SpecifiedRegisteredValue::compute(
             &mut parser,
             registration,
-            None,
             &value.url_data,
             ctx,
             AllowComputationallyDependent::Yes,
             attr_taint,
+            /* property_id */ None,
         )
         .ok();
         computed.as_ref() == current_value
@@ -498,7 +495,13 @@ impl StyleFeaturePlain {
                         current_value,
                     )
                 } else {
-                    custom_properties::compute_variable_value(v, registration, ctx).as_ref()
+                    custom_properties::compute_variable_value(
+                        v,
+                        registration,
+                        ctx,
+                        /* property_id */ None,
+                    )
+                    .as_ref()
                         == current_value
                 }
             },
@@ -512,6 +515,7 @@ impl StyleFeaturePlain {
                                 initial,
                                 registration,
                                 ctx,
+                                /* property_id */ None,
                             );
                             v.as_ref() == current_value
                         } else {
@@ -674,7 +678,7 @@ pub enum QueryCondition {
     /// A -moz-pref() query.
     MozPref(MozPrefFeature),
     /// [ <function-token> <any-value>? ) ] | [ ( <any-value>? ) ]
-    GeneralEnclosed(String, UrlExtraData),
+    GeneralEnclosed(String, UrlExtraData, FeatureFlags),
 }
 
 impl ToCss for QueryCondition {
@@ -685,32 +689,32 @@ impl ToCss for QueryCondition {
         match *self {
             // NOTE(emilio): QueryFeatureExpression already includes the
             // parenthesis.
-            QueryCondition::Feature(ref f) => f.to_css(dest),
-            QueryCondition::Custom(ref name) => {
+            Self::Feature(ref f) => f.to_css(dest),
+            Self::Custom(ref name) => {
                 dest.write_char('(')?;
                 name.to_css(dest)?;
                 dest.write_char(')')
             },
-            QueryCondition::Not(ref c) => {
+            Self::Not(ref c) => {
                 dest.write_str("not ")?;
                 c.to_css(dest)
             },
-            QueryCondition::InParens(ref c) => {
+            Self::InParens(ref c) => {
                 dest.write_char('(')?;
                 c.to_css(dest)?;
                 dest.write_char(')')
             },
-            QueryCondition::Style(ref c) => {
+            Self::Style(ref c) => {
                 dest.write_str("style(")?;
                 c.to_css(dest)?;
                 dest.write_char(')')
             },
-            QueryCondition::MozPref(ref c) => {
+            Self::MozPref(ref c) => {
                 dest.write_str("-moz-pref(")?;
                 c.to_css(dest)?;
                 dest.write_char(')')
             },
-            QueryCondition::Operation(ref list, op) => {
+            Self::Operation(ref list, op) => {
                 let mut iter = list.iter();
                 iter.next().unwrap().to_css(dest)?;
                 for item in iter {
@@ -721,7 +725,7 @@ impl ToCss for QueryCondition {
                 }
                 Ok(())
             },
-            QueryCondition::GeneralEnclosed(ref s, _) => dest.write_str(s),
+            Self::GeneralEnclosed(ref s, ..) => dest.write_str(s),
         }
     }
 }
@@ -766,13 +770,11 @@ impl QueryCondition {
     /// container queries.
     pub fn cumulative_flags(&self) -> FeatureFlags {
         let mut result = FeatureFlags::empty();
-        self.visit(&mut |condition| {
-            if let Self::Style(..) = condition {
-                result.insert(FeatureFlags::STYLE);
-            }
-            if let Self::Feature(f) = condition {
-                result.insert(f.feature_flags())
-            }
+        self.visit(&mut |condition| match condition {
+            Self::Style(..) => result.insert(FeatureFlags::STYLE),
+            Self::Feature(f) => result.insert(f.feature_flags()),
+            Self::GeneralEnclosed(_, _, flags) => result.insert(*flags),
+            _ => {},
         });
         result
     }
@@ -801,10 +803,10 @@ impl QueryCondition {
             Ok(expr) => return Ok(Self::Feature(expr)),
             Err(e) => e,
         };
-        if crate::pref!("layout.css.custom-media.enabled") {
-            if let Ok(custom) = input.try_parse(|input| DashedIdent::parse(context, input)) {
-                return Ok(Self::Custom(custom));
-            }
+        if crate::pref!("layout.css.custom-media.enabled")
+            && let Ok(custom) = input.try_parse(|input| DashedIdent::parse(context, input))
+        {
+            return Ok(Self::Custom(custom));
         }
         if let Ok(inner) = Self::parse(context, input, feature_type) {
             return Ok(Self::InParens(Box::new(inner)));
@@ -826,7 +828,7 @@ impl QueryCondition {
         match *self {
             Self::Custom(ref f) => custom.matches(f, context),
             Self::Feature(ref f) => f.matches(context),
-            Self::GeneralEnclosed(ref str, ref url_data) => {
+            Self::GeneralEnclosed(ref str, ref url_data, _) => {
                 self.matches_general(str, url_data, context, custom, attribute_tracker)
             },
             Self::InParens(ref c) => c.matches(context, custom, attribute_tracker),
@@ -867,11 +869,24 @@ impl QueryCondition {
             .stylist
             .expect("container query should provide a Stylist");
 
+        // TODO(Bug 2087381) - Need to propagate the stylesheet's namespaces through here
+        // in order to support namespaced `attr()` functions in container query conditions.
+        let mut parser_context = ParserContext::new(
+            Origin::Author,
+            url_data,
+            Some(CssRuleType::Container),
+            ParsingMode::DEFAULT,
+            QuirksMode::NoQuirks,
+            /* namespaces = */ Default::default(),
+            /* error_reporter = */ None,
+            /* use_counters = */ None,
+            AttrTaint::default(),
+        );
+
         // Parse the text as a custom-property value to identify references.
         let value = match custom_properties::SpecifiedValue::parse(
+            &parser_context,
             &mut Parser::new(css_text),
-            None, // TODO: what Namespaces should we pass here?
-            url_data,
         ) {
             Ok(val) => val,
             Err(_) => return KleeneValue::Unknown,
@@ -887,31 +902,21 @@ impl QueryCondition {
             Some(context.inherited_custom_properties().clone()),
             None,
         );
-        let custom_properties::SubstitutionResult { css, attr_taint } =
-            match custom_properties::substitute(
-                &value,
-                &substitution_functions,
-                stylist,
-                context,
-                attribute_tracker,
-            ) {
-                Ok(sub) => sub,
-                Err(_) => return KleeneValue::Unknown,
-            };
+        let substitution::SubstitutionResult { css, attr_taint } = match substitution::substitute(
+            &value,
+            /* property_id */ None,
+            &substitution_functions,
+            stylist,
+            context,
+            attribute_tracker,
+        ) {
+            Ok(sub) => sub,
+            Err(_) => return KleeneValue::Unknown,
+        };
+        parser_context.attr_tainted_regions = Cow::Owned(attr_taint);
 
         // Re-parse the result as a query-condition, and evaluate it.
-        let parser_context = ParserContext::new(
-            Origin::Author,
-            url_data,
-            Some(CssRuleType::Container),
-            ParsingMode::DEFAULT,
-            QuirksMode::NoQuirks,
-            /* namespaces = */ Default::default(),
-            /* error_reporter = */ None,
-            /* use_counters = */ None,
-            attr_taint,
-        );
-        let result = match Self::parse(
+        match Self::parse(
             &parser_context,
             &mut Parser::new(&css),
             FeatureType::Container,
@@ -922,9 +927,7 @@ impl QueryCondition {
             },
             Ok(query) => query.matches(context, custom, attribute_tracker),
             Err(_) => KleeneValue::Unknown,
-        };
-
-        result
+        }
     }
 
     /// Collect the attribute references in this query condition, if any.
@@ -947,6 +950,7 @@ impl OperationParser for QueryCondition {
         input.skip_whitespace();
         let start = input.position();
         let start_location = input.current_source_location();
+        let mut flags = FeatureFlags::empty();
         match *input.next()? {
             Token::ParenthesisBlock => {
                 let nested = try_parse_block(context, input, start, start_location, |input| {
@@ -958,13 +962,14 @@ impl OperationParser for QueryCondition {
             },
             Token::Function(ref name) => {
                 match_ignore_ascii_case! { name,
-                    "style" => {
+                    "style" if StyleQuery::enabled(feature_type) => {
                         let query = try_parse_block(context, input, start, start_location, |input| {
                             StyleQuery::parse(context, input, feature_type)
                         });
                         if let Some(query) = query {
                             return Ok(Self::Style(query));
                         }
+                        flags.insert(FeatureFlags::STYLE);
                     },
                     "-moz-pref" => {
                         let feature = try_parse_block(context, input, start, start_location, |input| {
@@ -983,6 +988,7 @@ impl OperationParser for QueryCondition {
         Ok(Self::GeneralEnclosed(
             input.slice_from(start).to_owned(),
             context.url_data.clone(),
+            flags,
         ))
     }
 

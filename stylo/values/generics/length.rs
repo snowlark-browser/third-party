@@ -4,15 +4,15 @@
 
 //! Generic types for CSS values related to length.
 
+use crate::Zero;
 use crate::derives::*;
 use crate::logical_geometry::PhysicalSide;
 use crate::parser::{Parse, ParserContext};
+use crate::values::DashedIdent;
 use crate::values::computed::position::TryTacticAdjustment;
+use crate::values::generics::Optional;
 use crate::values::generics::box_::PositionProperty;
 use crate::values::generics::position::TreeScoped;
-use crate::values::generics::Optional;
-use crate::values::DashedIdent;
-use crate::Zero;
 use cssparser::Parser;
 use std::fmt::Write;
 use style_derive::Animate;
@@ -367,6 +367,43 @@ pub enum GenericLengthPercentageOrNormal<LengthPercent> {
 }
 
 pub use self::GenericLengthPercentageOrNormal as LengthPercentageOrNormal;
+
+/// A generic `normal | <length-percentage> | infinite` value, as used by `fit-tolerance`.
+#[derive(
+    Animate,
+    Clone,
+    ComputeSquaredDistance,
+    Copy,
+    Debug,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    SpecifiedValueInfo,
+    ToAnimatedValue,
+    ToAnimatedZero,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(C, u8)]
+#[allow(missing_docs)]
+pub enum GenericFitTolerance<LengthPercent> {
+    Normal,
+    LengthPercentage(LengthPercent),
+    Infinite,
+}
+
+pub use self::GenericFitTolerance as FitTolerance;
+
+impl<LengthPercent> FitTolerance<LengthPercent> {
+    /// Returns the normal value.
+    #[inline]
+    pub fn normal() -> Self {
+        FitTolerance::Normal
+    }
+}
 
 impl<LengthPercent> LengthPercentageOrNormal<LengthPercent> {
     /// Returns the normal value.

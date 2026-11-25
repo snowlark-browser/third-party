@@ -4,15 +4,16 @@
 
 //! Typed OM Numeric Declaration.
 
-use crate::derives::*;
 use crate::parser::{Parse, ParserContext};
+use crate::typed_om::ToTyped;
 use crate::typed_om::numeric::NoCalcNumeric;
 use crate::values::specified::calc::{CalcNode, CalcParseFlags, PercentageContext};
 use crate::values::specified::{
     NoCalcAngle, NoCalcLength, NoCalcNumber, NoCalcPercentage, NoCalcTime,
 };
 use cssparser::{Parser, Token};
-use style_traits::ParseError;
+use style_traits::{ParseError, StyleParseErrorKind};
+use thin_vec::ThinVec;
 
 /// A numeric declaration, with or without a `calc()` expression.
 #[derive(Clone, ToTyped)]
@@ -68,16 +69,22 @@ impl Parse for NumericDeclaration {
 
             Token::Function(ref name) => {
                 let function = CalcNode::math_function(context, name)?;
-                let node = CalcNode::parse(
+                let mut node = CalcNode::parse(
                     context,
                     input,
                     function,
                     CalcParseFlags::new(PercentageContext::allowed()),
                 )?;
 
-                // Snowlark patch 97: any math function, whatever its type (a number, an angle,
-                // a time...), not only a length-percentage; the caller checks that its type is
-                // valid.
+                node.simplify_and_sort();
+                node.numeric_type_as_calc_type()
+                    .map_err(|_| ParseError::custom(StyleParseErrorKind::UnspecifiedError))?;
+
+                // TODO(dshin): This is a bit wasteful...
+                if node.to_typed(&mut ThinVec::with_capacity(1)).is_err() {
+                    return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
+                }
+
                 Ok(Self::Calc(node))
             },
 

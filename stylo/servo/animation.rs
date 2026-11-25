@@ -7,15 +7,17 @@
 // NOTE(emilio): This code isn't really executed in Gecko, but we don't want to
 // compile it out so that people remember it exists.
 
+use crate::Atom;
+use crate::FxHashMap;
 use crate::context::{CascadeInputs, SharedStyleContext};
 use crate::derives::*;
 use crate::dom::{OpaqueNode, TDocument, TElement, TNode};
+use crate::properties::AnimationDeclarations;
 use crate::properties::animated_properties::{AnimationValue, AnimationValueMap};
 use crate::properties::longhands::animation_composition::computed_value::single_value::T as AnimationComposition;
 use crate::properties::longhands::animation_direction::computed_value::single_value::T as AnimationDirection;
 use crate::properties::longhands::animation_fill_mode::computed_value::single_value::T as AnimationFillMode;
 use crate::properties::longhands::animation_play_state::computed_value::single_value::T as AnimationPlayState;
-use crate::properties::AnimationDeclarations;
 use crate::properties::{
     ComputedValues, Importance, LonghandId, PropertyDeclarationBlock, PropertyDeclarationId,
     PropertyDeclarationIdSet,
@@ -30,10 +32,8 @@ use crate::values::animated::{Animate, Procedure};
 use crate::values::computed::TimingFunction;
 use crate::values::generics::easing::BeforeFlag;
 use crate::values::specified::TransitionBehavior;
-use crate::Atom;
 use debug_unreachable::debug_unreachable;
 use parking_lot::RwLock;
-use rustc_hash::FxHashMap;
 use servo_arc::Arc;
 use std::fmt;
 
@@ -1477,7 +1477,7 @@ impl ElementAnimationSet {
         };
 
         // If the style of this element is display:none, then cancel all active transitions.
-        if after_change_style.get_box().clone_display().is_none() {
+        if after_change_style.get_box().get_display().is_none() {
             self.cancel_active_transitions();
             return;
         }
@@ -1780,6 +1780,7 @@ pub struct AnimationSetKey {
 
 impl AnimationSetKey {
     /// Create a new key given a node and optional pseudo element.
+    #[inline]
     pub fn new(node: OpaqueNode, pseudo_element: Option<PseudoElement>) -> Self {
         AnimationSetKey {
             node,
@@ -1788,6 +1789,7 @@ impl AnimationSetKey {
     }
 
     /// Create a new key for the main content of this node.
+    #[inline]
     pub fn new_for_non_pseudo(node: OpaqueNode) -> Self {
         AnimationSetKey {
             node,
@@ -1796,6 +1798,7 @@ impl AnimationSetKey {
     }
 
     /// Create a new key for given node and pseudo element.
+    #[inline]
     pub fn new_for_pseudo(node: OpaqueNode, pseudo_element: PseudoElement) -> Self {
         AnimationSetKey {
             node,
@@ -1827,6 +1830,14 @@ impl DocumentAnimationSet {
             .read()
             .get(key)
             .map_or(false, |set| set.has_active_transition())
+    }
+
+    /// Return whether or not the provided node has active CSS animations or transitions 
+    pub fn has_active_animations_or_transitions(&self, key: &AnimationSetKey) -> bool {
+        self.sets
+            .read()
+            .get(key)
+            .is_some_and(|set| set.has_active_animation() || set.has_active_transition())
     }
 
     /// Return a locked PropertyDeclarationBlock with animation values for the given

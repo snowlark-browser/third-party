@@ -4,6 +4,7 @@
 
 //! Specified types for properties related to animations and transitions.
 
+use crate::Atom;
 use crate::derives::*;
 use crate::parser::{Parse, ParserContext};
 use crate::properties::{NonCustomPropertyId, PropertyId, ShorthandId};
@@ -12,8 +13,7 @@ use crate::values::generics::animation as generics;
 use crate::values::generics::position::{IsTreeScoped, TreeScoped};
 use crate::values::specified::{LengthPercentage, NonNegativeNumber, Time};
 use crate::values::{AtomIdent, CustomIdent, DashedIdent, KeyframesName};
-use crate::Atom;
-use cssparser::{match_ignore_ascii_case, Parser};
+use cssparser::{Parser, match_ignore_ascii_case};
 use std::fmt::{self, Write};
 use style_traits::{
     CssWriter, KeywordsCollectFn, ParseError, SpecifiedValueInfo, StyleParseErrorKind, ToCss,
@@ -398,8 +398,10 @@ pub enum AnimationComposition {
     ToShmem,
 )]
 #[repr(u8)]
+#[derive(Default)]
 pub enum Scroller {
     /// The nearest ancestor scroll container. (Default.)
+    #[default]
     Nearest,
     /// The document viewport as the scroll container.
     Root,
@@ -413,12 +415,6 @@ impl Scroller {
     #[inline]
     fn is_default(&self) -> bool {
         matches!(*self, Self::Nearest)
-    }
-}
-
-impl Default for Scroller {
-    fn default() -> Self {
-        Self::Nearest
     }
 }
 
@@ -444,8 +440,10 @@ impl Default for Scroller {
     ToTyped,
 )]
 #[repr(u8)]
+#[derive(Default)]
 pub enum ScrollAxis {
     /// The block axis of the scroll container. (Default.)
+    #[default]
     Block = 0,
     /// The inline axis of the scroll container.
     Inline = 1,
@@ -460,12 +458,6 @@ impl ScrollAxis {
     #[inline]
     pub fn is_default(&self) -> bool {
         matches!(*self, Self::Block)
-    }
-}
-
-impl Default for ScrollAxis {
-    fn default() -> Self {
-        Self::Block
     }
 }
 
@@ -709,7 +701,7 @@ impl ViewTransitionNameKeyword {
 
 impl IsTreeScoped for ViewTransitionNameKeyword {
     fn is_tree_scoped(&self) -> bool {
-        self.0 .0 != atom!("none")
+        self.0.0 != atom!("none")
     }
 }
 
@@ -789,10 +781,11 @@ impl ViewTransitionClassList {
     pub fn iter(&self) -> impl Iterator<Item = &CustomIdent> {
         self.0.iter()
     }
-}
 
-impl Parse for ViewTransitionClassList {
-    fn parse(_: &ParserContext, input: &mut Parser) -> Result<Self, ParseError> {
+    fn parse_internal<F>(input: &mut Parser, parse_one: F) -> Result<Self, ParseError>
+    where
+        F: FnMut(&mut Parser) -> Result<CustomIdent, ParseError>,
+    {
         use style_traits::{Separator, Space};
 
         if input.try_parse(|i| i.expect_ident_matching("none")).is_ok() {
@@ -800,8 +793,33 @@ impl Parse for ViewTransitionClassList {
         }
 
         Ok(Self(crate::ArcSlice::from_iter(
-            Space::parse(input, |i| CustomIdent::parse(i, &["none"]))?.into_iter(),
+            Space::parse(input, parse_one)?.into_iter(),
         )))
+    }
+
+    /// Parse `<view-transition-type>`.
+    /// https://drafts.csswg.org/css-view-transitions-2/#typedef-view-transition-type
+    pub fn parse_for_at_view_transition(
+        _: &ParserContext,
+        input: &mut Parser,
+    ) -> Result<Self, ParseError> {
+        fn parse_view_transition_type(input: &mut Parser) -> Result<CustomIdent, ParseError> {
+            let ident = input.expect_ident()?;
+            // Note case sensitivity, since it's a subset of `<custom-ident>`.
+            // https://drafts.csswg.org/css-values-4/#identifier-value
+            if ident.starts_with("-ua-") {
+                return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
+            }
+            CustomIdent::from_ident(ident, &["none"])
+        }
+
+        Self::parse_internal(input, parse_view_transition_type)
+    }
+}
+
+impl Parse for ViewTransitionClassList {
+    fn parse(_: &ParserContext, input: &mut Parser) -> Result<Self, ParseError> {
+        Self::parse_internal(input, |i| CustomIdent::parse(i, &["none"]))
     }
 }
 

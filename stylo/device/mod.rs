@@ -5,12 +5,12 @@
 //! Media-query device and expression representation.
 
 use crate::color::AbsoluteColor;
-use crate::custom_properties::CssEnvironment;
 #[cfg(feature = "servo")]
 use crate::derives::*;
 use crate::properties::ComputedValues;
-use crate::values::computed::font::QueryFontMetricsFlags;
+use crate::substitution::env::CssEnvironment;
 use crate::values::computed::Length;
+use crate::values::computed::font::QueryFontMetricsFlags;
 use parking_lot::RwLock;
 use servo_arc::Arc;
 use std::mem;
@@ -85,7 +85,8 @@ pub struct Device {
     ///
     /// <https://quirks.spec.whatwg.org/#the-tables-inherit-color-from-body-quirk>
     body_text_color: RwLock<AbsoluteColor>,
-
+    /// The <input type=image> submit string for this document.
+    submit_string: Box<str>,
     /// Extra Gecko-specific or Servo-specific data.
     extra: ExtraDeviceData,
 }
@@ -232,7 +233,10 @@ impl Device {
     pub fn update_root_font_metrics(&self) -> bool {
         let root_style = self.root_style.read();
         let root_effective_zoom = root_style.effective_zoom;
-        let root_font_size = (*root_style).get_font().clone_font_size().computed_size();
+        let root_font_size = (*root_style)
+            .get_font()
+            .slow_clone_font_size()
+            .computed_size();
 
         let root_font_metrics = self.query_font_metrics(
             root_style.writing_mode.is_upright(),
@@ -320,5 +324,11 @@ impl Device {
     #[inline]
     pub fn unzoom_text(&self, size: Length) -> Length {
         size.scale_by(1. / self.text_zoom())
+    }
+
+    /// Returns the <input type=image> submit string for this document.
+    #[inline]
+    pub fn submit_string(&self) -> &str {
+        &self.submit_string
     }
 }

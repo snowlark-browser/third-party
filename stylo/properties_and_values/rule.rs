@@ -17,6 +17,7 @@ use crate::custom_properties::{Name as CustomPropertyName, SpecifiedValue};
 use crate::derives::*;
 use crate::error_reporting::ContextualParseError;
 use crate::parser::{Parse, ParserContext};
+use crate::properties::PropertyIdRef;
 use crate::shared_lock::{SharedRwLockReadGuard, ToCssWithGuard};
 use crate::values::{computed, serialize_atom_name};
 use cssparser::{BasicParseErrorKind, ParseErrorKind, Parser, RuleBodyParser, SourceLocation};
@@ -117,8 +118,12 @@ pub fn parse_property_block(
         });
     };
 
-    if PropertyRegistration::validate_initial_value(syntax, descriptors.initial_value.as_deref())
-        .is_err()
+    if PropertyRegistration::validate_initial_value(
+        PropertyIdRef::from(&name.0),
+        syntax,
+        descriptors.initial_value.as_deref(),
+    )
+    .is_err()
     {
         return Err(ParseError::from_basic_kind(
             BasicParseErrorKind::AtRuleBodyInvalid,
@@ -166,11 +171,11 @@ impl PropertyRegistration {
         match SpecifiedRegisteredValue::compute(
             &mut input,
             &self.descriptors,
-            None,
             &self.url_data,
             computed_context,
             AllowComputationallyDependent::No,
             /* attr_taint */ Default::default(),
+            Some(PropertyIdRef::Custom(&self.name.0)),
         ) {
             Ok(computed) => Ok(computed),
             Err(_) => Err(()),
@@ -180,6 +185,7 @@ impl PropertyRegistration {
     /// Performs syntax validation as per the initial value descriptor.
     /// https://drafts.css-houdini.org/css-properties-values-api-1/#initial-value-descriptor
     pub fn validate_initial_value(
+        property_id: PropertyIdRef,
         syntax: &SyntaxDescriptor,
         initial_value: Option<&SpecifiedValue>,
     ) -> Result<(), PropertyRegistrationError> {
@@ -217,9 +223,9 @@ impl PropertyRegistration {
             &mut input,
             syntax,
             &initial.url_data,
-            None,
             AllowComputationallyDependent::No,
             /* attr_taint */ Default::default(),
+            Some(property_id),
         ) {
             Ok(_) => {},
             Err(_) => return Err(PropertyRegistrationError::InvalidInitialValue),
@@ -299,11 +305,7 @@ pub type InitialValue = Arc<SpecifiedValue>;
 impl Parse for InitialValue {
     fn parse(context: &ParserContext, input: &mut Parser) -> Result<Self, ParseError> {
         input.skip_whitespace();
-        Ok(Arc::new(SpecifiedValue::parse(
-            input,
-            Some(&context.namespaces.prefixes),
-            context.url_data,
-        )?))
+        Ok(Arc::new(SpecifiedValue::parse(context, input)?))
     }
 }
 

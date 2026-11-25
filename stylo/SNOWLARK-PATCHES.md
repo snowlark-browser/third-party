@@ -1,8 +1,39 @@
-# stylo 0.22.0, patched for Snowlark
+# stylo 0.24.0, patched for Snowlark
 
-This is stylo 0.22.0 from crates.io (the first commit that adds this directory is the unmodified release),
+This is stylo 0.24.0 from crates.io (the commit "stylo 0.24.0 from crates.io, unmodified" is the release),
 used through `[patch.crates-io]` in the workspace `Cargo.toml`. Every change is marked `Snowlark patch` in
 the source; `git log -p vendor/stylo` shows the diff.
+
+## Moving from 0.22.0 to 0.24.0
+
+The patches below were written on 0.22.0 and carried to 0.24.0 by a three-way merge. What changed:
+
+- **Upstream has them now, dropped from the source:** `text-orientation` sets its writing-mode flags in
+  the servo build (part of 4's writing modes work); the `-moz-inert` and `-moz-topmost-modal`
+  pseudo-classes and `PseudoElement` highlight restrictions through `PropertyFlags::APPLIES_TO_HIGHLIGHT`
+  (part of 53 and of the highlight patch, which keeps its extra pseudo-elements and properties); the
+  servo build's unboxing of unusual elements for `display: contents` (73: only the guard that leaves
+  pseudo-elements alone stays); `font-variant-emoji` and `font-size-adjust` in the `font` shorthand
+  (part of 63).
+- **Preferences:** 0.24 has no `layout.unimplemented`, `layout.grid.enabled`, `layout.columns.enabled`,
+  `layout.container-queries.enabled`, `layout.writing-mode.enabled` or `layout.variable_fonts.enabled`;
+  its servo build gates each feature by a preference of its own (`layout.css.columns.enabled`,
+  `layout.css.masking.enabled`, ...), which snowlark-style's `prefs::init` turns on for everything 0.22
+  gave us. The properties our patches had put behind `layout.unimplemented` are not gated any more;
+  `offset-path` is not either, as the other `offset-*` properties. Where upstream now gates a value
+  we had enabled outright (`sideways-*`, `background-clip: text`, `word-break: break-word`, the
+  `font-synthesis` and `text-box` shorthands), its preference is used and turned on.
+- **Keyword longhands:** 0.24 gives every longhand a type, so the keyword-only longhands our patches add
+  (`column-wrap`, `interpolate-size`, `-webkit-user-drag`, `-webkit-font-smoothing`, `-webkit-box-orient`,
+  `-webkit-box-align`, `-webkit-box-direction`, `-webkit-box-pack`) are enums at the end of
+  `values/specified/box.rs`, listed as `Copy` in `properties/data.py`. Upstream's own keyword longhands
+  became enums too, so our keyword changes moved into them: `background-attachment: local`, the
+  `sideways-right` alias, `font-variant-caps`' other values (behind upstream's preference), the legacy
+  `-webkit-mask-composite` operators in `MaskComposite`, `hyphens` without the `-moz-` alias.
+  `text-size-adjust` keeps patch 83's percentage type in place of 0.24's keyword enum.
+- **Other:** `Device`'s page color scheme and scripting flag live in `ExtraDeviceData` (0.24 moved the
+  media query state into the public `MediaData`); our two `ComputedValueFlags` moved to bits 30 and 31,
+  as 0.24 uses 28 and 29.
 
 1. **`@container` in the servo build** (`stylesheets/rule_parser.rs`): upstream parses `@container` only
    with the `gecko` feature, although the servo build has the container query evaluation, the
@@ -557,31 +588,59 @@ the source; `git log -p vendor/stylo` shows the diff.
    animation's updates from a new style (`update_from_other`).
 
 97. **`CSSNumericValue.parse` of any math function** (`typed_om/numeric_declaration.rs`, CSS Typed OM 1
-   §4.3.1): `NumericDeclaration` took a math function only when it was a length-percentage, so
-   `calc(2 + 3)`, `calc(1deg * 2)` and `min(1s, 2s)` did not parse; it now takes any, and snowlark-style
-   checks that the reified value's type is valid.
+   §4.3.1): on 0.22, `NumericDeclaration` took a math function only when it was a length-percentage.
+   0.24 takes any math function whose type is valid upstream, so nothing is patched there any more.
 
 98. **A `var()` fallback reified with its leading whitespace** (`custom_properties.rs`, CSS Typed OM 1 §5.4):
-   `VariableFallback` records where the fallback starts before the whitespace after the comma
-   (`typed_start`), and `reify_variable_value_range` reads the fallback from there, so `var(--A, 1em)`
-   reifies to a fallback of `" 1em"` and `var(--A, var(--B))` to `" "` and a reference. Substitution still
-   uses `start`. The references inside a fallback are read from the fallback's own list, where the
-   parser puts them (upstream looked for them in the outer list and reified a nested `var()` as text).
+   `reify_variable_value_range` reads a fallback from the whitespace after the comma (the parsed fallback
+   starts after it), so `var(--A, 1em)` reifies to a fallback of `" 1em"` and `var(--A, var(--B))` to
+   `" "` and a reference. Substitution is unchanged. The references inside a fallback are read from the
+   fallback's own list, where the parser puts them (upstream looks for them in the outer list and
+   reifies a nested `var()` as text).
 
-99. **CSS Anchor Positioning 1 in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`,
-   `values/computed/length_percentage.rs`): `anchor-name`, `anchor-scope`, `position-anchor`,
-   `position-try-order`, `position-visibility` and the `position-try` shorthand lose their gecko-only engine
-   line and are behind `layout.css.anchor-positioning.enabled` (the preference that already gates `anchor()`,
-   `anchor-size()` and `@position-try`), as `position-area` and `position-try-fallbacks` already exist. Their
-   value types are engine-neutral. `CalcLengthPercentage::clamping_mode()` lets the embedder rebuild a value
-   whose `anchor()` and `anchor-size()` its layout resolved (upstream resolves them only through gecko's
-   layout).
+99. **CSS Anchor Positioning 1: resolved anchor functions** (`values/computed/length_percentage.rs`):
+   `CalcLengthPercentage::clamping_mode()` lets the embedder rebuild a value whose `anchor()` and
+   `anchor-size()` its layout resolved (upstream resolves them only through gecko's layout). On 0.22 the
+   patch also gave the servo build `anchor-name`, `anchor-scope`, `position-anchor`, `position-try-order`,
+   `position-visibility`, the `position-try` shorthand and `Stylist::resolve_position_try`; 0.24 has them
+   upstream, behind `layout.css.anchor-positioning.enabled`.
 
 100. **CSS Shapes 1 in the servo build** (`properties/longhands.toml`, `values/specified/basic_shape.rs`):
    `shape-outside`, `shape-margin` and `shape-image-threshold` lose their gecko-only engine line (their value
    types are engine-neutral), and `shape-outside` takes `path()` and `shape()` as `clip-path` does (§3.1 lists
    both as `<basic-shape>`; upstream allowed them for `clip-path` only). `shape-outside` is zoom-dependent
    (`properties/data.py`), so an inherited value is zoomed again by the inheriting element's zoom.
+
+101. **An `attr()` with a malformed type is invalid at parse time** (`substitution/attr.rs`, CSS Values 5
+   §7.7): 0.24 parses the first argument as a `<declaration-value>` and, when it holds no nested
+   substitution function and is not `<attr-name> <attr-type>?` (`type(invalid |)`, `&`, a `type()`
+   followed by more tokens), keeps the `attr()` and lets it fall back at computed-value time. The
+   declaration is now rejected instead, as WPT's `css/css-values/attr-all-types.html` expects; arguments
+   that do hold a `var()` or `attr()` are still checked at substitution time, and an identifier that
+   names no unit (`attr(x foo, 3px)`) keeps the `attr()` valid, its substitution failing to the fallback.
+
+102. **An `env()` with a malformed name is invalid at parse time** (`substitution/env.rs`, CSS
+   Environment Variables 1 §3): as 101 for `attr()`: when the first argument is not
+   `<custom-ident> <integer [0,∞]>*` (`env(10px)`, `env(test -1)`, `env(x ())`, `env(env(x))`), the
+   declaration is rejected (WPT `css/css-env`). The index form stays valid and, not
+   supported, falls back.
+
+103. **A family name spelled as a generic keyword stays quoted** (`values/computed/font.rs`, CSS Fonts 4
+   §2.1.3): 0.24 serializes a family name unquoted when it is a sequence of identifiers, unless it is a
+   CSS-wide keyword or parses as a generic family; the servo build parses neither `math`, `emoji`,
+   `fangsong` nor the `ui-*` generics, so `"math"` lost its quotes and would read back as the generic.
+   A quoted name that is one of those keywords keeps its quotes; written unquoted it is the keyword and
+   serializes without them (WPT `css/cssom/font-family-serialization-001.html`).
+
+104. **A CSS animation's implicit keyframes take the values without animations** (`matching.rs`,
+   `style_resolver.rs`, CSS Animations 1 §4.1): a missing 0% or 100% keyframe is built from the
+   computed values of the animated properties. `process_animations_for_style` gave
+   `update_animations_for_new_style` the element's new style, whose rules hold the animations' current
+   values whenever the element already animates, so a restyle that builds the keyframes again (after a
+   change of the rules, patch 94: a sheet edited, an `@font-face` loaded; or a change of the animation's
+   timing) made the implicit keyframe the animated value and froze the animation there. The keyframes
+   are now built from the style without animation and transition rules
+   (`StyleResolverForElement::style_without_animations`); a pseudo-element's style has none.
 
 To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 still lacks, and run `cargo test -p snowlark-style`.

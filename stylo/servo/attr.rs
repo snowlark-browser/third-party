@@ -10,24 +10,23 @@ use std::str::FromStr;
 use std::sync::OnceLock;
 
 use app_units::Au;
+use cssparser::color::{OPAQUE, parse_named_color};
 use euclid::num::Zero;
 use num_traits::ToPrimitive;
 use selectors::attr::AttrSelectorOperation;
 use servo_arc::Arc;
 
 use super::shadow_parts::ShadowParts;
-use crate::color::parsing::parse_color_keyword;
 use crate::color::AbsoluteColor;
 use crate::derives::*;
 use crate::properties::PropertyDeclarationBlock;
 use crate::shared_lock::{Locked, SharedRwLock};
 use crate::str::{
-    read_exponent, read_fraction, read_numbers, split_commas, split_html_space_chars, str_join,
-    HTML_SPACE_CHARACTERS,
+    HTML_SPACE_CHARACTERS, read_exponent, read_fraction, read_numbers, split_commas,
+    split_html_space_chars, str_join,
 };
-use crate::values::specified::color::Color;
-use crate::values::specified::LengthPercentage;
 use crate::values::AtomString;
+use crate::values::specified::LengthPercentage;
 use crate::{Atom, LocalName, Namespace, Prefix};
 
 // Duplicated from script::dom::values.
@@ -535,8 +534,8 @@ pub fn parse_legacy_color(mut input: &str) -> Result<AbsoluteColor, ()> {
     }
 
     // Step 5.
-    if let Ok(Color::Absolute(ref absolute)) = parse_color_keyword(input) {
-        return Ok(absolute.color);
+    if let Ok((r, g, b)) = parse_named_color(input) {
+        return Ok(AbsoluteColor::srgb_legacy(r, g, b, OPAQUE));
     }
 
     // Step 6.
@@ -547,7 +546,7 @@ pub fn parse_legacy_color(mut input: &str) -> Result<AbsoluteColor, ()> {
             hex(input.as_bytes()[2] as char),
             hex(input.as_bytes()[3] as char),
         ) {
-            return Ok(AbsoluteColor::srgb_legacy(r * 17, g * 17, b * 17, 1.0));
+            return Ok(AbsoluteColor::srgb_legacy(r * 17, g * 17, b * 17, OPAQUE));
         }
     }
 
@@ -620,7 +619,7 @@ pub fn parse_legacy_color(mut input: &str) -> Result<AbsoluteColor, ()> {
         hex_string(red).unwrap(),
         hex_string(green).unwrap(),
         hex_string(blue).unwrap(),
-        1.0,
+        OPAQUE,
     ));
 
     fn hex(ch: char) -> Result<u8, ()> {

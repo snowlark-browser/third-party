@@ -70,6 +70,34 @@ impl PseudoElement {
         FLAGS[i]
     }
 
+    /// Property flag that properties must have to apply to this pseudo-element, or empty if there
+    /// are no restrictions.
+    #[inline]
+    pub fn property_restriction(&self) -> PropertyFlags {
+        static FLAGS: [PropertyFlags; PSEUDO_COUNT + 1] = [
+            % for pseudo in PSEUDOS:
+            % if pseudo.name == "first-letter":
+            PropertyFlags::APPLIES_TO_FIRST_LETTER,
+            % elif pseudo.name == "first-line":
+            PropertyFlags::APPLIES_TO_FIRST_LINE,
+            % elif pseudo.name == "marker":
+            PropertyFlags::APPLIES_TO_MARKER,
+            % elif pseudo.name == "cue":
+            PropertyFlags::APPLIES_TO_CUE,
+            % elif pseudo.name == "placeholder":
+            PropertyFlags::APPLIES_TO_PLACEHOLDER,
+            % elif pseudo.name in ["selection", "highlight", "target-text"]:
+            PropertyFlags::APPLIES_TO_HIGHLIGHT,
+            % else:
+            PropertyFlags::empty(),
+            % endif
+            % endfor
+            // Unknown ::-webkit pseudos have no restrictions.
+            PropertyFlags::empty()
+        ];
+        FLAGS[self.index()]
+    }
+
     /// Gets the flags associated to this pseudo-element or anon box.
     #[inline]
     pub fn flags(&self) -> PseudoStyleTypeFlags {
@@ -131,6 +159,10 @@ impl PseudoElement {
             PseudoStyleType::${pseudo.capitalized} => functional_pseudo_parameter.map(|p| {
                 PseudoElement::${pseudo.capitalized}(PtNameAndClassSelector::from_name(p.0))
             }),
+            % elif pseudo.argument == "HighlightNameSelector":
+            PseudoStyleType::${pseudo.capitalized} => functional_pseudo_parameter.map(|p| {
+                PseudoElement::${pseudo.capitalized}(HighlightNameSelector::Name(p))
+            }),
             % else:
             <% assert pseudo.argument == "AtomIdent", f"Unhandled argument type {pseudo.argument}" %>
             PseudoStyleType::${pseudo.capitalized} => {
@@ -159,6 +191,8 @@ impl PseudoElement {
             % for pseudo in PSEUDOS:
             % if pseudo.argument == "PtNameAndClassSelector":
             PseudoElement::${pseudo.capitalized}(ref val) => Some(val.name()),
+            % elif pseudo.argument == "HighlightNameSelector":
+            PseudoElement::${pseudo.capitalized}(ref val) => val.name(),
             % elif pseudo.argument == "AtomIdent":
             PseudoElement::${pseudo.capitalized}(ref val) => Some(&val.0),
             % endif
@@ -205,6 +239,10 @@ impl PseudoElement {
         }
         if let Some(p) = pseudo::get(name) {
             return Some(p.clone());
+        }
+        if name.eq_ignore_ascii_case("-webkit-input-placeholder") && crate::pref!("layout.css.webkit-input-placeholder.enabled") {
+            // TODO(emilio): When making unconditional, move to the map above.
+            return Some(PseudoElement::Placeholder);
         }
         if starts_with_ignore_ascii_case(name, "-moz-tree-") {
             return PseudoElement::tree_pseudo_element(name, Default::default())
@@ -253,6 +291,10 @@ impl PseudoElement {
 
         if std::mem::discriminant(self) != std::mem::discriminant(pseudo_selector) {
             return false;
+        }
+
+        if matches!(pseudo_selector, PseudoElement::Highlight(HighlightNameSelector::Universal)) {
+            return true;
         }
 
         // Check named view transition pseudo-elements.

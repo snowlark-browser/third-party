@@ -39,10 +39,10 @@ use crate::gecko_bindings::sugar::refptr::RefCounted;
 #[cfg(feature = "gecko")]
 use crate::gecko_bindings::{bindings, structs};
 use crate::parser::{NestingContext, ParserContext};
-use crate::properties::{parse_property_declaration_list, PropertyDeclarationBlock};
+use crate::properties::{PropertyDeclarationBlock, parse_property_declaration_list};
 use crate::shared_lock::{DeepCloneWithLock, Locked};
 use crate::shared_lock::{SharedRwLock, SharedRwLockReadGuard, ToCssWithGuard};
-use cssparser::{parse_one_rule, Parser};
+use cssparser::{Parser, parse_one_rule};
 #[cfg(feature = "gecko")]
 use malloc_size_of::{MallocSizeOfOps, MallocUnconditionalShallowSizeOf};
 use servo_arc::Arc;
@@ -147,7 +147,9 @@ impl From<::url::Url> for UrlExtraData {
 #[cfg(not(feature = "gecko"))]
 impl ToShmem for UrlExtraData {
     fn to_shmem(&self, _builder: &mut SharedMemoryBuilder) -> to_shmem::Result<Self> {
-        unimplemented!("If servo wants to share stylesheets across processes, ToShmem for Url must be implemented");
+        unimplemented!(
+            "If servo wants to share stylesheets across processes, ToShmem for Url must be implemented"
+        );
     }
 }
 
@@ -638,11 +640,21 @@ impl CssRuleTypes {
     pub const IMPORTANT_FORBIDDEN: Self =
         Self(CssRuleType::PositionTry.bit() | CssRuleType::Keyframe.bit());
 
+    /// The rule types that determine which declarations we allow.
+    pub const DECLARATION_ALLOWED_TYPES: Self = Self(
+        CssRuleType::Keyframe.bit()
+            | CssRuleType::Page.bit()
+            | CssRuleType::Style.bit()
+            | CssRuleType::Scope.bit()
+            | CssRuleType::PositionTry.bit(),
+    );
+
     /// Rules without element context.
     pub const WITHOUT_ELEMENT_CONTEXT: Self = Self(
         CssRuleType::CounterStyle.bit()
             | CssRuleType::FontFace.bit()
             | CssRuleType::FontFeatureValues.bit()
+            | CssRuleType::FontPaletteValues.bit()
             | CssRuleType::Page.bit(),
     );
 
@@ -650,6 +662,12 @@ impl CssRuleTypes {
     #[inline]
     pub fn contains(self, ty: CssRuleType) -> bool {
         self.0 & ty.bit() != 0
+    }
+
+    /// Returns whether all the types in `other` are in `self`.
+    #[inline]
+    pub fn contains_all(self, other: Self) -> bool {
+        (self.0 & other.0) == other.0
     }
 
     /// Returns all the rules specified in the set.
@@ -660,7 +678,7 @@ impl CssRuleTypes {
 
     /// Creates a raw CssRuleTypes bitfield.
     #[inline]
-    pub fn from_bits(bits: u32) -> Self {
+    pub const fn from_bits(bits: u32) -> Self {
         Self(bits)
     }
 
@@ -679,7 +697,18 @@ impl CssRuleTypes {
     /// Returns whether any of the types intersect.
     #[inline]
     pub fn intersects(self, other: Self) -> bool {
-        self.0 & other.0 != 0
+        !self.intersection(other).is_empty()
+    }
+
+    /// Returns the intersection of any of the types.
+    #[inline]
+    pub fn intersection(self, other: Self) -> Self {
+        Self(self.0 & other.0)
+    }
+
+    /// Returns whether some rule type of the set allow declarations
+    pub fn allows_declarations(self) -> bool {
+        self.intersects(Self::DECLARATION_ALLOWED_TYPES)
     }
 }
 
@@ -789,7 +818,8 @@ impl CssRule {
         let error = parser.dom_error.take().unwrap_or(RulesMutateError::Syntax);
         // If new rule is a syntax error, and nested is set, perform the following substeps:
         if matches!(error, RulesMutateError::Syntax) && parser.can_parse_declarations() {
-            let declarations = parse_property_declaration_list(&parser.context, &mut input, &[]);
+            let declarations =
+                parse_property_declaration_list(&mut parser.context, &mut input, &[]);
             if !declarations.is_empty() {
                 return Ok(CssRule::NestedDeclarations(Arc::new(
                     parser.shared_lock.wrap(NestedDeclarationsRule {

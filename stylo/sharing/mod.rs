@@ -64,12 +64,12 @@
 //! selectors are effectively stripped off, so that matching them all against
 //! elements makes sense.
 
-use crate::applicable_declarations::ApplicableDeclarationBlock;
 use crate::bloom::StyleBloom;
 use crate::computed_value_flags::ComputedValueFlags;
 use crate::context::{CascadeInputs, SharedStyleContext, StyleContext};
 use crate::dom::{OpaqueNode, SendElement, TElement, TNode};
 use crate::properties::ComputedValues;
+use crate::rule_tree::StyleSource;
 use crate::selector_map::RelevantAttributes;
 use crate::style_resolver::{PrimaryStyle, ResolvedElementStyles};
 use crate::stylist::Stylist;
@@ -183,7 +183,10 @@ pub struct ValidationData {
     part_list: Option<ThinVec<AtomIdent>>,
 
     /// The list of presentational attributes of the element.
-    pres_hints: Option<ThinVec<ApplicableDeclarationBlock>>,
+    ///
+    /// We only need the declaration blocks, since all the other fields of the applicable
+    /// declaration are the same for all presentational hints.
+    pres_hints: Option<ThinVec<StyleSource>>,
 
     /// The pointer identity of the parent ComputedValues, the parent, and whether the parent lets
     /// its children share styles with cousins (Snowlark patch 67: found once per element, not once
@@ -204,7 +207,7 @@ impl ValidationData {
 
     /// Get or compute the list of presentational attributes associated with
     /// this element.
-    pub fn pres_hints<E>(&mut self, element: E) -> &[ApplicableDeclarationBlock]
+    pub fn pres_hints<E>(&mut self, element: E) -> &[StyleSource]
     where
         E: TElement,
     {
@@ -215,7 +218,7 @@ impl ValidationData {
                 VisitedHandlingMode::AllLinksUnvisited,
                 &mut pres_hints,
             );
-            ThinVec::from_iter(pres_hints.drain(..))
+            ThinVec::from_iter(pres_hints.drain(..).map(|d| d.source.to_owned()))
         })
     }
 
@@ -349,7 +352,7 @@ impl<E: TElement> StyleSharingCandidate<E> {
     }
 
     /// Get the pres hints of this candidate.
-    fn pres_hints(&mut self) -> &[ApplicableDeclarationBlock] {
+    fn pres_hints(&mut self) -> &[StyleSource] {
         self.validation_data.pres_hints(self.element)
     }
 
@@ -425,7 +428,7 @@ impl<E: TElement> StyleSharingTarget<E> {
     }
 
     /// Get the pres hints of this candidate.
-    fn pres_hints(&mut self) -> &[ApplicableDeclarationBlock] {
+    fn pres_hints(&mut self) -> &[StyleSource] {
         self.validation_data.pres_hints(self.element)
     }
 
@@ -599,11 +602,11 @@ impl<E: TElement> StyleSharingCache<E> {
     }
 
     /// Create a new style sharing candidate cache.
-
-    // Forced out of line to limit stack frame sizes after extra inlining from
-    // https://github.com/rust-lang/rust/pull/43931
-    //
-    // See https://github.com/servo/servo/pull/18420#issuecomment-328769322
+    ///
+    /// Forced out of line to limit stack frame sizes after extra inlining from
+    /// https://github.com/rust-lang/rust/pull/43931
+    ///
+    /// See https://github.com/servo/servo/pull/18420#issuecomment-328769322
     #[inline(never)]
     pub fn new() -> Self {
         assert_eq!(
@@ -646,6 +649,11 @@ impl<E: TElement> StyleSharingCache<E> {
 
         if !element.matches_user_and_content_rules() {
             debug!("Failing to insert into the cache: no tree rules:");
+            return;
+        }
+
+        if element.has_unique_presentational_hints() {
+            debug!("Failing to insert into the cache: unique presentational hints");
             return;
         }
 
@@ -734,6 +742,14 @@ impl<E: TElement> StyleSharingCache<E> {
 
         if !target.matches_user_and_content_rules() {
             debug!("{:?} Cannot share style: content rules", target.element);
+            return None;
+        }
+
+        if target.element.has_unique_presentational_hints() {
+            debug!(
+                "{:?} Cannot share style: unique presentational hints",
+                target.element
+            );
             return None;
         }
 
@@ -886,8 +902,8 @@ impl<E: TElement> StyleSharingCache<E> {
             return None;
         }
 
-        if !checks::have_shareable_tree_counting_functions(target, candidate) {
-            trace!("Miss: Tree counting functions");
+        if !checks::have_shareable_element_dependent_functions(target, candidate) {
+            trace!("Miss: Element-dependent functions");
             return None;
         }
 
@@ -955,7 +971,7 @@ impl<E: TElement> StyleSharingCache<E> {
             if !checks::have_same_referenced_attrs(&sharing_target, candidate) {
                 return None;
             }
-            if !checks::have_shareable_tree_counting_functions(&sharing_target, candidate) {
+            if !checks::have_shareable_element_dependent_functions(&sharing_target, candidate) {
                 return None;
             }
             // NOTE(emilio): We only need to check name / namespace because we

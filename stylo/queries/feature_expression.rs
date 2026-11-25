@@ -9,8 +9,7 @@ use super::feature::{Evaluator, QueryFeatureDescription};
 use super::feature::{FeatureFlags, KeywordDiscriminant};
 use crate::context::QuirksMode;
 use crate::custom_properties::{
-    self, ComputedSubstitutionFunctions, SubstitutionFunctionKind,
-    VariableValue as CustomVariableValue,
+    ComputedSubstitutionFunctions, VariableValue as CustomVariableValue,
 };
 use crate::derives::*;
 use crate::dom::AttributeTracker;
@@ -21,11 +20,12 @@ use crate::selector_map::PrecomputedHashSet;
 use crate::str::{starts_with_ignore_ascii_case, string_as_ascii_lowercase};
 use crate::stylesheets::container_rule::AttrReferenceSet;
 use crate::stylesheets::{CssRuleType, Origin, UrlExtraData};
+use crate::substitution::{self, SubstitutionFunctionKind};
+use crate::values::DashedIdent;
 use crate::values::computed::{self, CSSPixelLength, ToComputedValue};
 use crate::values::specified::{
     Angle, Integer, Length, Number, Percentage, Ratio, Resolution, Time,
 };
-use crate::values::DashedIdent;
 use crate::{Atom, Zero};
 use cssparser::{Parser, Token};
 use selectors::kleene_value::KleeneValue;
@@ -417,7 +417,7 @@ impl QueryFeatureExpression {
             None => {
                 return Err(ParseError::custom(
                     StyleParseErrorKind::MediaQueryExpectedFeatureName,
-                ))
+                ));
             },
         };
 
@@ -806,11 +806,7 @@ impl QueryExpressionValue {
             // name and parenthesized argument) into a CustomVariableValue.
             let parse_func = |input: &mut Parser| -> Result<CustomVariableValue, ParseError> {
                 input.parse_nested_block(|i| i.expect_no_error_token().map_err(Into::into))?;
-                CustomVariableValue::parse(
-                    &mut Parser::new(input.slice_from(start)),
-                    Some(&context.namespaces.prefixes),
-                    context.url_data,
-                )
+                CustomVariableValue::parse(context, &mut Parser::new(input.slice_from(start)))
             };
 
             if SubstitutionFunctionKind::from_ident(name).is_ok() {
@@ -902,17 +898,17 @@ impl QueryStyleRange {
         let op1 = Operator::parse(input)?;
         let value2 = QueryExpressionValue::parse_for_style_range(context, input)?;
 
-        if let Ok(op2) = input.try_parse(|i| Operator::parse(i)) {
-            if op1.is_compatible_with(op2) {
-                let value3 = QueryExpressionValue::parse_for_style_range(context, input)?;
-                return Ok(Self::StyleRange3 {
-                    value1,
-                    op1,
-                    value2,
-                    op2,
-                    value3,
-                });
-            }
+        if let Ok(op2) = input.try_parse(|i| Operator::parse(i))
+            && op1.is_compatible_with(op2)
+        {
+            let value3 = QueryExpressionValue::parse_for_style_range(context, input)?;
+            return Ok(Self::StyleRange3 {
+                value1,
+                op1,
+                value2,
+                op2,
+                value3,
+            });
         }
 
         Ok(Self::StyleRange2 {
@@ -1044,8 +1040,9 @@ impl QueryStyleRange {
                     .builder
                     .stylist
                     .expect("container queries should have a stylist around");
-                let substituted = custom_properties::substitute(
+                let substituted = substitution::substitute(
                     value,
+                    /* property_id */ None,
                     &sub_funcs,
                     stylist,
                     context,

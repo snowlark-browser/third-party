@@ -11,7 +11,7 @@ use crate::data::{EagerPseudoStyles, ElementStyles};
 use crate::dom::{TElement, TNode};
 use crate::matching::MatchMethods;
 use crate::properties::longhands::display::computed_value::T as Display;
-use crate::properties::{ComputedValues, FirstLineReparenting};
+use crate::properties::{AnimationDeclarations, ComputedValues, FirstLineReparenting};
 use crate::rule_tree::{RuleCascadeFlags, RuleTree, StrongRuleNode};
 use crate::selector_parser::{PseudoElement, SelectorImpl};
 use crate::stylist::RuleInclusion;
@@ -157,7 +157,7 @@ fn eager_pseudo_is_definitely_not_generated(
         return false;
     }
 
-    style.get_box().clone_display() == Display::None || style.ineffective_content_property()
+    *style.get_box().get_display() == Display::None || style.ineffective_content_property()
 }
 
 /// Snowlark patch 69: whether a `::before` or `::after` whose rules are `rules` (and `visited`) can
@@ -665,6 +665,7 @@ where
             "Match primary for {:?}, visited: {:?}",
             self.element, visited_handling
         );
+        let animation_declarations = self.element.animation_declarations(self.context.shared);
         let mut applicable_declarations = ApplicableDeclarationList::new();
 
         let bloom_filter = self.context.thread_local.bloom_filter.filter();
@@ -686,7 +687,7 @@ where
             None,
             self.element.style_attribute(),
             self.element.smil_override(),
-            self.element.animation_declarations(self.context.shared),
+            &animation_declarations,
             self.rule_inclusion,
             &mut applicable_declarations,
             &mut matching_context,
@@ -724,6 +725,7 @@ where
         );
         debug_assert!(pseudo_element.is_eager());
 
+        let animation_declarations = AnimationDeclarations::default();
         let mut applicable_declarations = ApplicableDeclarationList::new();
 
         let stylist = &self.context.shared.stylist;
@@ -756,7 +758,7 @@ where
             Some(pseudo_element),
             None,
             None,
-            /* animation_declarations = */ Default::default(),
+            &animation_declarations,
             self.rule_inclusion,
             &mut applicable_declarations,
             &mut matching_context,
@@ -800,7 +802,12 @@ where
         primary_style: &Arc<ComputedValues>,
     ) -> Option<Arc<ComputedValues>> {
         let rule_node = primary_style.rules();
-        let without_transition_rules = RuleTree::remove_transition_rule_if_applicable(rule_node);
+        let without_transition_rules = self
+            .context
+            .shared
+            .stylist
+            .rule_tree()
+            .remove_transition_rule_if_applicable(rule_node);
         if without_transition_rules == *rule_node {
             // We don't have transition rule in this case, so return None to let
             // the caller use the original ComputedValues.
@@ -815,6 +822,34 @@ where
             included_cascade_flags: RuleCascadeFlags::empty(),
         };
 
+        let style = self.cascade_style_and_visited_with_default_parents(inputs);
+        Some(style.0)
+    }
+
+    /// Snowlark patch 104: the element's style without the rules of its animations and transitions
+    /// (`None` when it has none): the computed values a CSS animation's implicit 0% and 100%
+    /// keyframes take (CSS Animations 1 §4.1), which must not be the animation's own values.
+    #[cfg(feature = "servo")]
+    pub fn style_without_animations(
+        &mut self,
+        primary_style: &Arc<ComputedValues>,
+    ) -> Option<Arc<ComputedValues>> {
+        let rule_node = primary_style.rules();
+        let without_animation_rules = self
+            .context
+            .shared
+            .stylist
+            .rule_tree()
+            .remove_animation_rules(rule_node);
+        if without_animation_rules == *rule_node {
+            return None;
+        }
+        let inputs = CascadeInputs {
+            rules: Some(without_animation_rules),
+            visited_rules: primary_style.visited_rules().cloned(),
+            flags: primary_style.flags.for_cascade_inputs(),
+            included_cascade_flags: RuleCascadeFlags::empty(),
+        };
         let style = self.cascade_style_and_visited_with_default_parents(inputs);
         Some(style.0)
     }

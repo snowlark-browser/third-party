@@ -78,7 +78,6 @@ affects = "layout"
 type = "Appearance"
 initial = "computed::Appearance::None"
 struct = "box"
-servo_pref = "layout.unimplemented"
 animation_type = "none"
 spec = "Internal (not web-exposed)"
 enabled_in = "chrome"
@@ -89,7 +88,6 @@ affects = "paint"
 type = "Percentage"
 initial = "computed::Percentage::hundred()"
 struct = "font"
-servo_pref = "layout.unimplemented"
 animation_type = "none"
 gecko_ffi_name = "mMinFontSizeRatio"
 enabled_in = "ua"
@@ -101,8 +99,6 @@ type = "LineClamp"
 initial = "computed::LineClamp::none()"
 struct = "box"
 boxed = true
-# Snowlark patch: in the servo build too, behind its preference (snowlark-style turns it on), for the
-# legacy `-webkit-line-clamp` shorthand (CSS Overflow 4 §5.2).
 servo_pref = "layout.css.line-clamp.enabled"
 gecko_pref = "layout.css.line-clamp.enabled"
 gecko_ffi_name = "mWebkitLineClamp"
@@ -116,6 +112,7 @@ struct = "font"
 animation_type = "none"
 enabled_in = ""
 has_effect_on_gecko_scrollbars = false
+gecko_ffi_name = "mLanguage"
 spec = "Internal (not web-exposed)"
 affects = "layout"
 
@@ -123,10 +120,8 @@ affects = "layout"
 type = "XTextScale"
 initial = "computed::XTextScale::All"
 struct = "font"
-servo_pref = "layout.unimplemented"
 animation_type = "none"
-enabled_in = ""
-has_effect_on_gecko_scrollbars = false
+enabled_in = "ua"
 spec = "Internal (not web-exposed)"
 affects = "layout"
 
@@ -168,7 +163,7 @@ parse_method = "parse_block"
 spec = "https://drafts.csswg.org/css-align/#align-self-property"
 extra_prefixes = ["webkit"]
 animation_type = "discrete"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 affects = "layout"
 
 [alignment-baseline]
@@ -184,7 +179,6 @@ affects = "layout"
 type = "AnchorName"
 initial = "computed::AnchorName::none()"
 struct = "box"
-# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
 servo_pref = "layout.css.anchor-positioning.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-anchor-position-1/#propdef-anchor-name"
@@ -194,7 +188,6 @@ affects = ""
 type = "ScopedName"
 initial = "computed::ScopedName::none()"
 struct = "box"
-# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
 servo_pref = "layout.css.anchor-positioning.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-anchor-position-1/#propdef-scope"
@@ -208,7 +201,7 @@ vector = { need_index = true }
 animation_type = "none"
 extra_prefixes = ["moz:layout.css.prefixes.animations", "webkit"]
 spec = "https://drafts.csswg.org/css-animations/#propdef-animation-delay"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [animation-direction]
@@ -219,7 +212,7 @@ vector = { need_index = true }
 animation_type = "none"
 extra_prefixes = ["moz:layout.css.prefixes.animations", "webkit"]
 spec = "https://drafts.csswg.org/css-animations/#propdef-animation-direction"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [animation-duration]
@@ -240,7 +233,7 @@ vector = { need_index = true }
 animation_type = "none"
 extra_prefixes = ["moz:layout.css.prefixes.animations", "webkit"]
 spec = "https://drafts.csswg.org/css-animations/#propdef-animation-fill-mode"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [animation-iteration-count]
@@ -250,7 +243,7 @@ struct = "ui"
 vector = { need_index = true }
 animation_type = "none"
 extra_prefixes = ["moz:layout.css.prefixes.animations", "webkit"]
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 spec = "https://drafts.csswg.org/css-animations/#propdef-animation-iteration-count"
 affects = ""
 
@@ -261,7 +254,7 @@ struct = "ui"
 vector = { need_index = true }
 animation_type = "none"
 extra_prefixes = ["moz:layout.css.prefixes.animations", "webkit"]
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 spec = "https://drafts.csswg.org/css-animations/#propdef-animation-name"
 affects = ""
 
@@ -273,43 +266,43 @@ vector = { need_index = true }
 animation_type = "none"
 extra_prefixes = ["moz:layout.css.prefixes.animations", "webkit"]
 spec = "https://drafts.csswg.org/css-animations/#propdef-animation-play-state"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [animation-range-end]
 type = "AnimationRangeEnd"
 initial = "computed::AnimationRangeEnd::normal()"
 struct = "ui"
-servo_pref = "layout.unimplemented"
 vector = { need_index = true }
 animation_type = "none"
 gecko_pref = "layout.css.scroll-driven-animations.enabled"
+servo_pref = "layout.css.scroll-driven-animations.enabled"
 spec = "https://drafts.csswg.org/scroll-animations-1/#animation-range-end"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [animation-range-start]
 type = "AnimationRangeStart"
 initial = "computed::AnimationRangeStart::normal()"
 struct = "ui"
-servo_pref = "layout.unimplemented"
 vector = { need_index = true }
 animation_type = "none"
 gecko_pref = "layout.css.scroll-driven-animations.enabled"
+servo_pref = "layout.css.scroll-driven-animations.enabled"
 spec = "https://drafts.csswg.org/scroll-animations-1/#animation-range-start"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [animation-timeline]
 type = "AnimationTimeline"
 initial = "computed::AnimationTimeline::auto()"
 struct = "ui"
-servo_pref = "layout.unimplemented"
 vector = { need_index = true }
 animation_type = "none"
 gecko_pref = "layout.css.scroll-driven-animations.enabled"
+servo_pref = "layout.css.scroll-driven-animations.enabled"
 spec = "https://drafts.csswg.org/css-animations-2/#propdef-animation-timeline"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [animation-timing-function]
@@ -326,7 +319,7 @@ affects = ""
 type = "Appearance"
 initial = "computed::Appearance::None"
 struct = "box"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.appearance.enabled"
 extra_prefixes = ["webkit"]
 spec = "https://drafts.csswg.org/css-ui-4/#propdef-appearance"
 animation_type = "discrete"
@@ -348,7 +341,7 @@ struct = "effects"
 vector = { simple_bindings = true, separator = "Space", animation_type = "with_zero" }
 gecko_ffi_name = "mBackdropFilters"
 gecko_pref = "layout.css.backdrop-filter.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.backdrop-filter.enabled"
 spec = "https://drafts.fxtf.org/filter-effects-2/#propdef-backdrop-filter"
 affects = "overflow"
 
@@ -441,7 +434,7 @@ logical = true
 logical_group = "size"
 parse_method = "parse_size_for_width_or_height"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-block-size"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -460,7 +453,7 @@ struct = "position"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://www.w3.org/TR/CSS2/visuren.html#propdef-bottom"
 allow_quirks = true
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 gecko_ffi_name = "mOffset.2"
 servo_restyle_damage = "rebuild_box"
 logical_group = "inset"
@@ -570,7 +563,6 @@ type = "FillRule"
 initial = "Default::default()"
 struct = "inherited_svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/masking.html#ClipRuleProperty"
 affects = "paint"
@@ -600,7 +592,7 @@ aliases = ["-webkit-column-count"]
 type = "ColumnCount"
 initial = "computed::ColumnCount::Auto"
 struct = "column"
-servo_pref = "layout.columns.enabled"
+servo_pref = "layout.css.columns.enabled"
 spec = "https://drafts.csswg.org/css-multicol/#propdef-column-count"
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
@@ -654,7 +646,7 @@ aliases = ["-webkit-column-width"]
 type = "length::NonNegativeLengthOrAuto"
 initial = "computed::length::NonNegativeLengthOrAuto::auto()"
 struct = "column"
-servo_pref = "layout.columns.enabled"
+servo_pref = "layout.css.columns.enabled"
 spec = "https://drafts.csswg.org/css-multicol/#propdef-column-width"
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
@@ -664,7 +656,7 @@ affects = "layout"
 type = "length::NonNegativeLengthOrAuto"
 initial = "computed::length::NonNegativeLengthOrAuto::auto()"
 struct = "column"
-servo_pref = "layout.columns.enabled"
+servo_pref = "layout.css.columns.enabled"
 spec = "https://drafts.csswg.org/css-multicol-2/#ch"
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
@@ -675,14 +667,15 @@ struct = "column"
 spec = "https://drafts.csswg.org/css-multicol-2/#cwr"
 animation_type = "discrete"
 affects = "layout"
-servo_pref = "layout.columns.enabled"
+servo_pref = "layout.css.columns.enabled"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["auto", "nowrap", "wrap"] }
+type = "ColumnWrap"
+initial = "computed::ColumnWrap::Auto"
 [contain]
 type = "Contain"
 initial = "specified::Contain::empty()"
 struct = "box"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.contain.enabled"
 animation_type = "none"
 spec = "https://drafts.csswg.org/css-contain/#contain-property"
 affects = "layout"
@@ -692,7 +685,6 @@ type = "ContainIntrinsicSize"
 initial = "computed::ContainIntrinsicSize::None"
 struct = "position"
 # Snowlark patch: also the servo build (behind the preference below).
-servo_pref = "layout.unimplemented"
 logical_group = "contain-intrinsic-size"
 logical = true
 spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
@@ -703,7 +695,6 @@ type = "ContainIntrinsicSize"
 initial = "computed::ContainIntrinsicSize::None"
 struct = "position"
 # Snowlark patch: also the servo build (behind the preference below).
-servo_pref = "layout.unimplemented"
 logical_group = "contain-intrinsic-size"
 spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
 affects = "layout"
@@ -713,7 +704,6 @@ type = "ContainIntrinsicSize"
 initial = "computed::ContainIntrinsicSize::None"
 struct = "position"
 # Snowlark patch: also the servo build (behind the preference below).
-servo_pref = "layout.unimplemented"
 logical_group = "contain-intrinsic-size"
 logical = true
 spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
@@ -724,7 +714,6 @@ type = "ContainIntrinsicSize"
 initial = "computed::ContainIntrinsicSize::None"
 struct = "position"
 # Snowlark patch: also the servo build (behind the preference below).
-servo_pref = "layout.unimplemented"
 logical_group = "contain-intrinsic-size"
 spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
 affects = "layout"
@@ -734,7 +723,7 @@ type = "ContainerName"
 initial = "computed::ContainerName::none()"
 struct = "box"
 animation_type = "none"
-servo_pref = "layout.container-queries.enabled"
+servo_pref = "layout.css.container-queries.enabled"
 spec = "https://drafts.csswg.org/css-contain-3/#container-name"
 affects = ""
 
@@ -743,7 +732,7 @@ type = "ContainerType"
 initial = "computed::ContainerType::NORMAL"
 struct = "box"
 animation_type = "none"
-servo_pref = "layout.container-queries.enabled"
+servo_pref = "layout.css.container-queries.enabled"
 spec = "https://drafts.csswg.org/css-contain-3/#container-type"
 affects = "layout"
 
@@ -762,7 +751,6 @@ initial = "computed::ContentVisibility::Visible"
 struct = "box"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16, and
 # animated discretely there (gecko's interpolation of its `visible` end is not built for servo).
-servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-contain/#content-visibility"
 affects = "layout"
@@ -771,7 +759,7 @@ affects = "layout"
 type = "CounterIncrement"
 initial = "Default::default()"
 struct = "counters"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.counters.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-lists/#propdef-counter-increment"
 servo_restyle_damage = "rebuild_box"
@@ -781,7 +769,7 @@ affects = "layout"
 type = "CounterReset"
 initial = "Default::default()"
 struct = "counters"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.counters.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-lists-3/#propdef-counter-reset"
 servo_restyle_damage = "rebuild_box"
@@ -791,7 +779,7 @@ affects = "layout"
 type = "CounterSet"
 initial = "Default::default()"
 struct = "counters"
-engine = "gecko"
+servo_pref = "layout.css.counters.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-lists-3/#propdef-counter-set"
 servo_restyle_damage = "rebuild_box"
@@ -869,7 +857,7 @@ type = "Integer"
 initial = "1"
 struct = "position"
 engine = "servo"
-servo_pref = "layout.flexbox.balance"
+servo_pref = "layout.css.flexbox-balance.enabled"
 parse_method = "parse_positive"
 spec = "https://drafts.csswg.org/css-flexbox-2/#flex-line-count-property"
 servo_restyle_damage = "rebuild_box"
@@ -907,7 +895,6 @@ type = "Color"
 initial = "computed::Color::BLACK"
 struct = "svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://drafts.fxtf.org/filter-effects-1/#FloodColorProperty"
 affects = "paint"
 
@@ -916,7 +903,6 @@ type = "Opacity"
 initial = "1.0"
 struct = "svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://drafts.fxtf.org/filter-effects-1/#FloodOpacityProperty"
 affects = "paint"
 
@@ -934,6 +920,7 @@ affects = "layout"
 type = "FontFeatureSettings"
 initial = "computed::FontFeatureSettings::normal()"
 struct = "font"
+gecko_ffi_name = "mFont.fontFeatureSettings"
 extra_prefixes = ["moz:layout.css.prefixes.font-features", "webkit"]
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-fonts/#propdef-font-feature-settings"
@@ -971,7 +958,7 @@ affects = "layout"
 type = "FontSizeAdjust"
 initial = "computed::FontSizeAdjust::None"
 struct = "font"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.font-size-adjust.enabled"
 spec = "https://drafts.csswg.org/css-fonts/#propdef-font-size-adjust"
 gecko_ffi_name = "mFont.sizeAdjust"
 affects = "layout"
@@ -1001,6 +988,7 @@ affects = "layout"
 type = "FontSynthesis"
 initial = "computed::FontSynthesis::Auto"
 struct = "font"
+servo_pref = "layout.css.font-synthesis.enabled"
 gecko_ffi_name = "mFont.synthesisPosition"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-fonts-4/#font-synthesis-position"
@@ -1011,6 +999,7 @@ affects = "layout"
 type = "FontSynthesis"
 initial = "computed::FontSynthesis::Auto"
 struct = "font"
+servo_pref = "layout.css.font-synthesis.enabled"
 gecko_ffi_name = "mFont.synthesisSmallCaps"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-fonts-4/#font-synthesis-small-caps"
@@ -1021,6 +1010,7 @@ affects = "layout"
 type = "FontSynthesisStyle"
 initial = "computed::FontSynthesisStyle::Auto"
 struct = "font"
+servo_pref = "layout.css.font-synthesis.enabled"
 gecko_ffi_name = "mFont.synthesisStyle"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-fonts-4/#font-synthesis-style"
@@ -1075,7 +1065,8 @@ affects = "layout"
 type = "FontVariationSettings"
 initial = "computed::FontVariationSettings::normal()"
 struct = "font"
-servo_pref = "layout.variable_fonts.enabled"
+gecko_ffi_name = "mFont.fontVariationSettings"
+servo_pref = "layout.css.font-variations.enabled"
 spec = "https://drafts.csswg.org/css-fonts-4/#propdef-font-variation-settings"
 affects = "layout"
 
@@ -1093,7 +1084,6 @@ affects = "layout"
 type = "ImplicitGridTracks"
 initial = "Default::default()"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-auto-columns"
 affects = "layout"
@@ -1102,16 +1092,25 @@ affects = "layout"
 type = "GridAutoFlow"
 initial = "computed::GridAutoFlow::ROW"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-auto-flow"
+affects = "layout"
+
+[fit-tolerance]
+aliases = ["flow-tolerance:layout.css.display-grid-lanes.enabled"]
+type = "length::FitTolerance"
+initial = "computed::length::FitTolerance::normal()"
+struct = "box"
+gecko_pref = "layout.css.display-grid-lanes.enabled"
+servo_pref = "layout.css.display-grid-lanes.enabled"
+spec = "https://drafts.csswg.org/css-grid-3/#fit-tolerance"
+servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
 [grid-auto-rows]
 type = "ImplicitGridTracks"
 initial = "Default::default()"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-auto-rows"
 affects = "layout"
@@ -1120,7 +1119,6 @@ affects = "layout"
 type = "GridLine"
 initial = "Default::default()"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-column-end"
 affects = "layout"
@@ -1129,7 +1127,6 @@ affects = "layout"
 type = "GridLine"
 initial = "Default::default()"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-column-start"
 affects = "layout"
@@ -1138,7 +1135,6 @@ affects = "layout"
 type = "GridLine"
 initial = "Default::default()"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-row-end"
 affects = "layout"
@@ -1147,7 +1143,6 @@ affects = "layout"
 type = "GridLine"
 initial = "Default::default()"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-row-start"
 affects = "layout"
@@ -1156,7 +1151,6 @@ affects = "layout"
 type = "GridTemplateAreas"
 initial = "computed::GridTemplateAreas::none()"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-template-areas"
 affects = "layout"
@@ -1165,7 +1159,6 @@ affects = "layout"
 type = "GridTemplateComponent"
 initial = "specified::GenericGridTemplateComponent::None"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-template-columns"
 affects = "layout"
 
@@ -1173,7 +1166,6 @@ affects = "layout"
 type = "GridTemplateComponent"
 initial = "specified::GenericGridTemplateComponent::None"
 struct = "position"
-servo_pref = "layout.grid.enabled"
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-template-rows"
 affects = "layout"
 
@@ -1186,7 +1178,7 @@ allow_quirks = true
 parse_method = "parse_size_for_width_or_height"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-box/#propdef-height"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1217,7 +1209,7 @@ logical = true
 logical_group = "size"
 parse_method = "parse_size_for_width_or_height"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-inline-size"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1226,7 +1218,7 @@ type = "Inset"
 initial = "computed::Inset::auto()"
 struct = "position"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-inset-block-end"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 logical = true
 logical_group = "inset"
 affects = "layout"
@@ -1236,7 +1228,7 @@ type = "Inset"
 initial = "computed::Inset::auto()"
 struct = "position"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-inset-block-start"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 logical = true
 logical_group = "inset"
 affects = "layout"
@@ -1246,7 +1238,7 @@ type = "Inset"
 initial = "computed::Inset::auto()"
 struct = "position"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-inset-inline-end"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 logical = true
 logical_group = "inset"
 affects = "layout"
@@ -1256,7 +1248,7 @@ type = "Inset"
 initial = "computed::Inset::auto()"
 struct = "position"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-inset-inline-start"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 logical = true
 logical_group = "inset"
 affects = "layout"
@@ -1287,7 +1279,7 @@ struct = "position"
 parse_method = "parse_inline"
 spec = "https://drafts.csswg.org/css-align/#justify-self-property"
 animation_type = "discrete"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 affects = "layout"
 
 [left]
@@ -1297,7 +1289,7 @@ struct = "position"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://www.w3.org/TR/CSS2/visuren.html#propdef-left"
 allow_quirks = true
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 gecko_ffi_name = "mOffset.3"
 servo_restyle_damage = "rebuild_box"
 logical_group = "inset"
@@ -1316,7 +1308,6 @@ type = "Color"
 initial = "computed::Color::WHITE"
 struct = "svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://drafts.fxtf.org/filter-effects-1#LightingColorProperty"
 affects = "paint"
 
@@ -1337,6 +1328,7 @@ spec = "https://drafts.csswg.org/css-link-params-1/#propdef-link-parameters"
 affects = "paint"
 engine = "gecko"
 gecko_pref = "layout.css.link-parameters.enabled"
+enabled_in = "chrome"
 
 [list-style-image]
 type = "Image"
@@ -1361,7 +1353,6 @@ type = "url::UrlOrNone"
 initial = "computed::url::UrlOrNone::none()"
 struct = "inherited_svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
 affects = "layout"
@@ -1371,7 +1362,6 @@ type = "url::UrlOrNone"
 initial = "computed::url::UrlOrNone::none()"
 struct = "inherited_svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
 affects = "layout"
@@ -1381,26 +1371,15 @@ type = "url::UrlOrNone"
 initial = "computed::url::UrlOrNone::none()"
 struct = "inherited_svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
-affects = "layout"
-
-[masonry-auto-flow]
-type = "MasonryAutoFlow"
-initial = "computed::MasonryAutoFlow::initial()"
-struct = "position"
-engine = "gecko"
-gecko_pref = "layout.css.grid-template-masonry-value.enabled"
-animation_type = "discrete"
-spec = "https://github.com/w3c/csswg-drafts/issues/4650"
 affects = "layout"
 
 [math-depth]
 type = "MathDepth"
 initial = "0"
 struct = "font"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.math-properties.enabled"
 spec = "https://mathml-refresh.github.io/mathml-core/#the-math-script-level-property"
 affects = ""
 
@@ -1411,7 +1390,7 @@ struct = "position"
 logical = true
 logical_group = "max-size"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-block-size"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1422,7 +1401,7 @@ struct = "position"
 logical_group = "max-size"
 allow_quirks = true
 spec = "https://drafts.csswg.org/css-box/#propdef-height"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1433,7 +1412,7 @@ struct = "position"
 logical = true
 logical_group = "max-size"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-inline-size"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1444,7 +1423,7 @@ struct = "position"
 logical_group = "max-size"
 allow_quirks = true
 spec = "https://drafts.csswg.org/css-box/#propdef-width"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1455,7 +1434,7 @@ struct = "position"
 logical = true
 logical_group = "min-size"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-block-size"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1466,7 +1445,7 @@ struct = "position"
 logical_group = "min-size"
 allow_quirks = true
 spec = "https://drafts.csswg.org/css-box/#propdef-height"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1477,7 +1456,7 @@ struct = "position"
 logical = true
 logical_group = "min-size"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-inline-size"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1488,7 +1467,7 @@ struct = "position"
 logical_group = "min-size"
 allow_quirks = true
 spec = "https://drafts.csswg.org/css-box/#propdef-width"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -1513,7 +1492,6 @@ affects = "layout"
 type = "PositionOrAuto"
 initial = "computed::PositionOrAuto::auto()"
 struct = "box"
-servo_pref = "layout.unimplemented"
 flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.fxtf.org/motion-1/#offset-anchor-property"
 servo_restyle_damage = "rebuild_box"
@@ -1524,7 +1502,6 @@ affects = "overflow"
 type = "LengthPercentage"
 initial = "computed::LengthPercentage::zero()"
 struct = "box"
-servo_pref = "layout.unimplemented"
 flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.fxtf.org/motion-1/#offset-distance-property"
 servo_restyle_damage = "rebuild_box"
@@ -1534,7 +1511,7 @@ affects = "overflow"
 type = "OffsetPath"
 initial = "computed::OffsetPath::none()"
 struct = "box"
-servo_pref = "layout.unimplemented"
+# Snowlark patch: in the servo build, as the other offset-* properties (the `offset` shorthand).
 flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.fxtf.org/motion-1/#offset-path-property"
 servo_restyle_damage = "rebuild_box"
@@ -1544,7 +1521,6 @@ affects = "overflow"
 type = "OffsetPosition"
 initial = "computed::OffsetPosition::normal()"
 struct = "box"
-servo_pref = "layout.unimplemented"
 flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.fxtf.org/motion-1/#offset-position-property"
 servo_restyle_damage = "rebuild_box"
@@ -1555,7 +1531,6 @@ affects = "overflow"
 type = "OffsetRotate"
 initial = "computed::OffsetRotate::auto()"
 struct = "box"
-servo_pref = "layout.unimplemented"
 flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.fxtf.org/motion-1/#offset-rotate-property"
 servo_restyle_damage = "rebuild_box"
@@ -1691,7 +1666,7 @@ affects = "layout"
 type = "OverscrollBehavior"
 initial = "computed::OverscrollBehavior::Auto"
 struct = "box"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.overscroll-behavior.enabled"
 logical_group = "overscroll-behavior"
 logical = true
 spec = "https://wicg.github.io/overscroll-behavior/#overscroll-behavior-properties"
@@ -1702,7 +1677,7 @@ affects = "paint"
 type = "OverscrollBehavior"
 initial = "computed::OverscrollBehavior::Auto"
 struct = "box"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.overscroll-behavior.enabled"
 logical_group = "overscroll-behavior"
 logical = true
 spec = "https://wicg.github.io/overscroll-behavior/#overscroll-behavior-properties"
@@ -1713,7 +1688,7 @@ affects = "paint"
 type = "OverscrollBehavior"
 initial = "computed::OverscrollBehavior::Auto"
 struct = "box"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.overscroll-behavior.enabled"
 logical_group = "overscroll-behavior"
 spec = "https://wicg.github.io/overscroll-behavior/#overscroll-behavior-properties"
 animation_type = "discrete"
@@ -1723,7 +1698,7 @@ affects = "paint"
 type = "OverscrollBehavior"
 initial = "computed::OverscrollBehavior::Auto"
 struct = "box"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.overscroll-behavior.enabled"
 logical_group = "overscroll-behavior"
 spec = "https://wicg.github.io/overscroll-behavior/#overscroll-behavior-properties"
 animation_type = "discrete"
@@ -1753,7 +1728,6 @@ type = "SVGPaintOrder"
 initial = "computed::SVGPaintOrder::normal()"
 struct = "inherited_svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/painting.html#PaintOrder"
 affects = "paint"
@@ -1812,10 +1786,9 @@ affects = "layout"
 type = "PositionAnchor"
 initial = "computed::PositionAnchor::normal()"
 struct = "position"
-# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
 servo_pref = "layout.css.anchor-positioning.enabled"
 animation_type = "discrete"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 spec = "https://drafts.csswg.org/css-anchor-position-1/#propdef-position-anchor"
 affects = "layout"
 
@@ -1824,8 +1797,8 @@ type = "PositionArea"
 initial = "computed::PositionArea::none()"
 struct = "position"
 animation_type = "discrete"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
-servo_pref = "layout.unimplemented"
+rule_types_allowed = ["style", "keyframe", "position-try"]
+servo_pref = "layout.css.anchor-positioning.enabled"
 spec = "https://drafts.csswg.org/css-anchor-position-1/#typedef-position-area"
 affects = "layout"
 
@@ -1834,7 +1807,7 @@ type = "PositionTryFallbacks"
 initial = "computed::PositionTryFallbacks::none()"
 struct = "position"
 animation_type = "discrete"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.anchor-positioning.enabled"
 spec = "https://drafts.csswg.org/css-anchor-position-1/#position-try-fallbacks"
 affects = "layout"
 
@@ -1842,7 +1815,6 @@ affects = "layout"
 type = "PositionTryOrder"
 initial = "computed::PositionTryOrder::normal()"
 struct = "position"
-# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
 servo_pref = "layout.css.anchor-positioning.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-anchor-position-1/#position-try-order-property"
@@ -1852,7 +1824,6 @@ affects = "layout"
 type = "PositionVisibility"
 initial = "computed::PositionVisibility::ANCHORS_VISIBLE"
 struct = "position"
-# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
 servo_pref = "layout.css.anchor-positioning.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-anchor-position-1/#propdef-position-visibility"
@@ -1893,7 +1864,7 @@ struct = "position"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://www.w3.org/TR/CSS2/visuren.html#propdef-right"
 allow_quirks = true
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 gecko_ffi_name = "mOffset.1"
 servo_restyle_damage = "rebuild_box"
 logical_group = "inset"
@@ -1959,7 +1930,7 @@ affects = "paint"
 type = "ScrollbarColor"
 initial = "Default::default()"
 struct = "inherited_ui"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.scrollbar-styling.enabled"
 spec = "https://drafts.csswg.org/css-scrollbars-1/#scrollbar-color"
 boxed = true
 ignored_when_colors_disabled = true
@@ -1983,7 +1954,16 @@ gecko_ffi_name = "mInert"
 animation_type = "discrete"
 enabled_in = "ua"
 spec = "Nonstandard (https://html.spec.whatwg.org/multipage/#inert-subtrees)"
-# Snowlark patch 53: also in the servo build (inert subtrees in hit testing and selection).
+servo_restyle_damage = "repaint"
+affects = "paint"
+
+[interactivity]
+type = "Interactivity"
+initial = "specified::Interactivity::Auto"
+struct = "inherited_ui"
+engine = "servo"
+animation_type = "discrete"
+spec = "https://drafts.csswg.org/css-ui-4/#propdef-interactivity"
 servo_restyle_damage = "repaint"
 affects = "paint"
 
@@ -2013,7 +1993,6 @@ type = "ScrollbarGutter"
 initial = "computed::ScrollbarGutter::AUTO"
 struct = "box"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-overflow-3/#scrollbar-gutter-property"
 affects = "layout"
@@ -2057,7 +2036,6 @@ type = "Color"
 initial = "computed::Color::BLACK"
 struct = "svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/pservers.html#StopColorProperties"
 affects = "paint"
 
@@ -2066,7 +2044,6 @@ type = "Opacity"
 initial = "1.0"
 struct = "svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/pservers.html#StopOpacityProperty"
 affects = "paint"
 
@@ -2172,7 +2149,7 @@ struct = "position"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://www.w3.org/TR/CSS2/visuren.html#propdef-top"
 allow_quirks = true
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 gecko_ffi_name = "mOffset.0"
 servo_restyle_damage = "rebuild_box"
 logical_group = "inset"
@@ -2201,7 +2178,6 @@ type = "TransformBox"
 initial = "computed::TransformBox::ViewBox"
 struct = "box"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://drafts.csswg.org/css-transforms/#transform-box"
 animation_type = "discrete"
 affects = "overflow"
@@ -2361,7 +2337,7 @@ vector = { need_index = true }
 animation_type = "none"
 gecko_pref = "layout.css.scroll-driven-animations.enabled"
 spec = "https://drafts.csswg.org/scroll-animations-1/#scroll-timeline-axis"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [scroll-timeline-name]
@@ -2373,7 +2349,7 @@ vector = { need_index = true }
 animation_type = "none"
 gecko_pref = "layout.css.scroll-driven-animations.enabled"
 spec = "https://drafts.csswg.org/scroll-animations-1/#scroll-timeline-name"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [view-timeline-axis]
@@ -2385,7 +2361,7 @@ vector = { need_index = true }
 animation_type = "none"
 gecko_pref = "layout.css.scroll-driven-animations.enabled"
 spec = "https://drafts.csswg.org/scroll-animations-1/#view-timeline-axis"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [view-timeline-inset]
@@ -2397,7 +2373,7 @@ vector = { need_index = true }
 animation_type = "none"
 gecko_pref = "layout.css.scroll-driven-animations.enabled"
 spec = "https://drafts.csswg.org/scroll-animations-1/#view-timeline-axis"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [view-timeline-name]
@@ -2409,14 +2385,14 @@ vector = { need_index = true }
 animation_type = "none"
 gecko_pref = "layout.css.scroll-driven-animations.enabled"
 spec = "https://drafts.csswg.org/scroll-animations-1/#view-timeline-name"
-rule_types_allowed = ["style", "scope"]
+rule_types_allowed = ["style"]
 affects = ""
 
 [view-transition-class]
 type = "ViewTransitionClass"
 initial = "computed::ViewTransitionClass::none()"
 struct = "ui"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.view-transitions.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-view-transitions-2/#view-transition-class-prop"
 affects = ""
@@ -2425,7 +2401,7 @@ affects = ""
 type = "ViewTransitionName"
 initial = "computed::ViewTransitionName::none()"
 struct = "ui"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.view-transitions.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-view-transitions-1/#view-transition-name-prop"
 affects = ""
@@ -2435,7 +2411,6 @@ type = "VectorEffect"
 initial = "computed::VectorEffect::none()"
 struct = "svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 animation_type = "discrete"
 spec = "https://svgwg.org/svg2-draft/coords.html#VectorEffects"
 affects = "layout"
@@ -2458,7 +2433,7 @@ affects = "layout"
 type = "Image"
 initial = "computed::Image::None"
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 parse_method = "parse_with_cors_anonymous"
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-image"
 vector = {}
@@ -2470,7 +2445,7 @@ affects = "paint"
 type = "position::HorizontalPosition"
 initial = "computed::LengthPercentage::zero_percent()"
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 extra_prefixes = ["webkit"]
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-position"
 vector = { animation_type = "repeatable_list" }
@@ -2480,7 +2455,7 @@ affects = "paint"
 type = "position::VerticalPosition"
 initial = "computed::LengthPercentage::zero_percent()"
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 extra_prefixes = ["webkit"]
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-position"
 vector = { animation_type = "repeatable_list" }
@@ -2490,7 +2465,7 @@ affects = "paint"
 type = "BackgroundRepeat"
 initial = "computed::BackgroundRepeat::repeat()"
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 extra_prefixes = ["webkit"]
 animation_type = "discrete"
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-repeat"
@@ -2501,7 +2476,7 @@ affects = "paint"
 type = "background::BackgroundSize"
 initial = "computed::BackgroundSize::auto()"
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 extra_prefixes = ["webkit"]
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-size"
 vector = { animation_type = "repeatable_list" }
@@ -2551,7 +2526,7 @@ allow_quirks = true
 parse_method = "parse_size_for_width_or_height"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-box/#propdef-width"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -2596,8 +2571,10 @@ affects = "layout"
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "inherited_text"
+servo_pref = "layout.css.webkit-text-fill-color.enabled"
 ignored_when_colors_disabled = true
 spec = "https://compat.spec.whatwg.org/#the-webkit-text-fill-color"
+servo_restyle_damage = "repaint"
 affects = "paint"
 
 [-webkit-text-stroke-color]
@@ -2620,7 +2597,7 @@ affects = "overflow"
 type = "ForcedColorAdjust"
 initial = "computed::ForcedColorAdjust::Auto"
 struct = "inherited_text"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.forced-color-adjust.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-color-adjust-1/#forced-color-adjust-prop"
 affects = "paint"
@@ -2629,7 +2606,7 @@ affects = "paint"
 type = "HyphenateCharacter"
 initial = "computed::HyphenateCharacter::Auto"
 struct = "inherited_text"
-# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
+servo_pref = "layout.css.hyphens.enabled"
 animation_type = "discrete"
 spec = "https://www.w3.org/TR/css-text-4/#hyphenate-character"
 affects = "layout"
@@ -2638,7 +2615,7 @@ affects = "layout"
 type = "HyphenateLimitChars"
 initial = "computed::HyphenateLimitChars::auto()"
 struct = "inherited_text"
-# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
+servo_pref = "layout.css.hyphens.enabled"
 spec = "https://drafts.csswg.org/css-text-4/#hyphenate-char-limits"
 affects = "layout"
 boxed = true
@@ -2656,7 +2633,7 @@ servo_restyle_damage = "rebuild_box"
 type = "RubyPosition"
 initial = "computed::RubyPosition::AlternateOver"
 struct = "inherited_text"
-engine = "gecko"
+servo_pref = "layout.css.ruby.enabled"
 spec = "https://drafts.csswg.org/css-ruby/#ruby-position-property"
 animation_type = "discrete"
 affects = "layout"
@@ -2673,18 +2650,28 @@ affects = "layout"
 type = "TextAutospace"
 initial = "computed::text::TextAutospace::NO_AUTOSPACE"
 struct = "inherited_text"
-engine = "gecko"
+servo_pref = "layout.css.text-autospace.enabled"
 animation_type = "discrete"
 gecko_pref = "layout.css.text-autospace.enabled"
 has_effect_on_gecko_scrollbars = false
 spec = "https://drafts.csswg.org/css-text-4/#text-autospace-property"
 affects = "layout"
 
+[text-autospace-size]
+type = "Number"
+initial = "0.125"
+struct = "inherited_text"
+engine = "gecko"
+gecko_pref = "layout.css.text-autospace-size.enabled"
+has_effect_on_gecko_scrollbars = false
+spec = "https://github.com/w3c/csswg-drafts/issues/8510#issuecomment-6438888621"
+affects = "layout"
+
 [text-box-edge]
 type = "TextBoxEdge"
 initial = "computed::TextBoxEdge::Auto"
 struct = "inherited_text"
-# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
+servo_pref = "layout.css.text-box.enabled"
 animation_type = "discrete"
 gecko_pref = "layout.css.text-box.enabled"
 has_effect_on_gecko_scrollbars = false
@@ -2695,7 +2682,7 @@ affects = "layout"
 type = "TextBoxTrim"
 initial = "computed::TextBoxTrim::none()"
 struct = "text"
-# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
+servo_pref = "layout.css.text-box.enabled"
 animation_type = "discrete"
 gecko_pref = "layout.css.text-box.enabled"
 has_effect_on_gecko_scrollbars = false
@@ -2714,7 +2701,7 @@ affects = "overflow"
 type = "Color"
 initial = "computed_value::T::currentcolor()"
 struct = "inherited_text"
-engine = "gecko"
+servo_pref = "layout.css.text-emphasis.enabled"
 ignored_when_colors_disabled = true
 spec = "https://drafts.csswg.org/css-text-decor/#propdef-text-emphasis-color"
 affects = "paint"
@@ -2723,7 +2710,7 @@ affects = "paint"
 type = "TextEmphasisPosition"
 initial = "computed::TextEmphasisPosition::AUTO"
 struct = "inherited_text"
-engine = "gecko"
+servo_pref = "layout.css.text-emphasis.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-text-decor/#propdef-text-emphasis-position"
 affects = "layout"
@@ -2732,7 +2719,7 @@ affects = "layout"
 type = "TextEmphasisStyle"
 initial = "computed::TextEmphasisStyle::None"
 struct = "inherited_text"
-engine = "gecko"
+servo_pref = "layout.css.text-emphasis.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-text-decor/#propdef-text-emphasis-style"
 affects = "overflow"
@@ -2741,7 +2728,6 @@ affects = "overflow"
 type = "LengthPercentageOrAuto"
 initial = "computed::LengthPercentageOrAuto::auto()"
 struct = "inherited_text"
-servo_pref = "layout.unimplemented"
 spec = "https://drafts.csswg.org/css-text-decor-4/#underline-offset"
 servo_restyle_damage = "rebuild_stacking_context"
 affects = "overflow"
@@ -2750,7 +2736,7 @@ affects = "overflow"
 type = "TextUnderlinePosition"
 initial = "computed::TextUnderlinePosition::AUTO"
 struct = "inherited_text"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.text-underline-position.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-text-decor-3/#text-underline-position-property"
 servo_restyle_damage = "rebuild_stacking_context"
@@ -2763,7 +2749,7 @@ type = "WritingModeProperty"
 initial = "computed::WritingModeProperty::HorizontalTb"
 struct = "inherited_box"
 spec = "https://drafts.csswg.org/css-writing-modes/#propdef-writing-mode"
-servo_pref = "layout.writing-mode.enabled"
+servo_pref = "layout.css.writing-mode.enabled"
 animation_type = "none"
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
@@ -2782,7 +2768,7 @@ initial = "computed::box_::Zoom::ONE"
 struct = "box"
 spec = "Non-standard (https://github.com/atanassov/css-zoom/ is the closest)"
 gecko_pref = "layout.css.zoom.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.zoom.enabled"
 affects = "layout"
 enabled_in = "chrome"
 
@@ -2836,7 +2822,7 @@ affects = "paint"
 type = "TextOverflow"
 initial = "computed::TextOverflow::get_initial_value()"
 struct = "text"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.text-overflow.enabled"
 animation_type = "discrete"
 boxed = true
 spec = "https://drafts.csswg.org/css-ui/#propdef-text-overflow"
@@ -2866,7 +2852,7 @@ type = "TextDecorationInset"
 initial = "computed::text::TextDecorationInset::get_initial_value()"
 struct = "text"
 gecko_pref = "layout.css.text-decoration-inset.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.text-decoration-inset.enabled"
 spec = "https://drafts.csswg.org/css-text-decor-4/#text-decoration-inset-property"
 boxed = true
 servo_restyle_damage = "rebuild_stacking_context"
@@ -2876,7 +2862,7 @@ affects = "overflow"
 type = "InitialLetter"
 initial = "computed::InitialLetter::normal()"
 struct = "text"
-engine = "gecko"
+servo_pref = "layout.css.initial-letter.enabled"
 animation_type = "discrete"
 gecko_pref = "layout.css.initial-letter.enabled"
 spec = "https://drafts.csswg.org/css-inline/#sizing-drop-initials"
@@ -3276,7 +3262,7 @@ initial = "computed::CornerShape::round()"
 initial_specified_value = "specified::CornerShape::round()"
 struct = "border"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-top-left-shape"
 gecko_ffi_name = "mCornerShape.top_left"
 logical_group = "corner-shape"
@@ -3288,7 +3274,7 @@ initial = "computed::CornerShape::round()"
 initial_specified_value = "specified::CornerShape::round()"
 struct = "border"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-top-right-shape"
 gecko_ffi_name = "mCornerShape.top_right"
 logical_group = "corner-shape"
@@ -3300,7 +3286,7 @@ initial = "computed::CornerShape::round()"
 initial_specified_value = "specified::CornerShape::round()"
 struct = "border"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-bottom-right-shape"
 gecko_ffi_name = "mCornerShape.bottom_right"
 logical_group = "corner-shape"
@@ -3312,7 +3298,7 @@ initial = "computed::CornerShape::round()"
 initial_specified_value = "specified::CornerShape::round()"
 struct = "border"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-bottom-left-shape"
 gecko_ffi_name = "mCornerShape.bottom_left"
 logical_group = "corner-shape"
@@ -3324,7 +3310,7 @@ initial = "computed::CornerShape::round()"
 initial_specified_value = "specified::CornerShape::round()"
 struct = "border"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-start-start-shape"
 gecko_ffi_name = "mCornerShape.start_start"
 logical_group = "corner-shape"
@@ -3337,7 +3323,7 @@ initial = "computed::CornerShape::round()"
 initial_specified_value = "specified::CornerShape::round()"
 struct = "border"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-start-end-shape"
 gecko_ffi_name = "mCornerShape.start_end"
 logical_group = "corner-shape"
@@ -3350,7 +3336,7 @@ initial = "computed::CornerShape::round()"
 initial_specified_value = "specified::CornerShape::round()"
 struct = "border"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-end-start-shape"
 gecko_ffi_name = "mCornerShape.end_start"
 logical_group = "corner-shape"
@@ -3363,7 +3349,7 @@ initial = "computed::CornerShape::round()"
 initial_specified_value = "specified::CornerShape::round()"
 struct = "border"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-end-end-shape"
 gecko_ffi_name = "mCornerShape.end_end"
 logical_group = "corner-shape"
@@ -3379,7 +3365,7 @@ logical_group = "margin"
 gecko_ffi_name = "mMargin.0"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-box/#propdef-margin-top"
-rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "page", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -3392,7 +3378,7 @@ logical_group = "margin"
 gecko_ffi_name = "mMargin.1"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-box/#propdef-margin-right"
-rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "page", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -3405,7 +3391,7 @@ logical_group = "margin"
 gecko_ffi_name = "mMargin.2"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-box/#propdef-margin-bottom"
-rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "page", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -3418,7 +3404,7 @@ logical_group = "margin"
 gecko_ffi_name = "mMargin.3"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-box/#propdef-margin-left"
-rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "page", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -3433,7 +3419,7 @@ logical_group = "margin"
 gecko_ffi_name = "mMargin.4"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-margin-block-start"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -3448,7 +3434,7 @@ logical_group = "margin"
 gecko_ffi_name = "mMargin.5"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-margin-block-end"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -3464,7 +3450,7 @@ logical_group = "margin"
 gecko_ffi_name = "mMargin.6"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-margin-inline-start"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -3480,7 +3466,7 @@ logical_group = "margin"
 gecko_ffi_name = "mMargin.7"
 flags = "SCROLL_LINKED_EFFECTIVE"
 spec = "https://drafts.csswg.org/css-logical-props/#propdef-margin-inline-end"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 servo_restyle_damage = "rebuild_box"
 affects = "layout"
 
@@ -3499,7 +3485,6 @@ type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.0"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-top"
@@ -3510,7 +3495,6 @@ type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.1"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-right"
@@ -3521,7 +3505,6 @@ type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.2"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-bottom"
@@ -3532,7 +3515,6 @@ type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.3"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-left"
@@ -3543,7 +3525,6 @@ type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.4"
@@ -3555,7 +3536,6 @@ type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.5"
@@ -3567,7 +3547,6 @@ type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.6"
@@ -3579,7 +3558,6 @@ type = "Length"
 initial = "computed::Length::zero()"
 struct = "margin"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-margin"
 gecko_ffi_name = "mScrollMargin.7"
@@ -3689,7 +3667,6 @@ type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.0"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-top"
@@ -3700,7 +3677,6 @@ type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.1"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-right"
@@ -3711,7 +3687,6 @@ type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.2"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-bottom"
@@ -3722,7 +3697,6 @@ type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.3"
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-left"
@@ -3733,7 +3707,6 @@ type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.4"
@@ -3745,7 +3718,6 @@ type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.5"
@@ -3757,7 +3729,6 @@ type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.6"
@@ -3769,7 +3740,6 @@ type = "NonNegativeLengthPercentageOrAuto"
 initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
 struct = "padding"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 logical = true
 logical_group = "scroll-padding"
 gecko_ffi_name = "mScrollPadding.7"
@@ -3783,8 +3753,8 @@ animation_type = "discrete"
 affects = "paint"
 servo_restyle_damage = "repaint"
 vector = {}
-# Snowlark patch: `local` in the servo build too (CSS Backgrounds 3 §3.5); upstream has it for gecko only.
-keyword = { values = ["scroll", "fixed", "local"], gecko_enum_prefix = "StyleImageLayerAttachment" }
+type = "ImageLayerAttachment"
+initial = "computed::ImageLayerAttachment::Scroll"
 
 [background-clip]
 type = "BackgroundClip"
@@ -3799,6 +3769,9 @@ servo_restyle_damage = "repaint"
 vector = {}
 
 [background-origin]
+type = "BackgroundOrigin"
+initial = "computed::BackgroundOrigin::PaddingBox"
+parse_method = "parse_for_background"
 struct = "background"
 spec = "https://drafts.csswg.org/css-backgrounds/#the-background-origin"
 animation_type = "discrete"
@@ -3806,24 +3779,16 @@ affects = "paint"
 extra_prefixes = ["webkit"]
 servo_restyle_damage = "repaint"
 vector = {}
-keyword = { values = ["padding-box", "border-box", "content-box"], gecko_enum_prefix = "StyleGeometryBox", gecko_inexhaustive = true }
 
 [background-blend-mode]
 struct = "background"
+type = "Blend"
+initial = "computed::Blend::Normal"
 vector = {}
 animation_type = "discrete"
 spec = "https://drafts.fxtf.org/compositing/#background-blend-mode"
 affects = "paint"
 servo_restyle_damage = "repaint"
-
-[background-blend-mode.keyword]
-values = [
-  "normal", "multiply", "screen", "overlay", "darken", "lighten",
-  "color-dodge", "color-burn", "hard-light", "soft-light", "difference",
-  "exclusion", "hue", "saturation", "color", "luminosity"
-]
-gecko_enum_prefix = "StyleBlend"
-gecko_inexhaustive = true
 
 [box-decoration-break]
 # Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
@@ -3832,7 +3797,8 @@ struct = "border"
 spec = "https://drafts.csswg.org/css-break/#propdef-box-decoration-break"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["slice", "clone"] }
+type = "BoxDecorationBreak"
+initial = "computed::BoxDecorationBreak::Slice"
 
 [-moz-float-edge]
 struct = "border"
@@ -3841,7 +3807,8 @@ spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/-moz-float
 animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mFloatEdge"
-keyword = { values = ["content-box", "margin-box"] }
+type = "FloatEdge"
+initial = "computed::FloatEdge::ContentBox"
 
 [-moz-top-layer]
 struct = "box"
@@ -3851,7 +3818,8 @@ animation_type = "discrete"
 enabled_in = "ua"
 affects = "layout"
 gecko_ffi_name = "mTopLayer"
-keyword = { values = ["none", "auto"] }
+type = "TopLayer"
+initial = "computed::TopLayer::None"
 
 [-servo-top-layer]
 struct = "box"
@@ -3860,15 +3828,17 @@ spec = "Internal (not web-exposed)"
 animation_type = "none"
 enabled_in = "ua"
 affects = "layout"
-keyword = { values = ["none", "top"] }
+type = "TopLayer"
+initial = "computed::TopLayer::None"
 
 [scroll-behavior]
 struct = "box"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.scroll-behavior.enabled"
 spec = "https://drafts.csswg.org/cssom-view/#propdef-scroll-behavior"
 animation_type = "discrete"
 affects = ""
-keyword = { values = ["auto", "smooth"] }
+type = "ScrollBehavior"
+initial = "computed::ScrollBehavior::Auto"
 
 # Snowlark: CSS Values 5 interpolate-size, parsed and computed; transitions and animations do not
 # interpolate to or from intrinsic size keywords yet.
@@ -3878,7 +3848,8 @@ engine = "servo"
 spec = "https://drafts.csswg.org/css-values-5/#interpolate-size"
 animation_type = "none"
 affects = ""
-keyword = { values = ["numeric-only", "allow-keywords"] }
+type = "InterpolateSize"
+initial = "computed::InterpolateSize::NumericOnly"
 
 [isolation]
 struct = "box"
@@ -3886,7 +3857,8 @@ spec = "https://drafts.fxtf.org/compositing/#isolation"
 animation_type = "discrete"
 affects = "paint"
 servo_restyle_damage = "repaint"
-keyword = { values = ["auto", "isolate"] }
+type = "Isolation"
+initial = "computed::Isolation::Auto"
 
 [backface-visibility]
 struct = "box"
@@ -3895,7 +3867,8 @@ animation_type = "discrete"
 affects = "paint"
 extra_prefixes = ["moz:layout.css.prefixes.transforms", "webkit"]
 servo_restyle_damage = "repaint"
-keyword = { values = ["visible", "hidden"] }
+type = "BackfaceVisibility"
+initial = "computed::BackfaceVisibility::Visible"
 
 [-moz-orient]
 struct = "box"
@@ -3904,7 +3877,8 @@ spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/-moz-orien
 animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mOrient"
-keyword = { values = ["inline", "block", "horizontal", "vertical"] }
+type = "Orient"
+initial = "computed::Orient::Inline"
 
 [column-fill]
 struct = "column"
@@ -3912,7 +3886,8 @@ struct = "column"
 spec = "https://drafts.csswg.org/css-multicol/#propdef-column-fill"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["balance", "auto"] }
+type = "ColumnFill"
+initial = "computed::ColumnFill::Balance"
 
 [column-span]
 # Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
@@ -3921,8 +3896,9 @@ struct = "column"
 spec = "https://drafts.csswg.org/css-multicol/#propdef-column-span"
 animation_type = "discrete"
 affects = "layout"
-servo_pref = "layout.columns.enabled"
-keyword = { values = ["none", "all"] }
+servo_pref = "layout.css.columns.enabled"
+type = "ColumnSpan"
+initial = "computed::ColumnSpan::None"
 
 [font-variant-caps]
 struct = "font"
@@ -3931,10 +3907,8 @@ animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mFont.variantCaps"
 servo_restyle_damage = "rebuild_box"
-
-[font-variant-caps.keyword]
-values = ["normal", "small-caps", "all-small-caps", "petite-caps", "all-petite-caps", "unicase", "titling-caps"]
-gecko_constant_prefix = "NS_FONT_VARIANT_CAPS"
+type = "FontVariantCaps"
+initial = "computed::FontVariantCaps::Normal"
 
 [font-kerning]
 struct = "font"
@@ -3942,16 +3916,19 @@ spec = "https://drafts.csswg.org/css-fonts/#propdef-font-kerning"
 animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mFont.kerning"
-keyword = { values = ["auto", "none", "normal"], gecko_constant_prefix = "NS_FONT_KERNING" }
+type = "FontKerning"
+initial = "computed::FontKerning::Auto"
 
 # Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 63).
 [font-variant-emoji]
 struct = "font"
+servo_pref = "layout.css.font-variant-emoji.enabled"
 spec = "https://drafts.csswg.org/css-fonts/#propdef-font-variant-emoji"
 animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mFont.variantEmoji"
-keyword = { values = ["normal", "text", "emoji", "unicode"] }
+type = "FontVariantEmoji"
+initial = "computed::FontVariantEmoji::Normal"
 
 [font-variant-position]
 struct = "font"
@@ -3959,7 +3936,8 @@ spec = "https://drafts.csswg.org/css-fonts/#propdef-font-variant-position"
 animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mFont.variantPosition"
-keyword = { values = ["normal", "sub", "super"], gecko_constant_prefix = "NS_FONT_VARIANT_POSITION" }
+type = "FontVariantPosition"
+initial = "computed::FontVariantPosition::Normal"
 
 [font-optical-sizing]
 struct = "font"
@@ -3967,16 +3945,18 @@ spec = "https://www.w3.org/TR/css-fonts-4/#font-optical-sizing-def"
 animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mFont.opticalSizing"
-servo_pref = "layout.variable_fonts.enabled"
-keyword = { values = ["auto", "none"], gecko_constant_prefix = "NS_FONT_OPTICAL_SIZING" }
+servo_pref = "layout.css.font-variations.enabled"
+type = "FontOpticalSizing"
+initial = "computed::FontOpticalSizing::Auto"
 
 [math-style]
 struct = "font"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.math-properties.enabled"
 spec = "https://mathml-refresh.github.io/mathml-core/#the-math-style-property"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["normal", "compact"] }
+type = "MathStyle"
+initial = "computed::MathStyle::Normal"
 
 [math-shift]
 struct = "font"
@@ -3984,7 +3964,8 @@ engine = "gecko"
 spec = "https://w3c.github.io/mathml-core/#the-math-shift"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["normal", "compact"] }
+type = "MathShift"
+initial = "computed::MathShift::Normal"
 
 [-moz-osx-font-smoothing]
 struct = "font"
@@ -3996,14 +3977,16 @@ gecko_ffi_name = "mFont.smoothing"
 aliases = ["-webkit-font-smoothing:layout.css.osx-font-smoothing.enabled"]
 gecko_pref = "layout.css.osx-font-smoothing.enabled"
 has_effect_on_gecko_scrollbars = false
-keyword = { values = ["auto", "grayscale", "subpixel-antialiased"], gecko_aliases = ["antialiased=grayscale"], gecko_constant_prefix = "NS_FONT_SMOOTHING" }
+type = "FontSmoothing"
+initial = "computed::FontSmoothing::Auto"
 
 [visibility]
 struct = "inherited_box"
 spec = "https://drafts.csswg.org/css-box/#propdef-visibility"
 affects = "paint"
 gecko_ffi_name = "mVisible"
-keyword = { values = ["visible", "hidden", "collapse"] }
+type = "Visibility"
+initial = "computed::Visibility::Visible"
 
 [direction]
 struct = "inherited_box"
@@ -4011,7 +3994,8 @@ spec = "https://drafts.csswg.org/css-writing-modes/#propdef-direction"
 animation_type = "none"
 affects = "layout"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["ltr", "rtl"] }
+type = "DirectionProperty"
+initial = "computed::DirectionProperty::Ltr"
 
 [-moz-box-collapse]
 struct = "inherited_box"
@@ -4020,15 +4004,17 @@ spec = "None (internal)"
 animation_type = "none"
 enabled_in = "chrome"
 affects = "layout"
-keyword = { values = ["flex", "legacy"] }
+type = "BoxCollapse"
+initial = "computed::BoxCollapse::Flex"
 
 [text-orientation]
 struct = "inherited_box"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.writing-mode.text-orientation.enabled"
 spec = "https://drafts.csswg.org/css-writing-modes/#propdef-text-orientation"
 animation_type = "none"
 affects = "layout"
-keyword = { values = ["mixed", "upright", "sideways"], gecko_aliases = ["sideways-right=sideways"], servo_aliases = ["sideways-right=sideways"] }
+type = "TextOrientation"
+initial = "computed::TextOrientation::Mixed"
 
 [image-orientation]
 struct = "inherited_box"
@@ -4036,57 +4022,60 @@ struct = "inherited_box"
 spec = "https://drafts.csswg.org/css-images/#propdef-image-orientation"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["from-image", "none"] }
+type = "ImageOrientation"
+initial = "computed::ImageOrientation::FromImage"
 
 [text-anchor]
 struct = "inherited_svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/text.html#TextAnchorProperty"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["start", "middle", "end"] }
+type = "TextAnchor"
+initial = "computed::TextAnchor::Start"
 
 [color-interpolation]
 struct = "inherited_svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationProperty"
 animation_type = "discrete"
 affects = "paint"
-keyword = { values = ["srgb", "auto", "linearrgb"] }
+type = "ColorInterpolation"
+initial = "computed::ColorInterpolation::Srgb"
 
 [color-interpolation-filters]
 struct = "inherited_svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationFiltersProperty"
 animation_type = "discrete"
 affects = "paint"
-keyword = { values = ["linearrgb", "auto", "srgb"], gecko_enum_prefix = "StyleColorInterpolation" }
+type = "ColorInterpolation"
+initial = "computed::ColorInterpolation::Linearrgb"
 
 [shape-rendering]
 struct = "inherited_svg"
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 spec = "https://svgwg.org/svg2-draft/painting.html#ShapeRenderingProperty"
 animation_type = "discrete"
 affects = "paint"
-keyword = { values = ["auto", "optimizespeed", "crispedges", "geometricprecision"] }
+type = "ShapeRendering"
+initial = "computed::ShapeRendering::Auto"
 
 [stroke-linecap]
 struct = "inherited_svg"
 spec = "https://svgwg.org/svg2-draft/painting.html#StrokeLinecapProperty"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["butt", "round", "square"] }
+type = "StrokeLinecap"
+initial = "computed::StrokeLinecap::Butt"
 
 [stroke-linejoin]
 struct = "inherited_svg"
 spec = "https://svgwg.org/svg2-draft/painting.html#StrokeLinejoinProperty"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["miter", "round", "bevel"] }
+type = "StrokeLinejoin"
+initial = "computed::StrokeLinejoin::Miter"
 
 [border-collapse]
 struct = "inherited_table"
@@ -4094,7 +4083,8 @@ spec = "https://drafts.csswg.org/css-tables/#propdef-border-collapse"
 animation_type = "discrete"
 affects = "layout"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["separate", "collapse"] }
+type = "BorderCollapse"
+initial = "computed::BorderCollapse::Separate"
 
 [empty-cells]
 struct = "inherited_table"
@@ -4102,15 +4092,18 @@ spec = "https://drafts.csswg.org/css-tables/#propdef-empty-cells"
 animation_type = "discrete"
 affects = "paint"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["show", "hide"] }
+type = "EmptyCells"
+initial = "computed::EmptyCells::Show"
 
 [hyphens]
 struct = "inherited_text"
-# Snowlark patch: in the servo build too, without Gecko's -moz- alias (SNOWLARK-PATCHES.md 54).
+servo_pref = "layout.css.hyphens.enabled"
 spec = "https://drafts.csswg.org/css-text/#propdef-hyphens"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["manual", "none", "auto"] }
+# Snowlark patch: without Gecko's -moz- alias (SNOWLARK-PATCHES.md 54).
+type = "Hyphens"
+initial = "computed::Hyphens::Manual"
 
 [-moz-text-size-adjust]
 struct = "inherited_text"
@@ -4120,7 +4113,8 @@ animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mTextSizeAdjust"
 aliases = ["-webkit-text-size-adjust"]
-keyword = { values = ["auto", "none"] }
+type = "TextSizeAdjust"
+initial = "computed::TextSizeAdjust::Auto"
 
 # Snowlark patch (SNOWLARK-PATCHES.md 83): `text-size-adjust` with its percentages, and two
 # legacy properties the web sets everywhere (Compat), in the servo build.
@@ -4149,7 +4143,8 @@ engine = "servo"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-user-drag)"
 animation_type = "discrete"
 affects = ""
-keyword = { values = ["auto", "none", "element"] }
+type = "WebkitUserDrag"
+initial = "computed::WebkitUserDrag::Auto"
 
 [-webkit-font-smoothing]
 struct = "inherited_text"
@@ -4157,23 +4152,26 @@ engine = "servo"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/font-smooth)"
 animation_type = "discrete"
 affects = "paint"
-keyword = { values = ["auto", "none", "antialiased", "subpixel-antialiased"] }
+type = "WebkitFontSmoothing"
+initial = "computed::WebkitFontSmoothing::Auto"
 
 [ruby-align]
 struct = "inherited_text"
-engine = "gecko"
+servo_pref = "layout.css.ruby.enabled"
 spec = "https://drafts.csswg.org/css-ruby/#ruby-align-property"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["space-around", "start", "center", "space-between"] }
+type = "RubyAlign"
+initial = "computed::RubyAlign::SpaceAround"
 
 [text-combine-upright]
 struct = "inherited_text"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.text-combine-upright.enabled"
 spec = "https://drafts.csswg.org/css-writing-modes-3/#text-combine-upright"
 animation_type = "none"
 affects = "layout"
-keyword = { values = ["none", "all"] }
+type = "TextCombineUpright"
+initial = "computed::TextCombineUpright::None"
 
 [text-rendering]
 struct = "inherited_text"
@@ -4181,7 +4179,8 @@ spec = "https://svgwg.org/svg2-draft/painting.html#TextRenderingProperty"
 animation_type = "discrete"
 affects = "layout"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["auto", "optimizespeed", "optimizelegibility", "geometricprecision"] }
+type = "TextRendering"
+initial = "computed::TextRendering::Auto"
 
 [-webkit-text-security]
 struct = "inherited_text"
@@ -4189,7 +4188,8 @@ spec = "https://drafts.csswg.org/css-text/#MISSING"
 animation_type = "discrete"
 affects = "layout"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["none", "circle", "disc", "square"] }
+type = "TextSecurity"
+initial = "computed::TextSecurity::None"
 
 [text-wrap-mode]
 struct = "inherited_text"
@@ -4197,15 +4197,16 @@ spec = "https://drafts.csswg.org/css-text-4/#propdef-text-wrap-mode"
 animation_type = "discrete"
 affects = "layout"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["wrap", "nowrap"] }
+type = "TextWrapMode"
+initial = "computed::TextWrapMode::Wrap"
 
 [text-wrap-style]
 struct = "inherited_text"
-# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 54).
 spec = "https://drafts.csswg.org/css-text-4/#text-wrap-style"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["auto", "stable", "balance", "pretty"] }
+type = "TextWrapStyle"
+initial = "computed::TextWrapStyle::Auto"
 
 [list-style-position]
 struct = "list"
@@ -4213,7 +4214,8 @@ spec = "https://drafts.csswg.org/css-lists/#propdef-list-style-position"
 animation_type = "discrete"
 affects = "layout"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["outside", "inside"] }
+type = "ListStylePosition"
+initial = "computed::ListStylePosition::Outside"
 
 [flex-direction]
 struct = "position"
@@ -4222,7 +4224,8 @@ animation_type = "discrete"
 affects = "layout"
 extra_prefixes = ["webkit"]
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["row", "row-reverse", "column", "column-reverse"] }
+type = "FlexDirection"
+initial = "computed::FlexDirection::Row"
 
 [flex-wrap]
 type = "FlexWrap"
@@ -4241,38 +4244,42 @@ animation_type = "discrete"
 affects = "layout"
 extra_prefixes = ["moz:layout.css.prefixes.box-sizing", "webkit"]
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["content-box", "border-box"] }
+type = "BoxSizing"
+initial = "computed::BoxSizing::ContentBox"
 
 [object-fit]
 struct = "position"
 spec = "https://drafts.csswg.org/css-images/#propdef-object-fit"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["fill", "contain", "cover", "none", "scale-down"] }
+type = "ObjectFit"
+initial = "computed::ObjectFit::Fill"
 
 [mask-type]
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-type"
 animation_type = "discrete"
 affects = "paint"
-keyword = { values = ["luminance", "alpha"] }
+type = "MaskType"
+initial = "computed::MaskType::Luminance"
 
 [mask-mode]
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-mode"
 animation_type = "discrete"
 affects = "paint"
 vector = {}
-keyword = { values = ["match-source", "alpha", "luminance"] }
+type = "MaskMode"
+initial = "computed::MaskMode::MatchSource"
 
 [mask-clip]
 type = "BackgroundClip"
 initial = "computed::BackgroundClip::BorderBox"
 parse_method = "parse_for_mask"
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-clip"
 animation_type = "discrete"
 affects = "paint"
@@ -4280,26 +4287,26 @@ vector = {}
 extra_prefixes = ["webkit"]
 
 [mask-origin]
+type = "BackgroundOrigin"
+initial = "computed::BackgroundOrigin::BorderBox"
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-origin"
 animation_type = "discrete"
 affects = "paint"
 vector = {}
 extra_prefixes = ["webkit"]
-keyword = { values = ["border-box", "content-box", "padding-box"], extra_gecko_values = ["fill-box", "stroke-box", "view-box"], gecko_enum_prefix = "StyleGeometryBox", gecko_inexhaustive = true }
 
 [mask-composite]
 struct = "svg"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 spec = "https://drafts.fxtf.org/css-masking-1/#propdef-mask-composite"
 animation_type = "discrete"
 affects = "paint"
 vector = {}
 extra_prefixes = ["webkit"]
-# Snowlark: the servo values after `exclude` are the legacy `-webkit-mask-composite` operators
-# (`<composite-style>`); only that alias parses them (`properties/mod.rs` `parse_into`).
-keyword = { values = ["add", "subtract", "intersect", "exclude"], extra_servo_values = ["clear", "copy", "source-over", "source-in", "source-out", "source-atop", "destination-over", "destination-in", "destination-out", "destination-atop", "xor", "plus-lighter"] }
+type = "MaskComposite"
+initial = "computed::MaskComposite::Add"
 
 [table-layout]
 struct = "table"
@@ -4308,7 +4315,8 @@ animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mLayoutStrategy"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["auto", "fixed"] }
+type = "TableLayout"
+initial = "computed::TableLayout::Auto"
 
 [unicode-bidi]
 struct = "text"
@@ -4316,7 +4324,8 @@ spec = "https://drafts.csswg.org/css-writing-modes/#propdef-unicode-bidi"
 animation_type = "none"
 affects = "layout"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["normal", "embed", "isolate", "bidi-override", "isolate-override", "plaintext"] }
+type = "UnicodeBidi"
+initial = "computed::UnicodeBidi::Normal"
 
 [text-decoration-style]
 struct = "text"
@@ -4324,7 +4333,8 @@ spec = "https://drafts.csswg.org/css-text-decor/#propdef-text-decoration-style"
 animation_type = "discrete"
 affects = "overflow"
 servo_restyle_damage = "recalculate_overflow"
-keyword = { values = ["solid", "double", "dotted", "dashed", "wavy", "-moz-none"] }
+type = "TextDecorationStyle"
+initial = "computed::TextDecorationStyle::Solid"
 
 [ime-mode]
 struct = "ui"
@@ -4333,15 +4343,17 @@ spec = "https://drafts.csswg.org/css-ui/#input-method-editor"
 animation_type = "discrete"
 affects = ""
 gecko_ffi_name = "mIMEMode"
-keyword = { values = ["auto", "normal", "active", "disabled", "inactive"] }
+type = "ImeMode"
+initial = "computed::ImeMode::Auto"
 
 [scrollbar-width]
 struct = "ui"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.scrollbar-styling.enabled"
 spec = "https://drafts.csswg.org/css-scrollbars-1/#scrollbar-width"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["auto", "thin", "none"] }
+type = "ScrollbarWidth"
+initial = "computed::ScrollbarWidth::Auto"
 
 # Reserves space at each end of a vertical scrollbar.
 [-moz-scrollbar-inset-block]
@@ -4375,7 +4387,8 @@ animation_type = "discrete"
 enabled_in = "chrome"
 affects = "paint"
 gecko_ffi_name = "mWindowDragging"
-keyword = { values = ["default", "drag", "no-drag"] }
+type = "WindowDragging"
+initial = "computed::WindowDragging::Default"
 
 [-moz-window-shadow]
 struct = "ui"
@@ -4385,7 +4398,8 @@ animation_type = "discrete"
 enabled_in = "chrome"
 affects = "overflow"
 gecko_ffi_name = "mWindowShadow"
-keyword = { values = ["auto", "none"] }
+type = "WindowShadow"
+initial = "computed::WindowShadow::Auto"
 
 [field-sizing]
 struct = "ui"
@@ -4393,7 +4407,8 @@ spec = "https://drafts.csswg.org/css-ui/#field-sizing"
 animation_type = "discrete"
 affects = "layout"
 gecko_pref = "layout.css.field-sizing.enabled"
-keyword = { values = ["fixed", "content"] }
+type = "FieldSizing"
+initial = "computed::FieldSizing::Fixed"
 
 [-moz-box-align]
 struct = "xul"
@@ -4403,7 +4418,8 @@ animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mBoxAlign"
 aliases = ["-webkit-box-align"]
-keyword = { values = ["stretch", "start", "center", "baseline", "end"] }
+type = "BoxAlign"
+initial = "computed::BoxAlign::Stretch"
 
 [-moz-box-direction]
 struct = "xul"
@@ -4413,7 +4429,8 @@ animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mBoxDirection"
 aliases = ["-webkit-box-direction"]
-keyword = { values = ["normal", "reverse"] }
+type = "BoxDirection"
+initial = "computed::BoxDirection::Normal"
 
 [-moz-box-orient]
 struct = "xul"
@@ -4423,7 +4440,8 @@ animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mBoxOrient"
 aliases = ["-webkit-box-orient"]
-keyword = { values = ["horizontal", "vertical"], gecko_aliases = ["inline-axis=horizontal", "block-axis=vertical"] }
+type = "BoxOrient"
+initial = "computed::BoxOrient::Horizontal"
 
 # Snowlark patch: `-webkit-box-orient` in the servo build (Gecko has it as an alias of
 # `-moz-box-orient` in its XUL struct), for the legacy `-webkit-line-clamp` (CSS Overflow 4 §5.2).
@@ -4433,7 +4451,8 @@ engine = "servo"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-orient)"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["horizontal", "vertical"], servo_aliases = ["inline-axis=horizontal", "block-axis=vertical"] }
+type = "WebkitBoxOrient"
+initial = "computed::WebkitBoxOrient::Horizontal"
 
 # Snowlark patch (SNOWLARK-PATCHES.md 81): the rest of the legacy `-webkit-box` properties in the
 # servo build (Gecko has them as aliases of its XUL `-moz-box-*`). snowlark-render lays a
@@ -4444,7 +4463,8 @@ engine = "servo"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-align)"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["stretch", "start", "center", "baseline", "end"] }
+type = "WebkitBoxAlign"
+initial = "computed::WebkitBoxAlign::Stretch"
 
 [-webkit-box-direction]
 struct = "box"
@@ -4452,7 +4472,8 @@ engine = "servo"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-direction)"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["normal", "reverse"] }
+type = "WebkitBoxDirection"
+initial = "computed::WebkitBoxDirection::Normal"
 
 [-webkit-box-pack]
 struct = "box"
@@ -4460,7 +4481,8 @@ engine = "servo"
 spec = "Nonstandard (https://developer.mozilla.org/en-US/docs/Web/CSS/box-pack)"
 animation_type = "discrete"
 affects = "layout"
-keyword = { values = ["start", "center", "end", "justify"] }
+type = "WebkitBoxPack"
+initial = "computed::WebkitBoxPack::Start"
 
 [-webkit-box-flex]
 type = "NonNegativeNumber"
@@ -4488,7 +4510,8 @@ animation_type = "discrete"
 affects = "layout"
 gecko_ffi_name = "mBoxPack"
 aliases = ["-webkit-box-pack"]
-keyword = { values = ["start", "center", "end", "justify"] }
+type = "BoxPack"
+initial = "computed::BoxPack::Start"
 
 [mix-blend-mode]
 struct = "effects"
@@ -4496,14 +4519,14 @@ spec = "https://drafts.fxtf.org/compositing/#propdef-mix-blend-mode"
 animation_type = "discrete"
 affects = "paint"
 servo_restyle_damage = "repaint"
-keyword = { values = ["normal", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity", "plus-lighter"], gecko_enum_prefix = "StyleBlend" }
+type = "Blend"
+initial = "computed::Blend::Normal"
 
 [dominant-baseline]
 type = "DominantBaseline"
 initial = "computed::DominantBaseline::Auto"
 struct = "inherited_box"
-# Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.dominant-baseline.enabled"
 animation_type = "discrete"
 spec = "https://drafts.csswg.org/css-inline-3/#dominant-baseline-property"
 affects = "layout"
@@ -4517,7 +4540,8 @@ enabled_in = ""
 has_effect_on_gecko_scrollbars = false
 affects = "layout"
 gecko_ffi_name = "mMathVariant"
-keyword = { values = ["none", "normal", "bold", "italic", "bold-italic", "script", "bold-script", "fraktur", "double-struck", "bold-fraktur", "sans-serif", "bold-sans-serif", "sans-serif-italic", "sans-serif-bold-italic", "monospace", "initial", "tailed", "looped", "stretched"] }
+type = "MathVariant"
+initial = "computed::MathVariant::None"
 
 [white-space-collapse]
 struct = "inherited_text"
@@ -4525,7 +4549,8 @@ spec = "https://drafts.csswg.org/css-text-4/#propdef-white-space-collapse"
 animation_type = "discrete"
 affects = "layout"
 servo_restyle_damage = "rebuild_box"
-keyword = { values = ["collapse", "preserve", "preserve-breaks", "break-spaces"], extra_gecko_values = ["preserve-spaces"], gecko_aliases = ["-moz-pre-space=preserve-spaces"] }
+type = "WhiteSpaceCollapse"
+initial = "computed::WhiteSpaceCollapse::Collapse"
 
 [timeline-scope]
 type = "ScopedName"

@@ -2,39 +2,36 @@
 flags = "SCROLL_LINKED_EFFECTIVE"
 sub_properties = ["margin-top", "margin-right", "margin-bottom", "margin-left"]
 spec = "https://drafts.csswg.org/css-box/#propdef-margin"
-rule_types_allowed = ["style", "keyframe", "page", "scope", "page", "position-try"]
+rule_types_allowed = ["style", "keyframe", "page", "page", "position-try"]
 kind = "four_sides"
 allow_quirks = true
 
 [margin-block]
 sub_properties = ["margin-block-start", "margin-block-end"]
 spec = "https://drafts.csswg.org/css-logical/#propdef-margin-block"
-rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "page", "position-try"]
 kind = "two_properties"
 
 [margin-inline]
 sub_properties = ["margin-inline-start", "margin-inline-end"]
 spec = "https://drafts.csswg.org/css-logical/#propdef-margin-inline"
-rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "page", "position-try"]
 kind = "two_properties"
 
 [scroll-margin]
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 sub_properties = ["scroll-margin-top", "scroll-margin-right", "scroll-margin-bottom", "scroll-margin-left"]
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin"
 kind = "four_sides"
 
 [scroll-margin-block]
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 sub_properties = ["scroll-margin-block-start", "scroll-margin-block-end"]
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-block"
 kind = "two_properties"
 
 [scroll-margin-inline]
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 sub_properties = ["scroll-margin-inline-start", "scroll-margin-inline-end"]
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-inline"
 kind = "two_properties"
@@ -48,32 +45,29 @@ allow_quirks = true
 [padding-block]
 sub_properties = ["padding-block-start", "padding-block-end"]
 spec = "https://drafts.csswg.org/css-logical/#propdef-padding-block"
-rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "page", "position-try"]
 kind = "two_properties"
 
 [padding-inline]
 sub_properties = ["padding-inline-start", "padding-inline-end"]
 spec = "https://drafts.csswg.org/css-logical/#propdef-padding-inline"
-rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "page", "position-try"]
 kind = "two_properties"
 
 [scroll-padding]
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 sub_properties = ["scroll-padding-top", "scroll-padding-right", "scroll-padding-bottom", "scroll-padding-left"]
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding"
 kind = "four_sides"
 
 [scroll-padding-block]
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 sub_properties = ["scroll-padding-block-start", "scroll-padding-block-end"]
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-block"
 kind = "two_properties"
 
 [scroll-padding-inline]
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 16.
-servo_pref = "layout.unimplemented"
 sub_properties = ["scroll-padding-inline-start", "scroll-padding-inline-end"]
 spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-inline"
 kind = "two_properties"
@@ -217,14 +211,14 @@ spec="https://drafts.csswg.org/css-overflow/#propdef-overflow"
 kind = "two_properties"
 
 [overscroll-behavior]
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.overscroll-behavior.enabled"
 sub_properties = ["overscroll-behavior-x", "overscroll-behavior-y"]
 spec = "https://wicg.github.io/overscroll-behavior/#overscroll-behavior-properties"
 kind = "two_properties"
 
 [container]
 # Snowlark patch: in the servo build too, behind the container queries preference.
-servo_pref = "layout.container-queries.enabled"
+servo_pref = "layout.css.container-queries.enabled"
 sub_properties = ["container-name", "container-type"]
 spec = "https://drafts.csswg.org/css-contain-3/#container-shorthand"
 
@@ -251,7 +245,6 @@ sub_properties = ["break-inside"]
 spec = "https://drafts.csswg.org/css-break-3/#page-break-properties"
 
 [offset]
-servo_pref = "layout.unimplemented"
 sub_properties = ["offset-path", "offset-distance", "offset-rotate", "offset-anchor", "offset-position"]
 spec = "https://drafts.fxtf.org/motion-1/#offset-shorthand"
 
@@ -284,24 +277,23 @@ spec = "https://drafts.csswg.org/css-backgrounds/#the-background"
 [inset]
 sub_properties = ["top", "right", "bottom", "left"]
 spec = "https://drafts.csswg.org/css-logical/#propdef-inset"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 kind = "four_sides"
 
 [inset-block]
 sub_properties = ["inset-block-start", "inset-block-end"]
 spec = "https://drafts.csswg.org/css-logical/#propdef-inset-block"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 kind = "two_properties"
 
 [inset-inline]
 sub_properties = ["inset-inline-start", "inset-inline-end"]
 spec = "https://drafts.csswg.org/css-logical/#propdef-inset-inline"
-rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+rule_types_allowed = ["style", "keyframe", "position-try"]
 kind = "two_properties"
 
 [contain-intrinsic-size]
 # Snowlark patch: also the servo build (behind the preference below).
-servo_pref = "layout.unimplemented"
 sub_properties = ["contain-intrinsic-width", "contain-intrinsic-height"]
 spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
 kind = "two_properties"
@@ -325,27 +317,22 @@ aliases = ["grid-gap"]
 [grid-row]
 sub_properties = ["grid-row-start", "grid-row-end"]
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-row"
-servo_pref = "layout.grid.enabled"
 
 [grid-column]
 sub_properties = ["grid-column-start", "grid-column-end"]
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-column"
-servo_pref = "layout.grid.enabled"
 
 [grid-area]
 sub_properties = ["grid-row-start", "grid-row-end", "grid-column-start", "grid-column-end"]
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-area"
-servo_pref = "layout.grid.enabled"
 
 [grid-template]
 sub_properties = ["grid-template-rows", "grid-template-columns", "grid-template-areas"]
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid-template"
-servo_pref = "layout.grid.enabled"
 
 [grid]
 sub_properties = ["grid-template-rows", "grid-template-columns", "grid-template-areas", "grid-auto-rows", "grid-auto-columns", "grid-auto-flow"]
 spec = "https://drafts.csswg.org/css-grid/#propdef-grid"
-servo_pref = "layout.grid.enabled"
 
 [place-content]
 sub_properties = ["align-content", "justify-content"]
@@ -361,14 +348,12 @@ sub_properties = ["align-items", "justify-items"]
 spec = "https://drafts.csswg.org/css-align/#place-items-property"
 
 [position-try]
-# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
 servo_pref = "layout.css.anchor-positioning.enabled"
 sub_properties = ["position-try-order", "position-try-fallbacks"]
 spec = "https://drafts.csswg.org/css-anchor-position-1/#position-try-prop"
 
 [marker]
 # Snowlark patch: also the servo build (behind the preference below), SNOWLARK-PATCHES.md 17.
-servo_pref = "layout.unimplemented"
 sub_properties = ["marker-start", "marker-end", "marker-mid"]
 spec = "https://svgwg.org/svg2-draft/painting.html#MarkerShorthand"
 
@@ -414,13 +399,13 @@ spec = "https://drafts.csswg.org/css-backgrounds-4/#the-background-position"
 sub_properties = ["mask-mode", "mask-repeat", "mask-clip", "mask-origin", "mask-composite", "mask-position-x", "mask-position-y", "mask-size", "mask-image"]
 spec = "https://drafts.fxtf.org/css-masking/#propdef-mask"
 extra_prefixes = ["webkit"]
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 
 [mask-position]
 sub_properties = ["mask-position-x", "mask-position-y"]
 spec = "https://drafts.csswg.org/css-masks-4/#the-mask-position"
 extra_prefixes = ["webkit"]
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.masking.enabled"
 
 [border-radius]
 sub_properties = ["border-top-left-radius", "border-top-right-radius", "border-bottom-right-radius", "border-bottom-left-radius"]
@@ -431,62 +416,62 @@ extra_prefixes = ["webkit"]
 sub_properties = ["corner-top-left-shape", "corner-top-right-shape", "corner-bottom-right-shape", "corner-bottom-left-shape"]
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-shape"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 
 [corner-top-shape]
 sub_properties = ["corner-top-left-shape", "corner-top-right-shape"]
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-top-shape"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 kind = "two_properties"
 
 [corner-right-shape]
 sub_properties = ["corner-top-right-shape", "corner-bottom-right-shape"]
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-right-shape"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 kind = "two_properties"
 
 [corner-bottom-shape]
 sub_properties = ["corner-bottom-left-shape", "corner-bottom-right-shape"]
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-bottom-shape"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 kind = "two_properties"
 
 [corner-left-shape]
 sub_properties = ["corner-top-left-shape", "corner-bottom-left-shape"]
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-left-shape"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 kind = "two_properties"
 
 [corner-block-start-shape]
 sub_properties = ["corner-start-start-shape", "corner-start-end-shape"]
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-block-start-shape"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 kind = "two_properties"
 
 [corner-block-end-shape]
 sub_properties = ["corner-end-start-shape", "corner-end-end-shape"]
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-block-end-shape"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 kind = "two_properties"
 
 [corner-inline-start-shape]
 sub_properties = ["corner-start-start-shape", "corner-end-start-shape"]
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-inline-start-shape"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 kind = "two_properties"
 
 [corner-inline-end-shape]
 sub_properties = ["corner-start-end-shape", "corner-end-end-shape"]
 spec = "https://drafts.csswg.org/css-borders-4/#propdef-corner-inline-end-shape"
 gecko_pref = "layout.css.corner-shape.enabled"
-servo_pref = "layout.unimplemented"
+servo_pref = "layout.css.corner-shape.enabled"
 kind = "two_properties"
 
 [outline]
@@ -499,7 +484,7 @@ aliases = ["-webkit-columns"]
 # Snowlark patch (SNOWLARK-PATCHES.md 57): with Multicol 2's column-height and column-wrap.
 sub_properties = ["column-width", "column-count", "column-height", "column-wrap"]
 spec = "https://drafts.csswg.org/css-multicol/#propdef-columns"
-servo_pref = "layout.columns.enabled"
+servo_pref = "layout.css.columns.enabled"
 
 [column-rule]
 # Snowlark patch (SNOWLARK-PATCHES.md 82): the legacy -webkit- name is an alias.
@@ -532,8 +517,6 @@ sub_properties = [
   "font-feature-settings",
   "font-language-override",
   "font-variant-emoji",
-]
-extra_gecko_sub_properties = [
   "font-size-adjust",
 ]
 spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font"
@@ -553,18 +536,19 @@ spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font-variant"
 
 # Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 60).
 [font-synthesis]
+servo_pref = "layout.css.font-synthesis.enabled"
 sub_properties = ["font-synthesis-weight", "font-synthesis-style", "font-synthesis-small-caps", "font-synthesis-position"]
 spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font-variant"
 derive_value_info = false
 
 [text-box]
-# Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
+servo_pref = "layout.css.text-box.enabled"
 sub_properties = ["text-box-trim", "text-box-edge"]
 spec = "https://drafts.csswg.org/css-inline/#text-box-shorthand"
 gecko_pref = "layout.css.text-box.enabled"
 
 [text-emphasis]
-engine = "gecko"
+servo_pref = "layout.css.text-emphasis.enabled"
 sub_properties = ["text-emphasis-style", "text-emphasis-color"]
 spec = "https://drafts.csswg.org/css-text-decor-3/#text-emphasis-property"
 derive_serialize = true

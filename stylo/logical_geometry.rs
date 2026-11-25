@@ -23,6 +23,10 @@ pub enum InlineBaseDirection {
     RightToLeft,
 }
 
+fn sideways_enabled(_: &crate::parser::ParserContext) -> bool {
+    crate::pref!("layout.css.writing-mode.sideways.enabled", gecko = true)
+}
+
 /// The writing-mode property (different from the WritingMode enum).
 /// https://drafts.csswg.org/css-writing-modes/#block-flow
 /// Aliases come from https://drafts.csswg.org/css-writing-modes-4/#svg-writing-mode
@@ -50,8 +54,9 @@ pub enum WritingModeProperty {
     #[parse(aliases = "tb,tb-rl")]
     VerticalRl,
     VerticalLr,
-    // Snowlark patch: `sideways-rl` and `sideways-lr` in the servo build too (CSS Writing Modes 4).
+    #[parse(condition = "sideways_enabled")]
     SidewaysRl,
+    #[parse(condition = "sideways_enabled")]
     SidewaysLr,
 }
 
@@ -131,11 +136,12 @@ impl WritingMode {
     /// Return a WritingMode bitflags from the relevant CSS properties.
     pub fn new(inheritedbox_style: &style_structs::InheritedBox) -> Self {
         use crate::properties::longhands::direction::computed_value::T as Direction;
+        use crate::properties::longhands::text_orientation::computed_value::T as TextOrientation;
 
         let mut flags = WritingMode::empty();
 
-        let direction = inheritedbox_style.clone_direction();
-        let writing_mode = inheritedbox_style.clone_writing_mode();
+        let direction = *inheritedbox_style.get_direction();
+        let writing_mode = *inheritedbox_style.get_writing_mode();
 
         match direction {
             Direction::Ltr => {},
@@ -176,35 +182,30 @@ impl WritingMode {
             },
         }
 
-        // Snowlark patch: `text-orientation` sets its flags in the servo build too.
-        {
-            use crate::properties::longhands::text_orientation::computed_value::T as TextOrientation;
+        // text-orientation only has an effect for vertical-rl and
+        // vertical-lr values of writing-mode.
+        match writing_mode {
+            WritingModeProperty::VerticalRl | WritingModeProperty::VerticalLr => {
+                match *inheritedbox_style.get_text_orientation() {
+                    TextOrientation::Mixed => {},
+                    TextOrientation::Upright => {
+                        flags.insert(WritingMode::UPRIGHT);
 
-            // text-orientation only has an effect for vertical-rl and
-            // vertical-lr values of writing-mode.
-            match writing_mode {
-                WritingModeProperty::VerticalRl | WritingModeProperty::VerticalLr => {
-                    match inheritedbox_style.clone_text_orientation() {
-                        TextOrientation::Mixed => {},
-                        TextOrientation::Upright => {
-                            flags.insert(WritingMode::UPRIGHT);
-
-                            // https://drafts.csswg.org/css-writing-modes-3/#valdef-text-orientation-upright:
-                            //
-                            // > This value causes the used value of direction
-                            // > to be ltr, and for the purposes of bidi
-                            // > reordering, causes all characters to be treated
-                            // > as strong LTR.
-                            flags.remove(WritingMode::RTL);
-                            flags.remove(WritingMode::INLINE_REVERSED);
-                        },
-                        TextOrientation::Sideways => {
-                            flags.insert(WritingMode::TEXT_SIDEWAYS);
-                        },
-                    }
-                },
-                _ => {},
-            }
+                        // https://drafts.csswg.org/css-writing-modes-3/#valdef-text-orientation-upright:
+                        //
+                        // > This value causes the used value of direction
+                        // > to be ltr, and for the purposes of bidi
+                        // > reordering, causes all characters to be treated
+                        // > as strong LTR.
+                        flags.remove(WritingMode::RTL);
+                        flags.remove(WritingMode::INLINE_REVERSED);
+                    },
+                    TextOrientation::Sideways => {
+                        flags.insert(WritingMode::TEXT_SIDEWAYS);
+                    },
+                }
+            },
+            _ => {},
         }
 
         flags
@@ -470,13 +471,6 @@ impl Debug for DebugWritingMode {
     fn fmt(&self, formatter: &mut Formatter) -> Result<(), Error> {
         write!(formatter, "{}", self.mode)
     }
-}
-
-// Used to specify the logical direction.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
-pub enum Direction {
-    Inline,
-    Block,
 }
 
 /// A 2D size in flow-relative dimensions
@@ -1148,10 +1142,10 @@ impl<T: Copy + Add<T, Output = T>> LogicalMargin<T> {
     }
 
     #[inline]
-    pub fn start_end(&self, direction: Direction) -> T {
-        match direction {
-            Direction::Inline => self.inline_start + self.inline_end,
-            Direction::Block => self.block_start + self.block_end,
+    pub fn start_end(&self, axis: LogicalAxis) -> T {
+        match axis {
+            LogicalAxis::Inline => self.inline_start + self.inline_end,
+            LogicalAxis::Block => self.block_start + self.block_end,
         }
     }
 

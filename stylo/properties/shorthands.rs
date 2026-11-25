@@ -10,8 +10,8 @@ use crate::values::specified;
 use cssparser::Parser;
 use std::fmt::{self, Write};
 use style_traits::{
-    values::SequenceWriter, CssWriter, KeywordsCollectFn, ParseError, SpecifiedValueInfo,
-    StyleParseErrorKind, ToCss,
+    CssWriter, KeywordsCollectFn, ParseError, SpecifiedValueInfo, StyleParseErrorKind, ToCss,
+    values::SequenceWriter,
 };
 
 macro_rules! expanded {
@@ -292,64 +292,61 @@ pub mod border_image {
         let mut parsed_source = false;
         let mut parsed_repeat = false;
         loop {
-            if !parsed_slice {
-                if let Ok(value) =
+            if !parsed_slice
+                && let Ok(value) =
                     input.try_parse(|input| border_image_slice::parse(context, input))
-                {
-                    parsed_slice = true;
-                    any = true;
-                    slice = value;
-                    // Parse border image width and outset, if applicable.
-                    let maybe_width_outset: Result<_, ParseError> = input.try_parse(|input| {
-                        input.expect_delim('/')?;
+            {
+                parsed_slice = true;
+                any = true;
+                slice = value;
+                // Parse border image width and outset, if applicable.
+                let maybe_width_outset: Result<_, ParseError> = input.try_parse(|input| {
+                    input.expect_delim('/')?;
 
-                        // Parse border image width, if applicable.
-                        let w = input
-                            .try_parse(|input| border_image_width::parse(context, input))
-                            .ok();
+                    // Parse border image width, if applicable.
+                    let w = input
+                        .try_parse(|input| border_image_width::parse(context, input))
+                        .ok();
 
-                        // Parse border image outset if applicable.
-                        let o = input
-                            .try_parse(|input| {
-                                input.expect_delim('/')?;
-                                border_image_outset::parse(context, input)
-                            })
-                            .ok();
-                        if w.is_none() && o.is_none() {
-                            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
-                        }
-                        Ok((w, o))
-                    });
-                    if let Ok((w, o)) = maybe_width_outset {
-                        if let Some(w) = w {
-                            width = w;
-                        }
-                        if let Some(o) = o {
-                            outset = o;
-                        }
+                    // Parse border image outset if applicable.
+                    let o = input
+                        .try_parse(|input| {
+                            input.expect_delim('/')?;
+                            border_image_outset::parse(context, input)
+                        })
+                        .ok();
+                    if w.is_none() && o.is_none() {
+                        return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
                     }
-                    continue;
+                    Ok((w, o))
+                });
+                if let Ok((w, o)) = maybe_width_outset {
+                    if let Some(w) = w {
+                        width = w;
+                    }
+                    if let Some(o) = o {
+                        outset = o;
+                    }
                 }
+                continue;
             }
-            if !parsed_source {
-                if let Ok(value) =
+            if !parsed_source
+                && let Ok(value) =
                     input.try_parse(|input| border_image_source::parse(context, input))
-                {
-                    source = value;
-                    parsed_source = true;
-                    any = true;
-                    continue;
-                }
+            {
+                source = value;
+                parsed_source = true;
+                any = true;
+                continue;
             }
-            if !parsed_repeat {
-                if let Ok(value) =
+            if !parsed_repeat
+                && let Ok(value) =
                     input.try_parse(|input| border_image_repeat::parse(context, input))
-                {
-                    repeat = value;
-                    parsed_repeat = true;
-                    any = true;
-                    continue;
-                }
+            {
+                repeat = value;
+                parsed_repeat = true;
+                any = true;
+                continue;
             }
             break;
         }
@@ -646,11 +643,11 @@ pub mod vertical_align {
 
 pub mod offset {
     use super::*;
+    use crate::Zero;
     pub use crate::properties::generated::shorthands::offset::*;
     use crate::values::specified::{
         LengthPercentage, OffsetPath, OffsetPosition, OffsetRotate, PositionOrAuto,
     };
-    use crate::Zero;
 
     pub fn parse_value(
         context: &ParserContext,
@@ -670,17 +667,17 @@ pub mod offset {
         // offset-distance and offset-rotate are grouped with offset-path.
         if offset_path.is_some() {
             loop {
-                if offset_distance.is_none() {
-                    if let Ok(value) = input.try_parse(|i| LengthPercentage::parse(context, i)) {
-                        offset_distance = Some(value);
-                    }
+                if offset_distance.is_none()
+                    && let Ok(value) = input.try_parse(|i| LengthPercentage::parse(context, i))
+                {
+                    offset_distance = Some(value);
                 }
 
-                if offset_rotate.is_none() {
-                    if let Ok(value) = input.try_parse(|i| OffsetRotate::parse(context, i)) {
-                        offset_rotate = Some(value);
-                        continue;
-                    }
+                if offset_rotate.is_none()
+                    && let Ok(value) = input.try_parse(|i| OffsetRotate::parse(context, i))
+                {
+                    offset_rotate = Some(value);
+                    continue;
                 }
                 break;
             }
@@ -766,18 +763,18 @@ pub mod columns {
                 continue;
             }
 
-            if column_count.is_none() {
-                if let Ok(value) = input.try_parse(|input| column_count::parse(context, input)) {
-                    column_count = Some(value);
-                    continue;
-                }
+            if column_count.is_none()
+                && let Ok(value) = input.try_parse(|input| column_count::parse(context, input))
+            {
+                column_count = Some(value);
+                continue;
             }
 
-            if column_width.is_none() {
-                if let Ok(value) = input.try_parse(|input| column_width::parse(context, input)) {
-                    column_width = Some(value);
-                    continue;
-                }
+            if column_width.is_none()
+                && let Ok(value) = input.try_parse(|input| column_width::parse(context, input))
+            {
+                column_width = Some(value);
+                continue;
             }
 
             break;
@@ -889,7 +886,6 @@ pub mod column_rule {
     }
 }
 
-// Snowlark patch (SNOWLARK-PATCHES.md 54): in the servo build too.
 pub mod text_wrap {
     pub use crate::properties::generated::shorthands::text_wrap::*;
 
@@ -1342,20 +1338,19 @@ pub mod flex {
             });
         }
         loop {
-            if grow.is_none() {
-                if let Ok((flex_grow, flex_shrink)) =
+            if grow.is_none()
+                && let Ok((flex_grow, flex_shrink)) =
                     input.try_parse(|i| parse_flexibility(context, i))
-                {
-                    grow = Some(flex_grow);
-                    shrink = flex_shrink;
-                    continue;
-                }
+            {
+                grow = Some(flex_grow);
+                shrink = flex_shrink;
+                continue;
             }
-            if basis.is_none() {
-                if let Ok(value) = input.try_parse(|input| FlexBasis::parse(context, input)) {
-                    basis = Some(value);
-                    continue;
-                }
+            if basis.is_none()
+                && let Ok(value) = input.try_parse(|input| FlexBasis::parse(context, input))
+            {
+                basis = Some(value);
+                continue;
             }
             break;
         }
@@ -1499,8 +1494,8 @@ pub mod grid_row {
     pub use crate::properties::generated::shorthands::grid_row::*;
 
     use super::*;
-    use crate::values::specified::GridLine;
     use crate::Zero;
+    use crate::values::specified::GridLine;
 
     pub fn parse_value(
         context: &ParserContext,
@@ -1543,8 +1538,8 @@ pub mod grid_column {
     pub use crate::properties::generated::shorthands::grid_column::*;
 
     use super::*;
-    use crate::values::specified::GridLine;
     use crate::Zero;
+    use crate::values::specified::GridLine;
 
     pub fn parse_value(
         context: &ParserContext,
@@ -1587,8 +1582,8 @@ pub mod grid_area {
     pub use crate::properties::generated::shorthands::grid_area::*;
 
     use super::*;
-    use crate::values::specified::GridLine;
     use crate::Zero;
+    use crate::values::specified::GridLine;
 
     pub fn parse_value(
         context: &ParserContext,
@@ -1666,7 +1661,6 @@ pub mod grid_area {
     }
 }
 
-// (Snowlark patch: the servo build too, SNOWLARK-PATCHES.md 99)
 pub mod position_try {
     pub use crate::properties::generated::shorthands::position_try::*;
 
@@ -2174,8 +2168,8 @@ pub mod background_position {
 
     use super::*;
     use crate::properties::longhands::{background_position_x, background_position_y};
-    use crate::values::specified::position::Position;
     use crate::values::specified::AllowQuirks;
+    use crate::values::specified::position::Position;
 
     pub fn parse_value(
         context: &ParserContext,
@@ -2243,26 +2237,6 @@ pub mod background {
     };
     use crate::values::specified::{AllowQuirks, Color, Position, PositionComponent};
 
-    impl From<background_origin::single_value::SpecifiedValue>
-        for background_clip::single_value::SpecifiedValue
-    {
-        fn from(
-            origin: background_origin::single_value::SpecifiedValue,
-        ) -> background_clip::single_value::SpecifiedValue {
-            match origin {
-                background_origin::single_value::SpecifiedValue::ContentBox => {
-                    background_clip::single_value::SpecifiedValue::ContentBox
-                },
-                background_origin::single_value::SpecifiedValue::PaddingBox => {
-                    background_clip::single_value::SpecifiedValue::PaddingBox
-                },
-                background_origin::single_value::SpecifiedValue::BorderBox => {
-                    background_clip::single_value::SpecifiedValue::BorderBox
-                },
-            }
-        }
-    }
-
     pub fn parse_value(
         context: &ParserContext,
         input: &mut Parser,
@@ -2293,21 +2267,21 @@ pub mod background {
             loop {
                 parsed += 1;
                 try_parse_one!(context, input, background_color, Color::parse);
-                if position.is_none() {
-                    if let Ok(value) = input.try_parse(|input| {
+                if position.is_none()
+                    && let Ok(value) = input.try_parse(|input| {
                         Position::parse_three_value_quirky(context, input, AllowQuirks::No)
-                    }) {
-                        position = Some(value);
+                    })
+                {
+                    position = Some(value);
 
-                        size = input
-                            .try_parse(|input| {
-                                input.expect_delim('/')?;
-                                background_size::single_value::parse(context, input)
-                            })
-                            .ok();
+                    size = input
+                        .try_parse(|input| {
+                            input.expect_delim('/')?;
+                            background_size::single_value::parse(context, input)
+                        })
+                        .ok();
 
-                        continue;
-                    }
+                    continue;
                 }
                 try_parse_one!(context, input, image, background_image::single_value::parse);
                 try_parse_one!(
@@ -2335,10 +2309,10 @@ pub mod background {
             if parsed == 0 {
                 return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
             }
-            if clip.is_none() {
-                if let Some(origin) = origin {
-                    clip = Some(background_clip::single_value::SpecifiedValue::from(origin));
-                }
+            if clip.is_none()
+                && let Some(origin) = origin
+            {
+                clip = Some(background_clip::single_value::SpecifiedValue::from(origin));
             }
             if let Some(position) = position {
                 background_position_x.push(position.horizontal);
@@ -2502,16 +2476,12 @@ pub mod font {
     pub use crate::properties::generated::shorthands::font::*;
 
     use super::*;
-    #[cfg(feature = "gecko")]
-    use crate::properties::longhands::font_size_adjust;
-    // Snowlark patch: font-variant-emoji in the servo build (SNOWLARK-PATCHES.md 63).
-    use crate::properties::longhands::font_variant_emoji;
-    use crate::properties::longhands::{font_family, font_size};
     use crate::properties::longhands::{
-        font_feature_settings, font_kerning, font_language_override, font_optical_sizing,
-        font_style, font_variant_alternates, font_variant_caps, font_variant_east_asian,
-        font_variant_ligatures, font_variant_numeric, font_variant_position,
-        font_variation_settings, font_weight, font_width,
+        font_family, font_feature_settings, font_kerning, font_language_override,
+        font_optical_sizing, font_size, font_size_adjust, font_style, font_variant_alternates,
+        font_variant_caps, font_variant_east_asian, font_variant_emoji, font_variant_ligatures,
+        font_variant_numeric, font_variant_position, font_variation_settings, font_weight,
+        font_width,
     };
     use crate::values::specified::font::SystemFont;
     use crate::values::specified::font::{
@@ -2529,6 +2499,7 @@ pub mod font {
         let mut width = None;
         #[cfg(feature = "gecko")]
         let system = input.try_parse(|i| SystemFont::parse(context, i));
+        // Snowlark patch (SNOWLARK-PATCHES.md 61): the servo build's system font keywords.
         #[cfg(feature = "servo")]
         let system = input.try_parse(SystemFont::parse);
         if let Ok(sys) = system {
@@ -2541,7 +2512,6 @@ pub mod font {
                 line_height: LineHeight::normal(),
                 font_kerning: font_kerning::get_initial_specified_value(),
                 font_language_override: font_language_override::get_initial_specified_value(),
-                #[cfg(feature = "gecko")]
                 font_size_adjust: font_size_adjust::get_initial_specified_value(),
                 font_variant_alternates: font_variant_alternates::get_initial_specified_value(),
                 font_variant_east_asian: font_variant_east_asian::get_initial_specified_value(),
@@ -2588,11 +2558,7 @@ pub mod font {
 
         #[inline]
         fn count<T>(opt: &Option<T>) -> u8 {
-            if opt.is_some() {
-                1
-            } else {
-                0
-            }
+            if opt.is_some() { 1 } else { 0 }
         }
 
         if (count(&style) + count(&weight) + count(&variant_caps) + count(&width) + nb_normals) > 4
@@ -2614,7 +2580,6 @@ pub mod font {
             font_variation_settings: font_variation_settings::get_initial_specified_value(),
             font_kerning: font_kerning::get_initial_specified_value(),
             font_language_override: font_language_override::get_initial_specified_value(),
-            #[cfg(feature = "gecko")]
             font_size_adjust: font_size_adjust::get_initial_specified_value(),
             font_variant_alternates: font_variant_alternates::get_initial_specified_value(),
             font_variant_east_asian: font_variant_east_asian::get_initial_specified_value(),
@@ -2665,8 +2630,15 @@ pub mod font {
                     return Ok(());
                 }
             }
+            #[cfg(feature = "gecko")]
             if self.font_variant_emoji != &font_variant_emoji::get_initial_specified_value() {
                 return Ok(());
+            }
+            #[cfg(feature = "servo")]
+            if let Some(v) = self.font_variant_emoji {
+                if v != &font_variant_emoji::get_initial_specified_value() {
+                    return Ok(());
+                }
             }
 
             if self.font_kerning != &font_kerning::get_initial_specified_value() {
@@ -2679,6 +2651,12 @@ pub mod font {
             #[cfg(feature = "gecko")]
             if self.font_size_adjust != &font_size_adjust::get_initial_specified_value() {
                 return Ok(());
+            }
+            #[cfg(feature = "servo")]
+            if let Some(v) = self.font_size_adjust {
+                if v != &font_size_adjust::get_initial_specified_value() {
+                    return Ok(());
+                }
             }
             if self.font_variant_alternates
                 != &font_variant_alternates::get_initial_specified_value()
@@ -2816,7 +2794,6 @@ pub mod font {
             font_variant_caps::SpecifiedValue::collect_completion_keywords(f);
             FontSize::collect_completion_keywords(f);
             FontFamily::collect_completion_keywords(f);
-
             SystemFont::collect_completion_keywords(f);
         }
     }
@@ -2826,12 +2803,11 @@ pub mod font_variant {
     pub use crate::properties::generated::shorthands::font_variant::*;
 
     use super::*;
-    // Snowlark patch: font-variant-emoji in the servo build (SNOWLARK-PATCHES.md 63).
-    use crate::properties::longhands::font_variant_emoji;
     use crate::properties::longhands::{
-        font_variant_alternates, font_variant_caps, font_variant_east_asian,
+        font_variant_alternates, font_variant_caps, font_variant_east_asian, font_variant_emoji,
         font_variant_ligatures, font_variant_numeric, font_variant_position,
     };
+    use crate::properties::{LonghandId, NonCustomPropertyId};
     use crate::values::specified::FontVariantLigatures;
 
     pub fn parse_value(
@@ -2845,6 +2821,8 @@ pub mod font_variant {
         let mut east_asian = None;
         let mut position = None;
         let mut emoji = None;
+        let emoji_enabled = NonCustomPropertyId::from(LonghandId::FontVariantEmoji)
+            .allowed_in_ignoring_rule_type(context);
 
         if input
             .try_parse(|input| input.expect_ident_matching("normal"))
@@ -2874,7 +2852,9 @@ pub mod font_variant {
                 try_parse_one!(context, input, numeric, font_variant_numeric::parse);
                 try_parse_one!(context, input, east_asian, font_variant_east_asian::parse);
                 try_parse_one!(context, input, position, font_variant_position::parse);
-                try_parse_one!(context, input, emoji, font_variant_emoji::parse);
+                if emoji_enabled {
+                    try_parse_one!(context, input, emoji, font_variant_emoji::parse);
+                }
                 parsed -= 1;
                 break;
             }
@@ -2884,7 +2864,7 @@ pub mod font_variant {
             }
         }
 
-        return Ok(expanded! {
+        Ok(expanded! {
             font_variant_ligatures: unwrap_or_initial!(font_variant_ligatures, ligatures),
             font_variant_caps: unwrap_or_initial!(font_variant_caps, caps),
             font_variant_alternates: unwrap_or_initial!(font_variant_alternates, alternates),
@@ -2892,7 +2872,7 @@ pub mod font_variant {
             font_variant_east_asian: unwrap_or_initial!(font_variant_east_asian, east_asian),
             font_variant_position: unwrap_or_initial!(font_variant_position, position),
             font_variant_emoji: unwrap_or_initial!(font_variant_emoji, emoji),
-        });
+        })
     }
 
     impl<'a> ToCss for LonghandsToSerialize<'a> {
@@ -2903,7 +2883,14 @@ pub mod font_variant {
         {
             let has_none_ligatures = self.font_variant_ligatures == &FontVariantLigatures::NONE;
 
-            const TOTAL_SUBPROPS: usize = 7;
+            // `font-variant-emoji` may be disabled in Servo, in which case it's not part of the
+            // shorthand.
+            #[cfg(feature = "gecko")]
+            let emoji = Some(self.font_variant_emoji);
+            #[cfg(feature = "servo")]
+            let emoji = self.font_variant_emoji;
+
+            let total_subprops = 6 + emoji.is_some() as usize;
             let mut nb_normals = 0;
             macro_rules! count_normal {
                 ($e: expr, $p: ident) => {
@@ -2921,13 +2908,15 @@ pub mod font_variant {
             count_normal!(font_variant_numeric);
             count_normal!(font_variant_east_asian);
             count_normal!(font_variant_position);
-            count_normal!(font_variant_emoji);
+            if let Some(emoji) = emoji {
+                count_normal!(emoji, font_variant_emoji);
+            }
 
-            if nb_normals == TOTAL_SUBPROPS {
+            if nb_normals == total_subprops {
                 return dest.write_str("normal");
             }
             if has_none_ligatures {
-                if nb_normals == TOTAL_SUBPROPS - 1 {
+                if nb_normals == total_subprops - 1 {
                     dest.write_str("none")?;
                 }
                 return Ok(());
@@ -2951,7 +2940,9 @@ pub mod font_variant {
             write!(font_variant_numeric);
             write!(font_variant_east_asian);
             write!(font_variant_position);
-            write!(font_variant_emoji);
+            if let Some(emoji) = emoji {
+                write!(emoji, font_variant_emoji);
+            }
             Ok(())
         }
     }
@@ -3064,7 +3055,6 @@ pub mod font_synthesis {
     }
 }
 
-// Snowlark patch: in the servo build too (SNOWLARK-PATCHES.md 4).
 pub mod text_box {
     pub use crate::properties::generated::shorthands::text_box::*;
 
@@ -3133,7 +3123,6 @@ pub mod text_box {
     }
 }
 
-#[cfg(feature = "gecko")]
 pub mod text_emphasis {
     pub use crate::properties::generated::shorthands::text_emphasis::*;
 
@@ -3197,12 +3186,12 @@ pub mod text_decoration {
             return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
         }
 
-        return Ok(expanded! {
+        Ok(expanded! {
             text_decoration_line: unwrap_or_initial!(text_decoration_line, line),
             text_decoration_style: unwrap_or_initial!(text_decoration_style, style),
             text_decoration_color: unwrap_or_initial!(text_decoration_color, color),
             text_decoration_thickness: unwrap_or_initial!(text_decoration_thickness, thickness),
-        });
+        })
     }
 
     impl<'a> ToCss for LonghandsToSerialize<'a> {
@@ -3397,11 +3386,11 @@ pub mod animation {
         where
             W: fmt::Write,
         {
+            use crate::Zero;
             use crate::values::specified::easing::TimingFunction;
             use crate::values::specified::{
                 AnimationDirection, AnimationFillMode, AnimationPlayState,
             };
-            use crate::Zero;
             use style_traits::values::SequenceWriter;
 
             let len = self.animation_name.0.len();
@@ -3534,36 +3523,6 @@ pub mod mask {
         Ok(value)
     }
 
-    impl From<mask_origin::single_value::SpecifiedValue> for mask_clip::single_value::SpecifiedValue {
-        fn from(
-            origin: mask_origin::single_value::SpecifiedValue,
-        ) -> mask_clip::single_value::SpecifiedValue {
-            match origin {
-                mask_origin::single_value::SpecifiedValue::ContentBox => {
-                    mask_clip::single_value::SpecifiedValue::ContentBox
-                },
-                mask_origin::single_value::SpecifiedValue::PaddingBox => {
-                    mask_clip::single_value::SpecifiedValue::PaddingBox
-                },
-                mask_origin::single_value::SpecifiedValue::BorderBox => {
-                    mask_clip::single_value::SpecifiedValue::BorderBox
-                },
-                #[cfg(feature = "gecko")]
-                mask_origin::single_value::SpecifiedValue::FillBox => {
-                    mask_clip::single_value::SpecifiedValue::FillBox
-                },
-                #[cfg(feature = "gecko")]
-                mask_origin::single_value::SpecifiedValue::StrokeBox => {
-                    mask_clip::single_value::SpecifiedValue::StrokeBox
-                },
-                #[cfg(feature = "gecko")]
-                mask_origin::single_value::SpecifiedValue::ViewBox => {
-                    mask_clip::single_value::SpecifiedValue::ViewBox
-                },
-            }
-        }
-    }
-
     pub fn parse_value(
         context: &ParserContext,
         input: &mut Parser,
@@ -3592,18 +3551,18 @@ pub mod mask {
                 parsed += 1;
 
                 try_parse_one!(context, input, image, mask_image::single_value::parse);
-                if position.is_none() {
-                    if let Ok(value) = input.try_parse(|input| Position::parse(context, input)) {
-                        position = Some(value);
-                        size = input
-                            .try_parse(|input| {
-                                input.expect_delim('/')?;
-                                mask_size::single_value::parse(context, input)
-                            })
-                            .ok();
+                if position.is_none()
+                    && let Ok(value) = input.try_parse(|input| Position::parse(context, input))
+                {
+                    position = Some(value);
+                    size = input
+                        .try_parse(|input| {
+                            input.expect_delim('/')?;
+                            mask_size::single_value::parse(context, input)
+                        })
+                        .ok();
 
-                        continue;
-                    }
+                    continue;
                 }
                 try_parse_one!(context, input, repeat, mask_repeat::single_value::parse);
                 try_parse_one!(context, input, origin, mask_origin::single_value::parse);
@@ -3614,10 +3573,10 @@ pub mod mask {
                 parsed -= 1;
                 break;
             }
-            if clip.is_none() {
-                if let Some(origin) = origin {
-                    clip = Some(mask_clip::single_value::SpecifiedValue::from(origin));
-                }
+            if clip.is_none()
+                && let Some(origin) = origin
+            {
+                clip = Some(mask_clip::single_value::SpecifiedValue::from(origin));
             }
             if parsed == 0 {
                 return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
@@ -3875,8 +3834,8 @@ pub mod grid_template {
 
     use super::*;
     use crate::parser::Parse;
-    use crate::values::generics::grid::{concat_serialize_idents, TrackListValue};
     use crate::values::generics::grid::{TrackList, TrackSize};
+    use crate::values::generics::grid::{TrackListValue, concat_serialize_idents};
     use crate::values::specified::grid::parse_line_names;
     use crate::values::specified::position::{
         GridTemplateAreas, TemplateAreasArc, TemplateAreasParser,
@@ -3959,10 +3918,10 @@ pub mod grid_template {
 
             let template_cols = if input.try_parse(|i| i.expect_delim('/')).is_ok() {
                 let value = GridTemplateComponent::parse_without_none(context, input)?;
-                if let GenericGridTemplateComponent::TrackList(ref list) = value {
-                    if !list.is_explicit() {
-                        return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
-                    }
+                if let GenericGridTemplateComponent::TrackList(ref list) = value
+                    && !list.is_explicit()
+                {
+                    return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
                 }
 
                 value
@@ -4223,10 +4182,9 @@ pub mod grid {
                 }
 
                 if let GenericGridTemplateComponent::TrackList(ref list) = *self.grid_template_rows
+                    && !list.is_explicit()
                 {
-                    if !list.is_explicit() {
-                        return Ok(());
-                    }
+                    return Ok(());
                 }
 
                 self.grid_template_rows.to_css(dest)?;
@@ -4247,10 +4205,10 @@ pub mod grid {
                 return Ok(());
             }
 
-            if let GenericGridTemplateComponent::TrackList(ref list) = *self.grid_template_columns {
-                if !list.is_explicit() {
-                    return Ok(());
-                }
+            if let GenericGridTemplateComponent::TrackList(ref list) = *self.grid_template_columns
+                && !list.is_explicit()
+            {
+                return Ok(());
             }
 
             dest.write_str("auto-flow")?;

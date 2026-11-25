@@ -12,7 +12,7 @@
 [package]
 edition = "2024"
 name = "stylo"
-version = "0.22.0"
+version = "0.24.0"
 authors = ["The Servo Project Developers"]
 build = "build.rs"
 links = "servo_style_crate"
@@ -36,6 +36,7 @@ gecko = [
     "nsstring",
     "regex",
     "serde",
+    "siphasher",
     "style_traits/gecko",
     "toml",
     "selectors/to_shmem",
@@ -94,7 +95,7 @@ features = [
 ]
 
 [dependencies.dom]
-version = "0.22.0"
+version = "0.24.0"
 package = "stylo_dom"
 
 [dependencies.encoding_rs]
@@ -103,6 +104,9 @@ optional = true
 
 [dependencies.euclid]
 version = "0.22"
+
+[dependencies.hashbrown]
+version = "0.17"
 
 [dependencies.icu_segmenter]
 version = ">= 1.5, <= 2.*"
@@ -126,7 +130,7 @@ version = "1.0"
 version = "0.4"
 
 [dependencies.malloc_size_of]
-version = "0.22.0"
+version = "0.24.0"
 features = ["servo"]
 package = "stylo_malloc_size_of"
 
@@ -162,6 +166,11 @@ version = "0.12"
 [dependencies.precomputed-hash]
 version = "0.1.1"
 
+[dependencies.rand]
+version = "0.8.6"
+features = ["small_rng"]
+default-features = false
+
 [dependencies.rayon]
 version = "1"
 
@@ -172,7 +181,7 @@ version = "1"
 version = "2.1.1"
 
 [dependencies.selectors]
-version = "0.41.0"
+version = "0.43.0"
 
 [dependencies.serde]
 version = "1.0"
@@ -180,7 +189,11 @@ features = ["derive"]
 optional = true
 
 [dependencies.servo_arc]
-version = "0.5.0"
+version = "0.6.0"
+
+[dependencies.siphasher]
+version = "1"
+optional = true
 
 [dependencies.smallbitvec]
 version = "2.3.0"
@@ -192,7 +205,7 @@ version = "1.0"
 version = "1.1"
 
 [dependencies.static_prefs]
-version = "0.22.0"
+version = "0.24.0"
 package = "stylo_static_prefs"
 
 [dependencies.string_cache]
@@ -206,27 +219,28 @@ version = "0.28"
 version = "0.28"
 
 [dependencies.style_derive]
-version = "0.22.0"
+version = "0.24.0"
 package = "stylo_derive"
 
 [dependencies.style_traits]
-version = "0.22.0"
+version = "0.24.0"
 features = ["servo"]
 package = "stylo_traits"
 
 [dependencies.stylo_atoms]
-version = "0.22.0"
+version = "0.24.0"
 optional = true
 
 [dependencies.thin-vec]
 version = "0.2.1"
+features = ["serde"]
 
 [dependencies.to_shmem]
-version = "0.6.0"
+version = "0.8.0"
 features = ["servo"]
 
 [dependencies.to_shmem_derive]
-version = "0.2.0"
+version = "0.3.0"
 
 [dependencies.uluru]
 version = "3.0"
@@ -244,7 +258,7 @@ version = "0.3.0"
 optional = true
 
 [build-dependencies.bindgen]
-version = "0.69"
+version = "0.73"
 optional = true
 default-features = false
 

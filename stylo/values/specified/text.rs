@@ -4,20 +4,20 @@
 
 //! Specified types for text properties.
 
+use crate::Zero;
 use crate::derives::*;
 use crate::parser::{Parse, ParserContext};
 use crate::properties::longhands::writing_mode::computed_value::T as SpecifiedWritingMode;
 use crate::values::computed;
 use crate::values::computed::text::TextEmphasisStyle as ComputedTextEmphasisStyle;
 use crate::values::computed::{Context, ToComputedValue};
+use crate::values::generics::NumberOrAuto;
 use crate::values::generics::text::{
     GenericHyphenateLimitChars, GenericInitialLetter, GenericTextDecorationInset,
     GenericTextDecorationLength, GenericTextIndent,
 };
-use crate::values::generics::NumberOrAuto;
 use crate::values::specified::length::{Length, LengthPercentage};
 use crate::values::specified::{AllowQuirks, Integer, Number};
-use crate::Zero;
 use cssparser::Parser;
 use icu_segmenter::GraphemeClusterSegmenter;
 use std::fmt::{self, Write};
@@ -280,17 +280,10 @@ impl ToCss for TextOverflow {
     ToShmem,
     ToTyped,
 )]
-#[cfg_attr(
-    feature = "gecko",
-    css(bitflags(
-        single = "none,spelling-error,grammar-error",
-        mixed = "underline,overline,line-through,blink",
-    ))
-)]
-#[cfg_attr(
-    not(feature = "gecko"),
-    css(bitflags(single = "none", mixed = "underline,overline,line-through,blink",))
-)]
+#[css(bitflags(
+    single = "none,spelling-error,grammar-error",
+    mixed = "underline,overline,line-through,blink",
+))]
 #[repr(C)]
 /// Specified keyword values for the text-decoration-line property.
 pub struct TextDecorationLine(u8);
@@ -319,6 +312,9 @@ bitflags! {
         /// a red text decoration
         #[cfg(feature = "gecko")]
         const COLOR_OVERRIDE = 1 << 7;
+
+        /// Flags that can be mixed.
+        const MIXED_FLAGS = Self::UNDERLINE.0 | Self::OVERLINE.0 | Self::LINE_THROUGH.0 | Self::BLINK.0;
     }
 }
 
@@ -488,10 +484,10 @@ impl ToComputedValue for TextAlignLast {
         if *self != TextAlignLast::MatchParent {
             return *self;
         }
-        let parent = context
+        let parent = *context
             .builder
             .get_parent_inherited_text()
-            .clone_text_align_last();
+            .get_text_align_last();
         let ltr = context.builder.inherited_writing_mode().is_bidi_ltr();
         match (parent, ltr) {
             (TextAlignLast::Start, true) | (TextAlignLast::End, false) => TextAlignLast::Left,
@@ -596,10 +592,10 @@ impl ToComputedValue for TextAlign {
                 if _context.builder.is_root_element {
                     return TextAlignKeyword::Start;
                 }
-                let parent = _context
+                let parent = *_context
                     .builder
                     .get_parent_inherited_text()
-                    .clone_text_align();
+                    .get_text_align();
                 let ltr = _context.builder.inherited_writing_mode().is_bidi_ltr();
                 match (parent, ltr) {
                     (TextAlignKeyword::Start, true) => TextAlignKeyword::Left,
@@ -610,10 +606,10 @@ impl ToComputedValue for TextAlign {
                 }
             },
             TextAlign::MozCenterOrInherit => {
-                let parent = _context
+                let parent = *_context
                     .builder
                     .get_parent_inherited_text()
-                    .clone_text_align();
+                    .get_text_align();
                 if parent == TextAlignKeyword::Start {
                     TextAlignKeyword::Center
                 } else {
@@ -727,7 +723,7 @@ impl ToComputedValue for TextEmphasisStyle {
                     //
                     // Also should probably use WritingMode::is_vertical rather
                     // than the computed value of the `writing-mode` property.
-                    if context.style().get_inherited_box().clone_writing_mode()
+                    if *context.style().get_inherited_box().get_writing_mode()
                         == SpecifiedWritingMode::HorizontalTb
                     {
                         TextEmphasisShapeKeyword::Circle
@@ -860,6 +856,10 @@ impl TextEmphasisPosition {
     }
 }
 
+fn word_break_break_word_enabled(_: &ParserContext) -> bool {
+    crate::pref!("layout.css.word-break.break-word.enabled", gecko = true)
+}
+
 /// Values for the `word-break` property.
 #[repr(u8)]
 #[derive(
@@ -886,7 +886,7 @@ pub enum WordBreak {
     ///
     /// Specifying `word-break: break-word` makes `overflow-wrap` behave as
     /// `anywhere`, and `word-break` behave like `normal`.
-    // (Snowlark patch: in the servo build too; CSS Text 3 §5.2 keeps it for compatibility)
+    #[parse(condition = "word_break_break_word_enabled")]
     BreakWord,
     /// CSS Text 4 §5.2 `auto-phrase`: `normal`, with phrases of languages the UA can analyze
     /// kept together (Snowlark patch 91).
@@ -1020,13 +1020,12 @@ impl Parse for TextIndent {
         // The length-percentage and the two possible keywords can occur in any order.
         while !input.is_exhausted() {
             // If we haven't seen a length yet, try to parse one.
-            if length.is_none() {
-                if let Ok(len) = input
+            if length.is_none()
+                && let Ok(len) = input
                     .try_parse(|i| LengthPercentage::parse_quirky(context, i, AllowQuirks::Yes))
-                {
-                    length = Some(len);
-                    continue;
-                }
+            {
+                length = Some(len);
+                continue;
             }
 
             // Snowlark patch (SNOWLARK-PATCHES.md 55): the keywords in the servo build too.
@@ -1589,6 +1588,321 @@ impl TextBoxTrim {
     }
 }
 
+/// https://drafts.csswg.org/css-text/#propdef-hyphens
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum Hyphens {
+    Manual,
+    None,
+    Auto,
+}
+
+/// https://drafts.csswg.org/css-ruby/#ruby-align-property
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum RubyAlign {
+    SpaceAround,
+    Start,
+    Center,
+    SpaceBetween,
+}
+
+/// https://drafts.csswg.org/css-writing-modes-3/#text-combine-upright
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum TextCombineUpright {
+    None,
+    All,
+}
+
+/// https://svgwg.org/svg2-draft/painting.html#TextRenderingProperty
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum TextRendering {
+    Auto,
+    Optimizespeed,
+    Optimizelegibility,
+    Geometricprecision,
+}
+
+/// https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/-webkit-text-security
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum TextSecurity {
+    None,
+    Circle,
+    Disc,
+    Square,
+}
+
+/// https://drafts.csswg.org/css-text-4/#propdef-text-wrap-mode
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum TextWrapMode {
+    Wrap,
+    Nowrap,
+}
+
+fn text_wrap_style_balance_enabled(_: &ParserContext) -> bool {
+    crate::pref!("layout.css.text-wrap-style.balance.enabled", gecko = true)
+}
+
+fn text_wrap_style_pretty_enabled(_: &ParserContext) -> bool {
+    crate::pref!("layout.css.text-wrap-style.pretty.enabled", gecko = false)
+}
+
+/// https://drafts.csswg.org/css-text-4/#text-wrap-style
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum TextWrapStyle {
+    Auto,
+    Stable,
+    #[parse(condition = "text_wrap_style_balance_enabled")]
+    Balance,
+    #[parse(condition = "text_wrap_style_pretty_enabled")]
+    Pretty,
+}
+
+/// https://drafts.csswg.org/css-writing-modes/#propdef-unicode-bidi
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum UnicodeBidi {
+    Normal,
+    Embed,
+    Isolate,
+    BidiOverride,
+    IsolateOverride,
+    Plaintext,
+}
+
+/// https://drafts.csswg.org/css-text-decor/#propdef-text-decoration-style
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum TextDecorationStyle {
+    // The discriminants are exposed through the LookAndFeel underline style
+    // integers, so keep them stable.
+    #[css(keyword = "-moz-none")]
+    None = 0,
+    Dotted = 1,
+    Dashed = 2,
+    Solid = 3,
+    Double = 4,
+    Wavy = 5,
+}
+
+/// Max valid value for TextDecorationStyle, see above.
+pub const MAX_LINE_STYLE: i32 = 5;
+
+fn white_space_collapse_preserve_spaces_enabled(_: &ParserContext) -> bool {
+    crate::pref!(
+        "layout.css.white-space-collapse.preserve-spaces.enabled",
+        gecko = true
+    )
+}
+
+/// https://drafts.csswg.org/css-text-4/#propdef-white-space-collapse
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Eq,
+    FromPrimitive,
+    Hash,
+    MallocSizeOf,
+    Parse,
+    PartialEq,
+    Serialize,
+    SpecifiedValueInfo,
+    ToComputedValue,
+    ToCss,
+    ToResolvedValue,
+    ToShmem,
+    ToTyped,
+)]
+#[repr(u8)]
+pub enum WhiteSpaceCollapse {
+    Collapse,
+    // TODO: Discard is not yet supported.
+    Preserve,
+    PreserveBreaks,
+    BreakSpaces,
+    #[parse(condition = "white_space_collapse_preserve_spaces_enabled")]
+    #[cfg_attr(feature = "gecko", parse(aliases = "-moz-pre-space"))]
+    PreserveSpaces,
+}
 /// Snowlark patch (SNOWLARK-PATCHES.md 83): the specified value of `text-size-adjust`.
 pub type TextSizeAdjust =
     crate::values::generics::text::GenericTextSizeAdjust<crate::values::specified::NonNegativePercentage>;

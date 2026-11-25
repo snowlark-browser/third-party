@@ -19,7 +19,7 @@ use std::sync::atomic::{self, AtomicPtr, AtomicUsize, Ordering};
 
 use super::map::{Entry, Map};
 use super::unsafe_box::UnsafeBox;
-use super::{CascadeLevel, CascadeOrigin, RuleCascadeFlags, StyleSource};
+use super::{CascadeLevel, CascadeOrigin, RuleCascadeFlags, StyleSource, StyleSourceBorrow};
 
 /// The rule tree, the structure servo uses to preserve the results of selector
 /// matching.
@@ -134,7 +134,7 @@ impl RuleTree {
             return;
         }
 
-        let mut children_count = rustc_hash::FxHashMap::default();
+        let mut children_count = crate::FxHashMap::default();
 
         let mut stack = SmallVec::<[_; 32]>::new();
         stack.push(self.root.clone());
@@ -563,12 +563,20 @@ impl StrongRuleNode {
         self.p.parent.as_ref()
     }
 
+    fn root_matches(&self, root: &StrongRuleNode) -> bool {
+        match self.p.root {
+            Some(ref r) => *r == unsafe { root.downgrade() },
+            None => root == self,
+        }
+    }
+
     pub(super) fn ensure_child(
         &self,
         root: &StrongRuleNode,
-        source: StyleSource,
+        source: StyleSourceBorrow,
         cascade_priority: CascadePriority,
     ) -> StrongRuleNode {
+        debug_assert!(self.root_matches(root), "Mismatched tree!");
         debug_assert!(
             self.p.cascade_priority <= cascade_priority,
             "Should be ordered (instead {:?} > {:?}), from {:?} and {:?}",
@@ -596,7 +604,7 @@ impl StrongRuleNode {
                 let node = StrongRuleNode::new(Box::new(RuleNode::new(
                     root.downgrade(),
                     self.clone(),
-                    source,
+                    source.to_owned(),
                     cascade_priority,
                 )));
                 // Sound to call because we still own a strong reference to
@@ -736,7 +744,6 @@ impl Drop for StrongRuleNode {
         }
     }
 }
-
 impl WeakRuleNode {
     /// Upgrades this weak node reference, returning a strong one.
     ///
@@ -767,6 +774,13 @@ impl fmt::Debug for StrongRuleNode {
 
 impl Eq for StrongRuleNode {}
 impl PartialEq for StrongRuleNode {
+    fn eq(&self, other: &Self) -> bool {
+        &*self.p as *const RuleNode == &*other.p
+    }
+}
+
+impl Eq for WeakRuleNode {}
+impl PartialEq for WeakRuleNode {
     fn eq(&self, other: &Self) -> bool {
         &*self.p as *const RuleNode == &*other.p
     }
