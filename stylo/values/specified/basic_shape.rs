@@ -188,13 +188,17 @@ bitflags! {
             Self::SHAPE.bits();
 
         /// For shape-outside.
+        // Snowlark patch: `path()` and `shape()` too, as for clip-path (CSS Shapes 1 §3.1 lists
+        // both as <basic-shape>; SNOWLARK-PATCHES.md 100).
         const SHAPE_OUTSIDE =
             Self::INSET.bits() |
             Self::XYWH.bits() |
             Self::RECT.bits() |
             Self::CIRCLE.bits() |
             Self::ELLIPSE.bits() |
-            Self::POLYGON.bits();
+            Self::POLYGON.bits() |
+            Self::PATH.bits() |
+            Self::SHAPE.bits();
     }
 }
 

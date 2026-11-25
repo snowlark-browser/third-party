@@ -612,6 +612,8 @@ class Longhand(Property):
             "Position",
             "PositionOrAuto",
             "SimpleShadow",
+            # Snowlark patch: its lengths are zoomed (SNOWLARK-PATCHES.md 100).
+            "basic_shape::ShapeOutside",
             "Size",
             "SVGLength",
             "SVGStrokeDashArray",

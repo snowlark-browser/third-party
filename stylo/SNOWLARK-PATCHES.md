@@ -577,5 +577,11 @@ the source; `git log -p vendor/stylo` shows the diff.
    whose `anchor()` and `anchor-size()` its layout resolved (upstream resolves them only through gecko's
    layout).
 
+100. **CSS Shapes 1 in the servo build** (`properties/longhands.toml`, `values/specified/basic_shape.rs`):
+   `shape-outside`, `shape-margin` and `shape-image-threshold` lose their gecko-only engine line (their value
+   types are engine-neutral), and `shape-outside` takes `path()` and `shape()` as `clip-path` does (§3.1 lists
+   both as `<basic-shape>`; upstream allowed them for `clip-path` only). `shape-outside` is zoom-dependent
+   (`properties/data.py`), so an inherited value is zoomed again by the inheriting element's zoom.
+
 To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 still lacks, and run `cargo test -p snowlark-style`.

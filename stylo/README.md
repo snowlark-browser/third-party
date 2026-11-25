@@ -12,7 +12,7 @@ CSS engine of Servo and Firefox, with changes for Snowlark.
 
 ## Contents
 
-- The complete source of the `stylo` crate as it is built into Snowlark (source revision 31140d1bba56), including the
+- The complete source of the `stylo` crate as it is built into Snowlark (source revision c8c229981689), including the
   files that are unchanged from the release.
 - `CHANGES.diff`: every change from the unmodified release to this source, as one diff.
 - `SNOWLARK-PATCHES.md`: the list of changes with the reason for each. In the source, each change
@@ -595,6 +595,12 @@ The other Stylo crates Snowlark uses (`selectors`, `stylo_atoms`, `stylo_dom`, `
    value types are engine-neutral. `CalcLengthPercentage::clamping_mode()` lets the embedder rebuild a value
    whose `anchor()` and `anchor-size()` its layout resolved (upstream resolves them only through gecko's
    layout).
+
+100. **CSS Shapes 1 in the servo build** (`properties/longhands.toml`, `values/specified/basic_shape.rs`):
+   `shape-outside`, `shape-margin` and `shape-image-threshold` lose their gecko-only engine line (their value
+   types are engine-neutral), and `shape-outside` takes `path()` and `shape()` as `clip-path` does (§3.1 lists
+   both as `<basic-shape>`; upstream allowed them for `clip-path` only). `shape-outside` is zoom-dependent
+   (`properties/data.py`), so an inherited value is zoomed again by the inheriting element's zoom.
 
 To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 still lacks, and run `cargo test -p snowlark-style`.

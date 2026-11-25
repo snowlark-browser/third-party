@@ -379,10 +379,10 @@ index 00000000..d0a1fa14
 +  defined by the Mozilla Public License, v. 2.0.
 diff --git a/SNOWLARK-PATCHES.md b/SNOWLARK-PATCHES.md
 new file mode 100644
-index 00000000..8b6a4678
+index 00000000..16161763
 --- /dev/null
 +++ b/SNOWLARK-PATCHES.md
-@@ -0,0 +1,581 @@
+@@ -0,0 +1,587 @@
 +# stylo 0.22.0, patched for Snowlark
 +
 +This is stylo 0.22.0 from crates.io (the first commit that adds this directory is the unmodified release),
@@ -961,6 +961,12 @@ index 00000000..8b6a4678
 +   value types are engine-neutral. `CalcLengthPercentage::clamping_mode()` lets the embedder rebuild a value
 +   whose `anchor()` and `anchor-size()` its layout resolved (upstream resolves them only through gecko's
 +   layout).
++
++100. **CSS Shapes 1 in the servo build** (`properties/longhands.toml`, `values/specified/basic_shape.rs`):
++   `shape-outside`, `shape-margin` and `shape-image-threshold` lose their gecko-only engine line (their value
++   types are engine-neutral), and `shape-outside` takes `path()` and `shape()` as `clip-path` does (§3.1 lists
++   both as `<basic-shape>`; upstream allowed them for `clip-path` only). `shape-outside` is zoom-dependent
++   (`properties/data.py`), so an inherited value is zoomed again by the inheriting element's zoom.
 +
 +To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 +still lacks, and run `cargo test -p snowlark-style`.
@@ -2081,10 +2087,19 @@ index 7b5c8a80..780775de 100644
      "-webkit-shape-margin",
  ]
 diff --git a/properties/data.py b/properties/data.py
-index e19d9f27..2321650e 100644
+index e19d9f27..7c1a510a 100644
 --- a/properties/data.py
 +++ b/properties/data.py
-@@ -1367,6 +1367,28 @@ class PropertyRestrictions:
+@@ -612,6 +612,8 @@ class Longhand(Property):
+             "Position",
+             "PositionOrAuto",
+             "SimpleShadow",
++            # Snowlark patch: its lengths are zoomed (SNOWLARK-PATCHES.md 100).
++            "basic_shape::ShapeOutside",
+             "Size",
+             "SVGLength",
+             "SVGStrokeDashArray",
+@@ -1367,6 +1369,28 @@ class PropertyRestrictions:
              + PropertyRestrictions.shorthand(data, "font-synthesis")
          )
  
@@ -2224,7 +2239,7 @@ index 0f528db5..5effa830 100644
      ///
      /// SERVO ONLY: This doesn't properly handle things like updating 'em' units
 diff --git a/properties/longhands.toml b/properties/longhands.toml
-index 830a44d2..847cc35d 100644
+index 830a44d2..9f19787b 100644
 --- a/properties/longhands.toml
 +++ b/properties/longhands.toml
 @@ -101,7 +101,9 @@ type = "LineClamp"
@@ -2761,6 +2776,33 @@ index 830a44d2..847cc35d 100644
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-overflow-3/#scrollbar-gutter-property"
  affects = "layout"
+@@ -1940,7 +2022,7 @@ affects = "layout"
+ type = "Opacity"
+ initial = "0.0"
+ struct = "box"
+-engine = "gecko"
++# Snowlark patch: also the servo build (SNOWLARK-PATCHES.md 100).
+ spec = "https://drafts.csswg.org/css-shapes/#shape-image-threshold-property"
+ affects = "layout"
+ 
+@@ -1948,7 +2030,7 @@ affects = "layout"
+ type = "NonNegativeLengthPercentage"
+ initial = "computed::NonNegativeLengthPercentage::zero()"
+ struct = "box"
+-engine = "gecko"
++# Snowlark patch: also the servo build (SNOWLARK-PATCHES.md 100).
+ spec = "https://drafts.csswg.org/css-shapes/#shape-margin-property"
+ affects = "layout"
+ 
+@@ -1956,7 +2038,7 @@ affects = "layout"
+ type = "basic_shape::ShapeOutside"
+ initial = "generics::basic_shape::ShapeOutside::None"
+ struct = "box"
+-engine = "gecko"
++# Snowlark patch: also the servo build (SNOWLARK-PATCHES.md 100).
+ spec = "https://drafts.csswg.org/css-shapes/#shape-outside-property"
+ affects = "layout"
+ 
 @@ -1974,7 +2056,8 @@ affects = "layout"
  type = "Color"
  initial = "computed::Color::BLACK"
@@ -8307,10 +8349,29 @@ index 405d50e1..760f0667 100644
              Self::BorderArea => ClipValidity::BACKGROUND,
          }
 diff --git a/values/specified/basic_shape.rs b/values/specified/basic_shape.rs
-index bdedc609..d9aaae3c 100644
+index bdedc609..edd47d1f 100644
 --- a/values/specified/basic_shape.rs
 +++ b/values/specified/basic_shape.rs
-@@ -486,7 +486,21 @@ impl Polygon {
+@@ -188,13 +188,17 @@ bitflags! {
+             Self::SHAPE.bits();
+ 
+         /// For shape-outside.
++        // Snowlark patch: `path()` and `shape()` too, as for clip-path (CSS Shapes 1 §3.1 lists
++        // both as <basic-shape>; SNOWLARK-PATCHES.md 100).
+         const SHAPE_OUTSIDE =
+             Self::INSET.bits() |
+             Self::XYWH.bits() |
+             Self::RECT.bits() |
+             Self::CIRCLE.bits() |
+             Self::ELLIPSE.bits() |
+-            Self::POLYGON.bits();
++            Self::POLYGON.bits() |
++            Self::PATH.bits() |
++            Self::SHAPE.bits();
+     }
+ }
+ 
+@@ -486,7 +490,21 @@ impl Polygon {
          input: &mut Parser,
          shape_type: ShapeType,
      ) -> Result<Self, ParseError> {
@@ -8333,7 +8394,7 @@ index bdedc609..d9aaae3c 100644
          let coordinates = input
              .parse_comma_separated(|i| {
                  Ok(PolygonCoord(
-@@ -496,7 +510,11 @@ impl Polygon {
+@@ -496,7 +514,11 @@ impl Polygon {
              })?
              .into();
  
@@ -8346,7 +8407,7 @@ index bdedc609..d9aaae3c 100644
      }
  }
  
-@@ -680,7 +698,9 @@ impl generic::Shape<Angle, Position, LengthPercentage> {
+@@ -680,7 +702,9 @@ impl generic::Shape<Angle, Position, LengthPercentage> {
          input: &mut Parser,
          shape_type: ShapeType,
      ) -> Result<Self, ParseError> {
@@ -8357,7 +8418,7 @@ index bdedc609..d9aaae3c 100644
  
          let mut first = true;
          let commands = input.parse_comma_separated(|i| {
-@@ -984,3 +1004,23 @@ impl ByTo {
+@@ -984,3 +1008,23 @@ impl ByTo {
          matches!(self, ByTo::To)
      }
  }

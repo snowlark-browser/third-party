@@ -2022,7 +2022,7 @@ affects = "layout"
 type = "Opacity"
 initial = "0.0"
 struct = "box"
-engine = "gecko"
+# Snowlark patch: also the servo build (SNOWLARK-PATCHES.md 100).
 spec = "https://drafts.csswg.org/css-shapes/#shape-image-threshold-property"
 affects = "layout"
 
@@ -2030,7 +2030,7 @@ affects = "layout"
 type = "NonNegativeLengthPercentage"
 initial = "computed::NonNegativeLengthPercentage::zero()"
 struct = "box"
-engine = "gecko"
+# Snowlark patch: also the servo build (SNOWLARK-PATCHES.md 100).
 spec = "https://drafts.csswg.org/css-shapes/#shape-margin-property"
 affects = "layout"
 
@@ -2038,7 +2038,7 @@ affects = "layout"
 type = "basic_shape::ShapeOutside"
 initial = "generics::basic_shape::ShapeOutside::None"
 struct = "box"
-engine = "gecko"
+# Snowlark patch: also the servo build (SNOWLARK-PATCHES.md 100).
 spec = "https://drafts.csswg.org/css-shapes/#shape-outside-property"
 affects = "layout"
 
