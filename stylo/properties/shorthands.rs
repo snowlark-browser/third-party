@@ -1666,7 +1666,7 @@ pub mod grid_area {
     }
 }
 
-#[cfg(feature = "gecko")]
+// (Snowlark patch: the servo build too, SNOWLARK-PATCHES.md 99)
 pub mod position_try {
     pub use crate::properties::generated::shorthands::position_try::*;
 

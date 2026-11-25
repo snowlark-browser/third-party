@@ -659,6 +659,13 @@ impl CalcLengthPercentage {
         &self.node
     }
 
+    /// Snowlark patch: the range the value is clamped to, so an embedder can build the value again
+    /// from a mapped expression tree (anchor functions resolved: SNOWLARK-PATCHES.md 99).
+    #[inline]
+    pub fn clamping_mode(&self) -> AllowedNumericType {
+        self.clamping_mode
+    }
+
     /// Resolves the percentage.
     #[inline]
     pub fn resolve(&self, basis: Length) -> Length {

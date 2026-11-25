@@ -629,6 +629,14 @@ pub struct Animation {
     /// Whether or not this animation is new and or has already been tracked
     /// by the script thread.
     pub is_new: bool,
+
+    /// Snowlark patch 96: script replaced the effect of this animation's `CSSAnimation` object (Web
+    /// Animations 1 §4.5.3): its keyframes no longer apply and it animates no property here (the
+    /// page samples the new effect); its timing still runs, for the object and its events.
+    pub effect_replaced: bool,
+
+    /// (Snowlark patch 96: what [`Self::properties_changed`] gives while `effect_replaced`)
+    no_properties: PropertyDeclarationIdSet,
 }
 
 impl Animation {
@@ -672,8 +680,12 @@ impl Animation {
         }
     }
 
-    /// The properties that change in this animation (Snowlark patch 41).
+    /// The properties that change in this animation (Snowlark patch 41): none once script replaced
+    /// its effect (patch 96).
     pub fn properties_changed(&self) -> &PropertyDeclarationIdSet {
+        if self.effect_replaced {
+            return &self.no_properties;
+        }
         &self.properties_changed
     }
 
@@ -852,9 +864,12 @@ impl Animation {
         let old_direction = self.current_direction;
         let old_state = self.state.clone();
         let old_iteration_state = self.iteration_state.clone();
+        let effect_replaced = self.effect_replaced;
 
         *self = other.clone();
         self.current_direction = old_direction;
+        // (Snowlark patch 96: a replaced effect stays replaced)
+        self.effect_replaced = effect_replaced;
 
         if self.delay != old_delay {
             // `started_at` incorporates the delay, so changing the delay necessarily changes `started_at`.
@@ -957,7 +972,8 @@ impl Animation {
     /// Fill in an `AnimationValueMap` with values calculated from this animation at
     /// the given time value.
     fn get_property_declaration_at_time(&self, now: f64, map: &mut AnimationValueMap) {
-        if self.computed_steps.is_empty() {
+        // (Snowlark patch 96: an animation whose effect script replaced applies no keyframes)
+        if self.computed_steps.is_empty() || self.effect_replaced {
             // Nothing to do.
             return;
         }
@@ -2123,6 +2139,8 @@ pub fn maybe_start_animations<E>(
             current_direction: initial_direction,
             number_of_animating_properties,
             is_new: true,
+            effect_replaced: false,
+            no_properties: Default::default(),
         };
 
         // If we started with a negative delay, make sure we iterate the animation if

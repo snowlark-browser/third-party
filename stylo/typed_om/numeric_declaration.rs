@@ -12,8 +12,7 @@ use crate::values::specified::{
     NoCalcAngle, NoCalcLength, NoCalcNumber, NoCalcPercentage, NoCalcTime,
 };
 use cssparser::{Parser, Token};
-use style_traits::values::specified::AllowedNumericType;
-use style_traits::{ParseError, StyleParseErrorKind};
+use style_traits::ParseError;
 
 /// A numeric declaration, with or without a `calc()` expression.
 #[derive(Clone, ToTyped)]
@@ -76,14 +75,9 @@ impl Parse for NumericDeclaration {
                     CalcParseFlags::new(PercentageContext::allowed()),
                 )?;
 
-                let allow_all_types = AllowedNumericType::All;
-                let _ = node
-                    .clone()
-                    .into_length_or_percentage(allow_all_types)
-                    .map_err(|()| ParseError::custom(StyleParseErrorKind::UnspecifiedError))?;
-
-                // TODO: Add support for other values represented by a `calc()` expression.
-
+                // Snowlark patch 97: any math function, whatever its type (a number, an angle,
+                // a time...), not only a length-percentage; the caller checks that its type is
+                // valid.
                 Ok(Self::Calc(node))
             },
 

@@ -379,10 +379,10 @@ index 00000000..d0a1fa14
 +  defined by the Mozilla Public License, v. 2.0.
 diff --git a/SNOWLARK-PATCHES.md b/SNOWLARK-PATCHES.md
 new file mode 100644
-index 00000000..c97bc6b4
+index 00000000..8b6a4678
 --- /dev/null
 +++ b/SNOWLARK-PATCHES.md
-@@ -0,0 +1,554 @@
+@@ -0,0 +1,581 @@
 +# stylo 0.22.0, patched for Snowlark
 +
 +This is stylo 0.22.0 from crates.io (the first commit that adds this directory is the unmodified release),
@@ -935,6 +935,33 @@ index 00000000..c97bc6b4
 +   selector against the element, where the selectors crate's stateless pseudo-element matching refuses any
 +   pseudo-class after the pseudo-element.
 +
++96. **A CSS animation whose effect script replaced** (`servo/animation.rs`, Web Animations 1 §4.5.3, CSS
++   Animations 2 §4.1): `Animation::effect_replaced`, set through the page's `CSSAnimation` object, makes the
++   animation apply no keyframes (`get_property_declaration_at_time`) and animate no property
++   (`properties_changed()` is empty, so no compositor runs it); its timing still runs. It survives the
++   animation's updates from a new style (`update_from_other`).
++
++97. **`CSSNumericValue.parse` of any math function** (`typed_om/numeric_declaration.rs`, CSS Typed OM 1
++   §4.3.1): `NumericDeclaration` took a math function only when it was a length-percentage, so
++   `calc(2 + 3)`, `calc(1deg * 2)` and `min(1s, 2s)` did not parse; it now takes any, and snowlark-style
++   checks that the reified value's type is valid.
++
++98. **A `var()` fallback reified with its leading whitespace** (`custom_properties.rs`, CSS Typed OM 1 §5.4):
++   `VariableFallback` records where the fallback starts before the whitespace after the comma
++   (`typed_start`), and `reify_variable_value_range` reads the fallback from there, so `var(--A, 1em)`
++   reifies to a fallback of `" 1em"` and `var(--A, var(--B))` to `" "` and a reference. Substitution still
++   uses `start`. The references inside a fallback are read from the fallback's own list, where the
++   parser puts them (upstream looked for them in the outer list and reified a nested `var()` as text).
++
++99. **CSS Anchor Positioning 1 in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`,
++   `values/computed/length_percentage.rs`): `anchor-name`, `anchor-scope`, `position-anchor`,
++   `position-try-order`, `position-visibility` and the `position-try` shorthand lose their gecko-only engine
++   line and are behind `layout.css.anchor-positioning.enabled` (the preference that already gates `anchor()`,
++   `anchor-size()` and `@position-try`), as `position-area` and `position-try-fallbacks` already exist. Their
++   value types are engine-neutral. `CalcLengthPercentage::clamping_mode()` lets the embedder rebuild a value
++   whose `anchor()` and `anchor-size()` its layout resolved (upstream resolves them only through gecko's
++   layout).
++
 +To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 +still lacks, and run `cargo test -p snowlark-style`.
 diff --git a/color/mix.rs b/color/mix.rs
@@ -1145,6 +1172,70 @@ index 83b89b21..7e25bd29 100644
              tree_counting_caches: TreeCountingCaches::default(),
          }
      }
+diff --git a/custom_properties.rs b/custom_properties.rs
+index 04337b41..b4653fba 100644
+--- a/custom_properties.rs
++++ b/custom_properties.rs
+@@ -398,16 +398,22 @@ fn reify_variable_value_range(
+         let (fallback, has_fallback) = if let Some(fallback) = &reference.fallback {
+             debug_assert!(fallback.start.get() < reference.end);
+ 
+-            (
+-                reify_variable_value_range(
+-                    css,
+-                    references,
+-                    reference_index,
+-                    fallback.start.get(),
+-                    reference.end - 1, // Skip the closing ')'.
+-                )?,
+-                true,
+-            )
++            // Snowlark patch 98: the fallback from the whitespace after the comma, and the
++            // references in it from its own list (a nested var() is not in this one).
++            let mut nested_index = 0;
++            let value = reify_variable_value_range(
++                css,
++                &fallback.references.refs,
++                &mut nested_index,
++                fallback.typed_start,
++                reference.end - 1, // Skip the closing ')'.
++            )?;
++            while *reference_index < references.len()
++                && references[*reference_index].start < reference.end
++            {
++                *reference_index += 1;
++            }
++            (value, true)
+         } else {
+             (ThinVec::new(), false)
+         };
+@@ -808,6 +814,9 @@ pub struct VariableFallback {
+     // parenthesis, if any, to be inserted, which means that we can rely on our end being
+     // reference.end - 1.
+     start: num::NonZeroUsize,
++    /// Snowlark patch 98: where the fallback starts with the whitespace after the comma, which
++    /// Typed OM keeps (`start` skips it).
++    typed_start: usize,
+     first_token_type: TokenSerializationType,
+     last_token_type: TokenSerializationType,
+     /// References from this fallback value.
+@@ -1265,6 +1274,8 @@ fn parse_declaration_value_block(
+ 
+                         let mut fallback = None;
+                         if input.try_parse(|input| input.expect_comma()).is_ok() {
++                            let typed_start =
++                                input.position().byte_index() - input_start.byte_index();
+                             input.skip_whitespace();
+                             let fallback_start = num::NonZeroUsize::new(
+                                 input.position().byte_index() - input_start.byte_index(),
+@@ -1282,6 +1293,7 @@ fn parse_declaration_value_block(
+                             )?;
+                             fallback = Some(VariableFallback {
+                                 start: fallback_start,
++                                typed_start,
+                                 first_token_type: first,
+                                 last_token_type: last,
+                                 references,
 diff --git a/device/mod.rs b/device/mod.rs
 index 8c818b96..10475975 100644
 --- a/device/mod.rs
@@ -2133,7 +2224,7 @@ index 0f528db5..5effa830 100644
      ///
      /// SERVO ONLY: This doesn't properly handle things like updating 'em' units
 diff --git a/properties/longhands.toml b/properties/longhands.toml
-index 830a44d2..81a4ecc4 100644
+index 830a44d2..847cc35d 100644
 --- a/properties/longhands.toml
 +++ b/properties/longhands.toml
 @@ -101,7 +101,9 @@ type = "LineClamp"
@@ -2155,7 +2246,27 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-ui-4/#widget-accent"
  ignored_when_colors_disabled = true
  affects = "paint"
-@@ -476,7 +477,7 @@ affects = "overflow"
+@@ -183,7 +184,8 @@ affects = "layout"
+ type = "AnchorName"
+ initial = "computed::AnchorName::none()"
+ struct = "box"
+-engine = "gecko"
++# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
++servo_pref = "layout.css.anchor-positioning.enabled"
+ animation_type = "discrete"
+ spec = "https://drafts.csswg.org/css-anchor-position-1/#propdef-anchor-name"
+ affects = ""
+@@ -192,7 +194,8 @@ affects = ""
+ type = "ScopedName"
+ initial = "computed::ScopedName::none()"
+ struct = "box"
+-engine = "gecko"
++# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
++servo_pref = "layout.css.anchor-positioning.enabled"
+ animation_type = "discrete"
+ spec = "https://drafts.csswg.org/css-anchor-position-1/#propdef-scope"
+ affects = ""
+@@ -476,7 +479,7 @@ affects = "overflow"
  type = "BreakBetween"
  initial = "computed::BreakBetween::Auto"
  struct = "box"
@@ -2164,7 +2275,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-break/#propdef-break-after"
  animation_type = "discrete"
  affects = "layout"
-@@ -485,7 +486,7 @@ affects = "layout"
+@@ -485,7 +488,7 @@ affects = "layout"
  type = "BreakBetween"
  initial = "computed::BreakBetween::Auto"
  struct = "box"
@@ -2173,7 +2284,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-break/#propdef-break-before"
  animation_type = "discrete"
  affects = "layout"
-@@ -494,11 +495,29 @@ affects = "layout"
+@@ -494,11 +497,29 @@ affects = "layout"
  type = "BreakWithin"
  initial = "computed::BreakWithin::Auto"
  struct = "box"
@@ -2204,7 +2315,7 @@ index 830a44d2..81a4ecc4 100644
  [caption-side]
  type = "table::CaptionSide"
  initial = "computed::table::CaptionSide::Top"
-@@ -548,7 +567,8 @@ servo_restyle_damage = "rebuild_stacking_context"
+@@ -548,7 +569,8 @@ servo_restyle_damage = "rebuild_stacking_context"
  type = "FillRule"
  initial = "Default::default()"
  struct = "inherited_svg"
@@ -2214,7 +2325,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/masking.html#ClipRuleProperty"
  affects = "paint"
-@@ -573,6 +593,8 @@ servo_restyle_damage = "repaint"
+@@ -573,6 +595,8 @@ servo_restyle_damage = "repaint"
  affects = "paint"
  
  [column-count]
@@ -2223,7 +2334,7 @@ index 830a44d2..81a4ecc4 100644
  type = "ColumnCount"
  initial = "computed::ColumnCount::Auto"
  struct = "column"
-@@ -585,39 +607,48 @@ affects = "layout"
+@@ -585,39 +609,48 @@ affects = "layout"
  type = "length::NonNegativeLengthPercentageOrNormal"
  initial = "computed::length::NonNegativeLengthPercentageOrNormal::normal()"
  struct = "position"
@@ -2276,7 +2387,7 @@ index 830a44d2..81a4ecc4 100644
  type = "length::NonNegativeLengthOrAuto"
  initial = "computed::length::NonNegativeLengthOrAuto::auto()"
  struct = "column"
-@@ -626,6 +657,25 @@ spec = "https://drafts.csswg.org/css-multicol/#propdef-column-width"
+@@ -626,6 +659,25 @@ spec = "https://drafts.csswg.org/css-multicol/#propdef-column-width"
  servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
@@ -2302,7 +2413,7 @@ index 830a44d2..81a4ecc4 100644
  [contain]
  type = "Contain"
  initial = "specified::Contain::empty()"
-@@ -639,7 +689,8 @@ affects = "layout"
+@@ -639,7 +691,8 @@ affects = "layout"
  type = "ContainIntrinsicSize"
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
@@ -2312,7 +2423,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "contain-intrinsic-size"
  logical = true
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
-@@ -649,7 +700,8 @@ affects = "layout"
+@@ -649,7 +702,8 @@ affects = "layout"
  type = "ContainIntrinsicSize"
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
@@ -2322,7 +2433,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "contain-intrinsic-size"
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
  affects = "layout"
-@@ -658,7 +710,8 @@ affects = "layout"
+@@ -658,7 +712,8 @@ affects = "layout"
  type = "ContainIntrinsicSize"
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
@@ -2332,7 +2443,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "contain-intrinsic-size"
  logical = true
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
-@@ -668,7 +721,8 @@ affects = "layout"
+@@ -668,7 +723,8 @@ affects = "layout"
  type = "ContainIntrinsicSize"
  initial = "computed::ContainIntrinsicSize::None"
  struct = "position"
@@ -2342,7 +2453,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "contain-intrinsic-size"
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
  affects = "layout"
-@@ -704,7 +758,10 @@ affects = "layout"
+@@ -704,7 +760,10 @@ affects = "layout"
  type = "ContentVisibility"
  initial = "computed::ContentVisibility::Visible"
  struct = "box"
@@ -2354,7 +2465,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-contain/#content-visibility"
  affects = "layout"
  
-@@ -847,7 +904,8 @@ affects = "layout"
+@@ -847,7 +906,8 @@ affects = "layout"
  type = "Color"
  initial = "computed::Color::BLACK"
  struct = "svg"
@@ -2364,7 +2475,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.fxtf.org/filter-effects-1/#FloodColorProperty"
  affects = "paint"
  
-@@ -855,7 +913,8 @@ affects = "paint"
+@@ -855,7 +915,8 @@ affects = "paint"
  type = "Opacity"
  initial = "1.0"
  struct = "svg"
@@ -2374,7 +2485,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.fxtf.org/filter-effects-1/#FloodOpacityProperty"
  affects = "paint"
  
-@@ -888,12 +947,11 @@ extra_prefixes = ["moz:layout.css.prefixes.font-features"]
+@@ -888,12 +949,11 @@ extra_prefixes = ["moz:layout.css.prefixes.font-features"]
  spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font-language-override"
  affects = "layout"
  
@@ -2388,7 +2499,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-fonts/#font-palette-prop"
  affects = "layout"
  
-@@ -936,31 +994,31 @@ gecko_ffi_name = "mFont.style"
+@@ -936,31 +996,31 @@ gecko_ffi_name = "mFont.style"
  servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
@@ -2423,7 +2534,7 @@ index 830a44d2..81a4ecc4 100644
  gecko_ffi_name = "mFont.synthesisStyle"
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-fonts-4/#font-synthesis-style"
-@@ -1255,7 +1313,8 @@ affects = "layout"
+@@ -1255,7 +1315,8 @@ affects = "layout"
  type = "Color"
  initial = "computed::Color::WHITE"
  struct = "svg"
@@ -2433,7 +2544,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.fxtf.org/filter-effects-1#LightingColorProperty"
  affects = "paint"
  
-@@ -1299,7 +1358,8 @@ affects = "layout"
+@@ -1299,7 +1360,8 @@ affects = "layout"
  type = "url::UrlOrNone"
  initial = "computed::url::UrlOrNone::none()"
  struct = "inherited_svg"
@@ -2443,7 +2554,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
  affects = "layout"
-@@ -1308,7 +1368,8 @@ affects = "layout"
+@@ -1308,7 +1370,8 @@ affects = "layout"
  type = "url::UrlOrNone"
  initial = "computed::url::UrlOrNone::none()"
  struct = "inherited_svg"
@@ -2453,7 +2564,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
  affects = "layout"
-@@ -1317,7 +1378,8 @@ affects = "layout"
+@@ -1317,7 +1380,8 @@ affects = "layout"
  type = "url::UrlOrNone"
  initial = "computed::url::UrlOrNone::none()"
  struct = "inherited_svg"
@@ -2463,7 +2574,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#VertexMarkerProperties"
  affects = "layout"
-@@ -1428,6 +1490,15 @@ rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+@@ -1428,6 +1492,15 @@ rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
  servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
@@ -2479,7 +2590,7 @@ index 830a44d2..81a4ecc4 100644
  [object-position]
  type = "Position"
  initial = "computed::Position::center()"
-@@ -1440,7 +1511,7 @@ affects = "layout"
+@@ -1440,7 +1513,7 @@ affects = "layout"
  type = "PositionOrAuto"
  initial = "computed::PositionOrAuto::auto()"
  struct = "box"
@@ -2488,7 +2599,7 @@ index 830a44d2..81a4ecc4 100644
  flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
  spec = "https://drafts.fxtf.org/motion-1/#offset-anchor-property"
  servo_restyle_damage = "rebuild_box"
-@@ -1451,7 +1522,7 @@ affects = "overflow"
+@@ -1451,7 +1524,7 @@ affects = "overflow"
  type = "LengthPercentage"
  initial = "computed::LengthPercentage::zero()"
  struct = "box"
@@ -2497,7 +2608,7 @@ index 830a44d2..81a4ecc4 100644
  flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
  spec = "https://drafts.fxtf.org/motion-1/#offset-distance-property"
  servo_restyle_damage = "rebuild_box"
-@@ -1471,7 +1542,7 @@ affects = "overflow"
+@@ -1471,7 +1544,7 @@ affects = "overflow"
  type = "OffsetPosition"
  initial = "computed::OffsetPosition::normal()"
  struct = "box"
@@ -2506,7 +2617,7 @@ index 830a44d2..81a4ecc4 100644
  flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
  spec = "https://drafts.fxtf.org/motion-1/#offset-position-property"
  servo_restyle_damage = "rebuild_box"
-@@ -1482,7 +1553,7 @@ affects = "overflow"
+@@ -1482,7 +1555,7 @@ affects = "overflow"
  type = "OffsetRotate"
  initial = "computed::OffsetRotate::auto()"
  struct = "box"
@@ -2515,7 +2626,7 @@ index 830a44d2..81a4ecc4 100644
  flags = "CAN_ANIMATE_ON_COMPOSITOR SCROLL_LINKED_EFFECTIVE"
  spec = "https://drafts.fxtf.org/motion-1/#offset-rotate-property"
  servo_restyle_damage = "rebuild_box"
-@@ -1508,6 +1579,8 @@ affects = "layout"
+@@ -1508,6 +1581,8 @@ affects = "layout"
  
  [outline-color]
  type = "Color"
@@ -2524,7 +2635,7 @@ index 830a44d2..81a4ecc4 100644
  initial = "computed_value::T::currentcolor()"
  struct = "outline"
  ignored_when_colors_disabled = true
-@@ -1545,10 +1618,10 @@ affects = "overflow"
+@@ -1545,10 +1620,10 @@ affects = "overflow"
  type = "OverflowAnchor"
  initial = "computed::OverflowAnchor::Auto"
  struct = "box"
@@ -2536,7 +2647,7 @@ index 830a44d2..81a4ecc4 100644
  affects = ""
  
  [overflow-block]
-@@ -1566,6 +1639,8 @@ affects = "layout"
+@@ -1566,6 +1641,8 @@ affects = "layout"
  type = "OverflowClipMargin"
  initial = "computed::OverflowClipMargin::zero()"
  struct = "margin"
@@ -2545,7 +2656,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-overflow/#propdef-overflow-clip-margin"
  affects = "overflow"
  
-@@ -1675,7 +1750,8 @@ affects = "layout"
+@@ -1675,7 +1752,8 @@ affects = "layout"
  type = "SVGPaintOrder"
  initial = "computed::SVGPaintOrder::normal()"
  struct = "inherited_svg"
@@ -2555,7 +2666,37 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/painting.html#PaintOrder"
  affects = "paint"
-@@ -1800,7 +1876,6 @@ affects = "layout"
+@@ -1734,7 +1812,8 @@ affects = "layout"
+ type = "PositionAnchor"
+ initial = "computed::PositionAnchor::normal()"
+ struct = "position"
+-engine = "gecko"
++# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
++servo_pref = "layout.css.anchor-positioning.enabled"
+ animation_type = "discrete"
+ rule_types_allowed = ["style", "keyframe", "scope", "position-try"]
+ spec = "https://drafts.csswg.org/css-anchor-position-1/#propdef-position-anchor"
+@@ -1763,7 +1842,8 @@ affects = "layout"
+ type = "PositionTryOrder"
+ initial = "computed::PositionTryOrder::normal()"
+ struct = "position"
+-engine = "gecko"
++# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
++servo_pref = "layout.css.anchor-positioning.enabled"
+ animation_type = "discrete"
+ spec = "https://drafts.csswg.org/css-anchor-position-1/#position-try-order-property"
+ affects = "layout"
+@@ -1772,7 +1852,8 @@ affects = "layout"
+ type = "PositionVisibility"
+ initial = "computed::PositionVisibility::ANCHORS_VISIBLE"
+ struct = "position"
+-engine = "gecko"
++# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
++servo_pref = "layout.css.anchor-positioning.enabled"
+ animation_type = "discrete"
+ spec = "https://drafts.csswg.org/css-anchor-position-1/#propdef-position-visibility"
+ affects = "layout"
+@@ -1800,7 +1881,6 @@ affects = "layout"
  type = "Resize"
  initial = "computed::Resize::None"
  struct = "box"
@@ -2563,7 +2704,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  gecko_ffi_name = "mResize"
  spec = "https://drafts.csswg.org/css-ui/#propdef-resize"
-@@ -1848,29 +1923,29 @@ spec = "https://drafts.csswg.org/css-transforms-2/#individual-transforms"
+@@ -1848,29 +1928,29 @@ spec = "https://drafts.csswg.org/css-transforms-2/#individual-transforms"
  servo_restyle_damage = "recalculate_overflow"
  affects = "overflow"
  
@@ -2596,7 +2737,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#scroll-snap-type"
  animation_type = "discrete"
  affects = "paint"
-@@ -1899,11 +1974,12 @@ affects = ""
+@@ -1899,11 +1979,12 @@ affects = ""
  type = "Inert"
  initial = "specified::Inert::None"
  struct = "inherited_ui"
@@ -2610,7 +2751,7 @@ index 830a44d2..81a4ecc4 100644
  affects = "paint"
  
  [-moz-user-focus]
-@@ -1931,7 +2007,8 @@ affects = "paint"
+@@ -1931,7 +2012,8 @@ affects = "paint"
  type = "ScrollbarGutter"
  initial = "computed::ScrollbarGutter::AUTO"
  struct = "box"
@@ -2620,7 +2761,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-overflow-3/#scrollbar-gutter-property"
  affects = "layout"
-@@ -1974,7 +2051,8 @@ affects = "layout"
+@@ -1974,7 +2056,8 @@ affects = "layout"
  type = "Color"
  initial = "computed::Color::BLACK"
  struct = "svg"
@@ -2630,7 +2771,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://svgwg.org/svg2-draft/pservers.html#StopColorProperties"
  affects = "paint"
  
-@@ -1982,7 +2060,8 @@ affects = "paint"
+@@ -1982,7 +2065,8 @@ affects = "paint"
  type = "Opacity"
  initial = "1.0"
  struct = "svg"
@@ -2640,7 +2781,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://svgwg.org/svg2-draft/pservers.html#StopOpacityProperty"
  affects = "paint"
  
-@@ -2116,7 +2195,8 @@ affects = "overflow"
+@@ -2116,7 +2200,8 @@ affects = "overflow"
  type = "TransformBox"
  initial = "computed::TransformBox::ViewBox"
  struct = "box"
@@ -2650,7 +2791,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-transforms/#transform-box"
  animation_type = "discrete"
  affects = "overflow"
-@@ -2349,7 +2429,8 @@ affects = ""
+@@ -2349,7 +2434,8 @@ affects = ""
  type = "VectorEffect"
  initial = "computed::VectorEffect::none()"
  struct = "svg"
@@ -2660,7 +2801,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  spec = "https://svgwg.org/svg2-draft/coords.html#VectorEffects"
  affects = "layout"
-@@ -2510,7 +2591,6 @@ affects = "layout"
+@@ -2510,7 +2596,6 @@ affects = "layout"
  type = "Color"
  initial = "computed_value::T::currentcolor()"
  struct = "inherited_text"
@@ -2668,7 +2809,7 @@ index 830a44d2..81a4ecc4 100644
  ignored_when_colors_disabled = true
  spec = "https://compat.spec.whatwg.org/#the-webkit-text-fill-color"
  affects = "paint"
-@@ -2519,7 +2599,6 @@ affects = "paint"
+@@ -2519,7 +2604,6 @@ affects = "paint"
  type = "Color"
  initial = "computed_value::T::currentcolor()"
  struct = "inherited_text"
@@ -2676,7 +2817,7 @@ index 830a44d2..81a4ecc4 100644
  ignored_when_colors_disabled = true
  spec = "https://compat.spec.whatwg.org/#the-webkit-text-stroke-color"
  affects = "paint"
-@@ -2528,7 +2607,6 @@ affects = "paint"
+@@ -2528,7 +2612,6 @@ affects = "paint"
  type = "LineWidth"
  initial = "app_units::Au(0)"
  struct = "inherited_text"
@@ -2684,7 +2825,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://compat.spec.whatwg.org/#the-webkit-text-stroke-width"
  animation_type = "discrete"
  affects = "overflow"
-@@ -2546,7 +2624,7 @@ affects = "paint"
+@@ -2546,7 +2629,7 @@ affects = "paint"
  type = "HyphenateCharacter"
  initial = "computed::HyphenateCharacter::Auto"
  struct = "inherited_text"
@@ -2693,7 +2834,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  spec = "https://www.w3.org/TR/css-text-4/#hyphenate-character"
  affects = "layout"
-@@ -2555,7 +2633,7 @@ affects = "layout"
+@@ -2555,7 +2638,7 @@ affects = "layout"
  type = "HyphenateLimitChars"
  initial = "computed::HyphenateLimitChars::auto()"
  struct = "inherited_text"
@@ -2702,7 +2843,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-text-4/#hyphenate-char-limits"
  affects = "layout"
  boxed = true
-@@ -2601,7 +2679,7 @@ affects = "layout"
+@@ -2601,7 +2684,7 @@ affects = "layout"
  type = "TextBoxEdge"
  initial = "computed::TextBoxEdge::Auto"
  struct = "inherited_text"
@@ -2711,7 +2852,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  gecko_pref = "layout.css.text-box.enabled"
  has_effect_on_gecko_scrollbars = false
-@@ -2612,7 +2690,7 @@ affects = "layout"
+@@ -2612,7 +2695,7 @@ affects = "layout"
  type = "TextBoxTrim"
  initial = "computed::TextBoxTrim::none()"
  struct = "text"
@@ -2720,7 +2861,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  gecko_pref = "layout.css.text-box.enabled"
  has_effect_on_gecko_scrollbars = false
-@@ -2623,7 +2701,6 @@ affects = "layout"
+@@ -2623,7 +2706,6 @@ affects = "layout"
  type = "TextDecorationSkipInk"
  initial = "computed::TextDecorationSkipInk::Auto"
  struct = "inherited_text"
@@ -2728,7 +2869,7 @@ index 830a44d2..81a4ecc4 100644
  animation_type = "discrete"
  spec = "https://drafts.csswg.org/css-text-decor-4/#text-decoration-skip-ink-property"
  affects = "overflow"
-@@ -2675,6 +2752,8 @@ servo_restyle_damage = "rebuild_stacking_context"
+@@ -2675,6 +2757,8 @@ servo_restyle_damage = "rebuild_stacking_context"
  affects = "overflow"
  
  [writing-mode]
@@ -2737,7 +2878,7 @@ index 830a44d2..81a4ecc4 100644
  type = "WritingModeProperty"
  initial = "computed::WritingModeProperty::HorizontalTb"
  struct = "inherited_box"
-@@ -2857,6 +2936,8 @@ ignored_when_colors_disabled = true
+@@ -2857,6 +2941,8 @@ ignored_when_colors_disabled = true
  affects = "paint"
  
  [border-block-start-color]
@@ -2746,7 +2887,7 @@ index 830a44d2..81a4ecc4 100644
  type = "Color"
  initial = "computed_value::T::currentcolor()"
  struct = "border"
-@@ -2867,6 +2948,8 @@ ignored_when_colors_disabled = true
+@@ -2867,6 +2953,8 @@ ignored_when_colors_disabled = true
  affects = "paint"
  
  [border-block-end-color]
@@ -2755,7 +2896,7 @@ index 830a44d2..81a4ecc4 100644
  type = "Color"
  initial = "computed_value::T::currentcolor()"
  struct = "border"
-@@ -2877,6 +2960,8 @@ ignored_when_colors_disabled = true
+@@ -2877,6 +2965,8 @@ ignored_when_colors_disabled = true
  affects = "paint"
  
  [border-inline-start-color]
@@ -2764,7 +2905,7 @@ index 830a44d2..81a4ecc4 100644
  type = "Color"
  initial = "computed_value::T::currentcolor()"
  struct = "border"
-@@ -2888,6 +2973,8 @@ ignored_when_colors_disabled = true
+@@ -2888,6 +2978,8 @@ ignored_when_colors_disabled = true
  affects = "paint"
  
  [border-inline-end-color]
@@ -2773,7 +2914,7 @@ index 830a44d2..81a4ecc4 100644
  type = "Color"
  initial = "computed_value::T::currentcolor()"
  struct = "border"
-@@ -2939,6 +3026,8 @@ logical_group = "border-style"
+@@ -2939,6 +3031,8 @@ logical_group = "border-style"
  affects = "layout"
  
  [border-block-start-style]
@@ -2782,7 +2923,7 @@ index 830a44d2..81a4ecc4 100644
  type = "BorderStyle"
  initial = "specified::BorderStyle::None"
  struct = "border"
-@@ -2950,6 +3039,8 @@ logical_group = "border-style"
+@@ -2950,6 +3044,8 @@ logical_group = "border-style"
  affects = "layout"
  
  [border-block-end-style]
@@ -2791,7 +2932,7 @@ index 830a44d2..81a4ecc4 100644
  type = "BorderStyle"
  initial = "specified::BorderStyle::None"
  struct = "border"
-@@ -2961,6 +3052,8 @@ logical_group = "border-style"
+@@ -2961,6 +3057,8 @@ logical_group = "border-style"
  affects = "layout"
  
  [border-inline-start-style]
@@ -2800,7 +2941,7 @@ index 830a44d2..81a4ecc4 100644
  type = "BorderStyle"
  initial = "specified::BorderStyle::None"
  struct = "border"
-@@ -2973,6 +3066,8 @@ logical_group = "border-style"
+@@ -2973,6 +3071,8 @@ logical_group = "border-style"
  affects = "layout"
  
  [border-inline-end-style]
@@ -2809,7 +2950,7 @@ index 830a44d2..81a4ecc4 100644
  type = "BorderStyle"
  initial = "specified::BorderStyle::None"
  struct = "border"
-@@ -3029,6 +3124,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3029,6 +3129,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [border-block-start-width]
@@ -2818,7 +2959,7 @@ index 830a44d2..81a4ecc4 100644
  type = "BorderSideWidth"
  initial = "computed::BorderSideWidth::medium()"
  struct = "border"
-@@ -3040,6 +3137,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3040,6 +3142,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [border-block-end-width]
@@ -2827,7 +2968,7 @@ index 830a44d2..81a4ecc4 100644
  type = "BorderSideWidth"
  initial = "computed::BorderSideWidth::medium()"
  struct = "border"
-@@ -3051,6 +3150,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3051,6 +3155,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [border-inline-start-width]
@@ -2836,7 +2977,7 @@ index 830a44d2..81a4ecc4 100644
  type = "BorderSideWidth"
  initial = "computed::BorderSideWidth::medium()"
  struct = "border"
-@@ -3063,6 +3164,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3063,6 +3169,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [border-inline-end-width]
@@ -2845,7 +2986,7 @@ index 830a44d2..81a4ecc4 100644
  type = "BorderSideWidth"
  initial = "computed::BorderSideWidth::medium()"
  struct = "border"
-@@ -3315,6 +3418,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3315,6 +3423,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [margin-block-start]
@@ -2854,7 +2995,7 @@ index 830a44d2..81a4ecc4 100644
  type = "Margin"
  initial = "computed::Margin::zero()"
  struct = "margin"
-@@ -3328,6 +3433,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3328,6 +3438,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [margin-block-end]
@@ -2863,7 +3004,7 @@ index 830a44d2..81a4ecc4 100644
  type = "Margin"
  initial = "computed::Margin::zero()"
  struct = "margin"
-@@ -3341,6 +3448,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3341,6 +3453,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [margin-inline-start]
@@ -2872,7 +3013,7 @@ index 830a44d2..81a4ecc4 100644
  type = "Margin"
  initial = "computed::Margin::zero()"
  struct = "margin"
-@@ -3355,6 +3464,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3355,6 +3469,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [margin-inline-end]
@@ -2881,7 +3022,7 @@ index 830a44d2..81a4ecc4 100644
  type = "Margin"
  initial = "computed::Margin::zero()"
  struct = "margin"
-@@ -3382,7 +3493,8 @@ affects = "layout"
+@@ -3382,7 +3498,8 @@ affects = "layout"
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2891,7 +3032,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.0"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-top"
-@@ -3392,7 +3504,8 @@ affects = ""
+@@ -3392,7 +3509,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2901,7 +3042,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.1"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-right"
-@@ -3402,7 +3515,8 @@ affects = ""
+@@ -3402,7 +3520,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2911,7 +3052,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.2"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-bottom"
-@@ -3412,7 +3526,8 @@ affects = ""
+@@ -3412,7 +3531,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2921,7 +3062,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.3"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-margin-left"
-@@ -3422,7 +3537,8 @@ affects = ""
+@@ -3422,7 +3542,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2931,7 +3072,7 @@ index 830a44d2..81a4ecc4 100644
  logical = true
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.4"
-@@ -3433,7 +3549,8 @@ affects = ""
+@@ -3433,7 +3554,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2941,7 +3082,7 @@ index 830a44d2..81a4ecc4 100644
  logical = true
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.5"
-@@ -3444,7 +3561,8 @@ affects = ""
+@@ -3444,7 +3566,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2951,7 +3092,7 @@ index 830a44d2..81a4ecc4 100644
  logical = true
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.6"
-@@ -3455,7 +3573,8 @@ affects = ""
+@@ -3455,7 +3578,8 @@ affects = ""
  type = "Length"
  initial = "computed::Length::zero()"
  struct = "margin"
@@ -2961,7 +3102,7 @@ index 830a44d2..81a4ecc4 100644
  logical = true
  logical_group = "scroll-margin"
  gecko_ffi_name = "mScrollMargin.7"
-@@ -3507,6 +3626,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3507,6 +3631,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [padding-block-start]
@@ -2970,7 +3111,7 @@ index 830a44d2..81a4ecc4 100644
  type = "NonNegativeLengthPercentage"
  initial = "computed::NonNegativeLengthPercentage::zero()"
  struct = "padding"
-@@ -3518,6 +3639,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3518,6 +3644,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [padding-block-end]
@@ -2979,7 +3120,7 @@ index 830a44d2..81a4ecc4 100644
  type = "NonNegativeLengthPercentage"
  initial = "computed::NonNegativeLengthPercentage::zero()"
  struct = "padding"
-@@ -3529,6 +3652,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3529,6 +3657,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [padding-inline-start]
@@ -2988,7 +3129,7 @@ index 830a44d2..81a4ecc4 100644
  type = "NonNegativeLengthPercentage"
  initial = "computed::NonNegativeLengthPercentage::zero()"
  struct = "padding"
-@@ -3541,6 +3666,8 @@ servo_restyle_damage = "rebuild_box"
+@@ -3541,6 +3671,8 @@ servo_restyle_damage = "rebuild_box"
  affects = "layout"
  
  [padding-inline-end]
@@ -2997,7 +3138,7 @@ index 830a44d2..81a4ecc4 100644
  type = "NonNegativeLengthPercentage"
  initial = "computed::NonNegativeLengthPercentage::zero()"
  struct = "padding"
-@@ -3556,7 +3683,8 @@ affects = "layout"
+@@ -3556,7 +3688,8 @@ affects = "layout"
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -3007,7 +3148,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.0"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-top"
-@@ -3566,7 +3694,8 @@ affects = ""
+@@ -3566,7 +3699,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -3017,7 +3158,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.1"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-right"
-@@ -3576,7 +3705,8 @@ affects = ""
+@@ -3576,7 +3710,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -3027,7 +3168,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.2"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-bottom"
-@@ -3586,7 +3716,8 @@ affects = ""
+@@ -3586,7 +3721,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -3037,7 +3178,7 @@ index 830a44d2..81a4ecc4 100644
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.3"
  spec = "https://drafts.csswg.org/css-scroll-snap-1/#propdef-scroll-padding-left"
-@@ -3596,7 +3727,8 @@ affects = ""
+@@ -3596,7 +3732,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -3047,7 +3188,7 @@ index 830a44d2..81a4ecc4 100644
  logical = true
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.4"
-@@ -3607,7 +3739,8 @@ affects = ""
+@@ -3607,7 +3744,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -3057,7 +3198,7 @@ index 830a44d2..81a4ecc4 100644
  logical = true
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.5"
-@@ -3618,7 +3751,8 @@ affects = ""
+@@ -3618,7 +3756,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -3067,7 +3208,7 @@ index 830a44d2..81a4ecc4 100644
  logical = true
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.6"
-@@ -3629,7 +3763,8 @@ affects = ""
+@@ -3629,7 +3768,8 @@ affects = ""
  type = "NonNegativeLengthPercentageOrAuto"
  initial = "computed::NonNegativeLengthPercentageOrAuto::auto()"
  struct = "padding"
@@ -3077,7 +3218,7 @@ index 830a44d2..81a4ecc4 100644
  logical = true
  logical_group = "scroll-padding"
  gecko_ffi_name = "mScrollPadding.7"
-@@ -3643,7 +3778,8 @@ animation_type = "discrete"
+@@ -3643,7 +3783,8 @@ animation_type = "discrete"
  affects = "paint"
  servo_restyle_damage = "repaint"
  vector = {}
@@ -3087,7 +3228,7 @@ index 830a44d2..81a4ecc4 100644
  
  [background-clip]
  type = "BackgroundClip"
-@@ -3685,6 +3821,8 @@ gecko_enum_prefix = "StyleBlend"
+@@ -3685,6 +3826,8 @@ gecko_enum_prefix = "StyleBlend"
  gecko_inexhaustive = true
  
  [box-decoration-break]
@@ -3096,7 +3237,7 @@ index 830a44d2..81a4ecc4 100644
  struct = "border"
  spec = "https://drafts.csswg.org/css-break/#propdef-box-decoration-break"
  animation_type = "discrete"
-@@ -3727,6 +3865,16 @@ animation_type = "discrete"
+@@ -3727,6 +3870,16 @@ animation_type = "discrete"
  affects = ""
  keyword = { values = ["auto", "smooth"] }
  
@@ -3113,7 +3254,7 @@ index 830a44d2..81a4ecc4 100644
  [isolation]
  struct = "box"
  spec = "https://drafts.fxtf.org/compositing/#isolation"
-@@ -3755,13 +3903,15 @@ keyword = { values = ["inline", "block", "horizontal", "vertical"] }
+@@ -3755,13 +3908,15 @@ keyword = { values = ["inline", "block", "horizontal", "vertical"] }
  
  [column-fill]
  struct = "column"
@@ -3130,7 +3271,7 @@ index 830a44d2..81a4ecc4 100644
  struct = "column"
  spec = "https://drafts.csswg.org/css-multicol/#propdef-column-span"
  animation_type = "discrete"
-@@ -3778,8 +3928,7 @@ gecko_ffi_name = "mFont.variantCaps"
+@@ -3778,8 +3933,7 @@ gecko_ffi_name = "mFont.variantCaps"
  servo_restyle_damage = "rebuild_box"
  
  [font-variant-caps.keyword]
@@ -3140,7 +3281,7 @@ index 830a44d2..81a4ecc4 100644
  gecko_constant_prefix = "NS_FONT_VARIANT_CAPS"
  
  [font-kerning]
-@@ -3790,9 +3939,9 @@ affects = "layout"
+@@ -3790,9 +3944,9 @@ affects = "layout"
  gecko_ffi_name = "mFont.kerning"
  keyword = { values = ["auto", "none", "normal"], gecko_constant_prefix = "NS_FONT_KERNING" }
  
@@ -3151,7 +3292,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-fonts/#propdef-font-variant-emoji"
  animation_type = "discrete"
  affects = "layout"
-@@ -3874,11 +4023,11 @@ servo_pref = "layout.unimplemented"
+@@ -3874,11 +4028,11 @@ servo_pref = "layout.unimplemented"
  spec = "https://drafts.csswg.org/css-writing-modes/#propdef-text-orientation"
  animation_type = "none"
  affects = "layout"
@@ -3165,7 +3306,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-images/#propdef-image-orientation"
  animation_type = "discrete"
  affects = "layout"
-@@ -3886,7 +4035,8 @@ keyword = { values = ["from-image", "none"] }
+@@ -3886,7 +4040,8 @@ keyword = { values = ["from-image", "none"] }
  
  [text-anchor]
  struct = "inherited_svg"
@@ -3175,7 +3316,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://svgwg.org/svg2-draft/text.html#TextAnchorProperty"
  animation_type = "discrete"
  affects = "layout"
-@@ -3894,7 +4044,8 @@ keyword = { values = ["start", "middle", "end"] }
+@@ -3894,7 +4049,8 @@ keyword = { values = ["start", "middle", "end"] }
  
  [color-interpolation]
  struct = "inherited_svg"
@@ -3185,7 +3326,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationProperty"
  animation_type = "discrete"
  affects = "paint"
-@@ -3902,7 +4053,8 @@ keyword = { values = ["srgb", "auto", "linearrgb"] }
+@@ -3902,7 +4058,8 @@ keyword = { values = ["srgb", "auto", "linearrgb"] }
  
  [color-interpolation-filters]
  struct = "inherited_svg"
@@ -3195,7 +3336,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://svgwg.org/svg2-draft/painting.html#ColorInterpolationFiltersProperty"
  animation_type = "discrete"
  affects = "paint"
-@@ -3910,7 +4062,8 @@ keyword = { values = ["linearrgb", "auto", "srgb"], gecko_enum_prefix = "StyleCo
+@@ -3910,7 +4067,8 @@ keyword = { values = ["linearrgb", "auto", "srgb"], gecko_enum_prefix = "StyleCo
  
  [shape-rendering]
  struct = "inherited_svg"
@@ -3205,7 +3346,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://svgwg.org/svg2-draft/painting.html#ShapeRenderingProperty"
  animation_type = "discrete"
  affects = "paint"
-@@ -3948,11 +4101,10 @@ keyword = { values = ["show", "hide"] }
+@@ -3948,11 +4106,10 @@ keyword = { values = ["show", "hide"] }
  
  [hyphens]
  struct = "inherited_text"
@@ -3218,7 +3359,7 @@ index 830a44d2..81a4ecc4 100644
  keyword = { values = ["manual", "none", "auto"] }
  
  [-moz-text-size-adjust]
-@@ -3965,6 +4117,43 @@ gecko_ffi_name = "mTextSizeAdjust"
+@@ -3965,6 +4122,43 @@ gecko_ffi_name = "mTextSizeAdjust"
  aliases = ["-webkit-text-size-adjust"]
  keyword = { values = ["auto", "none"] }
  
@@ -3262,7 +3403,7 @@ index 830a44d2..81a4ecc4 100644
  [ruby-align]
  struct = "inherited_text"
  engine = "gecko"
-@@ -3975,7 +4164,7 @@ keyword = { values = ["space-around", "start", "center", "space-between"] }
+@@ -3975,7 +4169,7 @@ keyword = { values = ["space-around", "start", "center", "space-between"] }
  
  [text-combine-upright]
  struct = "inherited_text"
@@ -3271,7 +3412,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-writing-modes-3/#text-combine-upright"
  animation_type = "none"
  affects = "layout"
-@@ -4007,11 +4196,11 @@ keyword = { values = ["wrap", "nowrap"] }
+@@ -4007,11 +4201,11 @@ keyword = { values = ["wrap", "nowrap"] }
  
  [text-wrap-style]
  struct = "inherited_text"
@@ -3285,7 +3426,7 @@ index 830a44d2..81a4ecc4 100644
  
  [list-style-position]
  struct = "list"
-@@ -4103,7 +4292,9 @@ animation_type = "discrete"
+@@ -4103,7 +4297,9 @@ animation_type = "discrete"
  affects = "paint"
  vector = {}
  extra_prefixes = ["webkit"]
@@ -3296,7 +3437,7 @@ index 830a44d2..81a4ecc4 100644
  
  [table-layout]
  struct = "table"
-@@ -4193,7 +4384,6 @@ keyword = { values = ["auto", "none"] }
+@@ -4193,7 +4389,6 @@ keyword = { values = ["auto", "none"] }
  
  [field-sizing]
  struct = "ui"
@@ -3304,7 +3445,7 @@ index 830a44d2..81a4ecc4 100644
  spec = "https://drafts.csswg.org/css-ui/#field-sizing"
  animation_type = "discrete"
  affects = "layout"
-@@ -4230,6 +4420,61 @@ gecko_ffi_name = "mBoxOrient"
+@@ -4230,6 +4425,61 @@ gecko_ffi_name = "mBoxOrient"
  aliases = ["-webkit-box-orient"]
  keyword = { values = ["horizontal", "vertical"], gecko_aliases = ["inline-axis=horizontal", "block-axis=vertical"] }
  
@@ -3366,7 +3507,7 @@ index 830a44d2..81a4ecc4 100644
  [-moz-box-pack]
  struct = "xul"
  engine = "gecko"
-@@ -4252,7 +4497,8 @@ keyword = { values = ["normal", "multiply", "screen", "overlay", "darken", "ligh
+@@ -4252,7 +4502,8 @@ keyword = { values = ["normal", "multiply", "screen", "overlay", "darken", "ligh
  type = "DominantBaseline"
  initial = "computed::DominantBaseline::Auto"
  struct = "inherited_box"
@@ -3533,7 +3674,7 @@ index 1c9033fb..7ced1244 100644
              self.visited_style,
              % for style_struct in data.active_style_structs():
 diff --git a/properties/shorthands.rs b/properties/shorthands.rs
-index 30196e39..ebc847f5 100644
+index 30196e39..43774dd1 100644
 --- a/properties/shorthands.rs
 +++ b/properties/shorthands.rs
 @@ -545,7 +545,7 @@ pub mod border {
@@ -3678,6 +3819,15 @@ index 30196e39..ebc847f5 100644
 +// Snowlark patch (SNOWLARK-PATCHES.md 17): in the servo build too.
  pub mod marker {
      pub use crate::properties::generated::shorthands::marker::*;
+ 
+@@ -1626,7 +1666,7 @@ pub mod grid_area {
+     }
+ }
+ 
+-#[cfg(feature = "gecko")]
++// (Snowlark patch: the servo build too, SNOWLARK-PATCHES.md 99)
+ pub mod position_try {
+     pub use crate::properties::generated::shorthands::position_try::*;
  
 @@ -2088,7 +2128,9 @@ pub mod outline {
          let mut parsed = 0;
@@ -3906,7 +4056,7 @@ index 30196e39..ebc847f5 100644
  
                  parsed -= 1;
 diff --git a/properties/shorthands.toml b/properties/shorthands.toml
-index bd1c5ddd..a26b5eba 100644
+index bd1c5ddd..df973d2f 100644
 --- a/properties/shorthands.toml
 +++ b/properties/shorthands.toml
 @@ -19,19 +19,22 @@ rule_types_allowed = ["style", "keyframe", "page", "scope", "position-try"]
@@ -4042,7 +4192,14 @@ index bd1c5ddd..a26b5eba 100644
  sub_properties = ["contain-intrinsic-width", "contain-intrinsic-height"]
  spec = "https://drafts.csswg.org/css-sizing-4/#intrinsic-size-override"
  kind = "two_properties"
-@@ -350,7 +366,8 @@ sub_properties = ["position-try-order", "position-try-fallbacks"]
+@@ -345,12 +361,14 @@ sub_properties = ["align-items", "justify-items"]
+ spec = "https://drafts.csswg.org/css-align/#place-items-property"
+ 
+ [position-try]
+-engine = "gecko"
++# Snowlark patch: also the servo build, behind the anchor positioning preference (SNOWLARK-PATCHES.md 99).
++servo_pref = "layout.css.anchor-positioning.enabled"
+ sub_properties = ["position-try-order", "position-try-fallbacks"]
  spec = "https://drafts.csswg.org/css-anchor-position-1/#position-try-prop"
  
  [marker]
@@ -4052,7 +4209,7 @@ index bd1c5ddd..a26b5eba 100644
  sub_properties = ["marker-start", "marker-end", "marker-mid"]
  spec = "https://svgwg.org/svg2-draft/painting.html#MarkerShorthand"
  
-@@ -476,15 +493,19 @@ sub_properties = ["outline-color", "outline-style", "outline-width"]
+@@ -476,15 +494,19 @@ sub_properties = ["outline-color", "outline-style", "outline-width"]
  spec = "https://drafts.csswg.org/css-ui/#propdef-outline"
  
  [columns]
@@ -4075,7 +4232,7 @@ index bd1c5ddd..a26b5eba 100644
  
  [text-decoration]
  sub_properties = ["text-decoration-color", "text-decoration-line", "text-decoration-style", "text-decoration-thickness"]
-@@ -509,10 +530,10 @@ sub_properties = [
+@@ -509,10 +531,10 @@ sub_properties = [
    "font-kerning",
    "font-feature-settings",
    "font-language-override",
@@ -4087,7 +4244,7 @@ index bd1c5ddd..a26b5eba 100644
  ]
  spec = "https://drafts.csswg.org/css-fonts-3/#propdef-font"
  derive_value_info = false
-@@ -524,19 +545,19 @@ sub_properties = [
+@@ -524,19 +546,19 @@ sub_properties = [
      "font-variant-east-asian",
      "font-variant-ligatures",
      "font-variant-numeric",
@@ -4111,7 +4268,7 @@ index bd1c5ddd..a26b5eba 100644
  sub_properties = ["text-box-trim", "text-box-edge"]
  spec = "https://drafts.csswg.org/css-inline/#text-box-shorthand"
  gecko_pref = "layout.css.text-box.enabled"
-@@ -548,7 +569,7 @@ spec = "https://drafts.csswg.org/css-text-decor-3/#text-emphasis-property"
+@@ -548,7 +570,7 @@ spec = "https://drafts.csswg.org/css-text-decor-3/#text-emphasis-property"
  derive_serialize = true
  
  [text-wrap]
@@ -4120,7 +4277,7 @@ index bd1c5ddd..a26b5eba 100644
  sub_properties = ["text-wrap-mode", "text-wrap-style"]
  spec = "https://www.w3.org/TR/css-text-4/#text-wrap"
  
-@@ -558,13 +579,12 @@ spec = "https://www.w3.org/TR/css-text-4/#white-space-property"
+@@ -558,13 +580,12 @@ spec = "https://www.w3.org/TR/css-text-4/#white-space-property"
  derive_value_info = false
  
  [-webkit-text-stroke]
@@ -4407,7 +4564,7 @@ index 0b1cd33f..27205a6d 100644
  
      /// Return an immutable reference to the `Option<T>` that this thread owns.
 diff --git a/servo/animation.rs b/servo/animation.rs
-index 8376bd75..230b462e 100644
+index 8376bd75..0335b359 100644
 --- a/servo/animation.rs
 +++ b/servo/animation.rs
 @@ -38,7 +38,7 @@ use servo_arc::Arc;
@@ -4484,7 +4641,22 @@ index 8376bd75..230b462e 100644
      }
  }
  
-@@ -613,7 +643,57 @@ impl Animation {
+@@ -599,6 +629,14 @@ pub struct Animation {
+     /// Whether or not this animation is new and or has already been tracked
+     /// by the script thread.
+     pub is_new: bool,
++
++    /// Snowlark patch 96: script replaced the effect of this animation's `CSSAnimation` object (Web
++    /// Animations 1 §4.5.3): its keyframes no longer apply and it animates no property here (the
++    /// page samples the new effect); its timing still runs, for the object and its events.
++    pub effect_replaced: bool,
++
++    /// (Snowlark patch 96: what [`Self::properties_changed`] gives while `effect_replaced`)
++    no_properties: PropertyDeclarationIdSet,
+ }
+ 
+ impl Animation {
+@@ -613,7 +651,61 @@ impl Animation {
              None => return true,
          };
  
@@ -4518,8 +4690,12 @@ index 8376bd75..230b462e 100644
 +        }
 +    }
 +
-+    /// The properties that change in this animation (Snowlark patch 41).
++    /// The properties that change in this animation (Snowlark patch 41): none once script replaced
++    /// its effect (patch 96).
 +    pub fn properties_changed(&self) -> &PropertyDeclarationIdSet {
++        if self.effect_replaced {
++            return &self.no_properties;
++        }
 +        &self.properties_changed
 +    }
 +
@@ -4543,7 +4719,7 @@ index 8376bd75..230b462e 100644
      }
  
      /// Given the current time, advances this animation to the next iteration,
-@@ -629,7 +709,9 @@ impl Animation {
+@@ -629,7 +721,9 @@ impl Animation {
              return false;
          }
  
@@ -4554,7 +4730,7 @@ index 8376bd75..230b462e 100644
      }
  
      /// Attempts to advance this animation by `n` iterations, but stops when reaching
-@@ -675,9 +757,14 @@ impl Animation {
+@@ -675,9 +769,14 @@ impl Animation {
          n
      }
  
@@ -4570,7 +4746,7 @@ index 8376bd75..230b462e 100644
              KeyframesIterationState::Infinite(_) => f64::INFINITY,
          }
      }
-@@ -718,13 +805,30 @@ impl Animation {
+@@ -718,13 +817,30 @@ impl Animation {
          let progress = match self.state {
              AnimationState::Finished => return true,
              AnimationState::Paused(progress) => progress,
@@ -4602,7 +4778,20 @@ index 8376bd75..230b462e 100644
      /// Updates the appropiate state from other animation.
      ///
      /// This happens when an animation is re-submitted to layout, presumably
-@@ -759,7 +863,12 @@ impl Animation {
+@@ -748,9 +864,12 @@ impl Animation {
+         let old_direction = self.current_direction;
+         let old_state = self.state.clone();
+         let old_iteration_state = self.iteration_state.clone();
++        let effect_replaced = self.effect_replaced;
+ 
+         *self = other.clone();
+         self.current_direction = old_direction;
++        // (Snowlark patch 96: a replaced effect stays replaced)
++        self.effect_replaced = effect_replaced;
+ 
+         if self.delay != old_delay {
+             // `started_at` incorporates the delay, so changing the delay necessarily changes `started_at`.
+@@ -759,7 +878,12 @@ impl Animation {
  
              match old_state {
                  Paused(old_progress) => {
@@ -4616,7 +4805,7 @@ index 8376bd75..230b462e 100644
                      progress -= self.iterate_by(progress);
                      self.state = Paused(progress);
                  },
-@@ -774,7 +883,7 @@ impl Animation {
+@@ -774,7 +898,7 @@ impl Animation {
                  },
                  Canceled | Pending | Running => {
                      // Re-advance iterations from a fresh iteration state.
@@ -4625,7 +4814,7 @@ index 8376bd75..230b462e 100644
                      match self.iteration_state {
                          KeyframesIterationState::Finite(ref mut current, _) => *current = 0.0,
                          _ => {},
-@@ -821,11 +930,18 @@ impl Animation {
+@@ -821,11 +945,18 @@ impl Animation {
              // If we're pausing the animation, compute the progress value.
              match (&mut self.state, &old_state) {
                  (&mut Pending, &Paused(progress)) => {
@@ -4646,7 +4835,17 @@ index 8376bd75..230b462e 100644
                  },
                  _ => {},
              }
-@@ -850,7 +966,7 @@ impl Animation {
+@@ -841,7 +972,8 @@ impl Animation {
+     /// Fill in an `AnimationValueMap` with values calculated from this animation at
+     /// the given time value.
+     fn get_property_declaration_at_time(&self, now: f64, map: &mut AnimationValueMap) {
+-        if self.computed_steps.is_empty() {
++        // (Snowlark patch 96: an animation whose effect script replaced applies no keyframes)
++        if self.computed_steps.is_empty() || self.effect_replaced {
+             // Nothing to do.
+             return;
+         }
+@@ -850,7 +982,7 @@ impl Animation {
          // >1.0 (after end or during multiple iterations).
          let progress = match self.state {
              AnimationState::Running | AnimationState::Pending | AnimationState::Finished => {
@@ -4655,7 +4854,7 @@ index 8376bd75..230b462e 100644
              },
              AnimationState::Paused(progress) => progress,
              AnimationState::Canceled => return,
-@@ -992,19 +1108,30 @@ impl Animation {
+@@ -992,19 +1124,30 @@ impl Animation {
              let percentage_between_keyframes =
                  (next_keyframe.start_percentage - previous_keyframe.start_percentage).abs();
              let duration_between_keyframes = percentage_between_keyframes * self.duration;
@@ -4695,7 +4894,7 @@ index 8376bd75..230b462e 100644
              };
  
              let value = animation.calculate_value(progress_between_keyframes);
-@@ -1036,6 +1163,10 @@ pub struct Transition {
+@@ -1036,6 +1179,10 @@ pub struct Transition {
      /// timeline when this transition was created plus any animation delay.
      pub start_time: f64,
  
@@ -4706,7 +4905,7 @@ index 8376bd75..230b462e 100644
      /// The delay used for this transition.
      pub delay: f64,
  
-@@ -1072,9 +1203,11 @@ impl Transition {
+@@ -1072,9 +1219,11 @@ impl Transition {
              to,
              timing_function: timing_function.clone(),
              duration,
@@ -4718,7 +4917,7 @@ index 8376bd75..230b462e 100644
              delay,
              property_animation,
              state: AnimationState::Pending,
-@@ -1152,6 +1285,8 @@ impl Transition {
+@@ -1152,6 +1301,8 @@ impl Transition {
              Ok(new_start) => self.property_animation.from = new_start,
              Err(..) => {},
          }
@@ -4727,7 +4926,7 @@ index 8376bd75..230b462e 100644
      }
  
      /// Whether or not this animation has ended at the provided time. This does
-@@ -1161,6 +1296,12 @@ impl Transition {
+@@ -1161,6 +1312,12 @@ impl Transition {
          time >= self.start_time + (self.property_animation.duration)
      }
  
@@ -4740,7 +4939,7 @@ index 8376bd75..230b462e 100644
      /// Update the given animation at a given point of progress.
      pub fn calculate_value(&self, time: f64) -> AnimationValue {
          let progress = if time < self.start_time {
-@@ -1748,6 +1889,18 @@ impl DocumentAnimationSet {
+@@ -1748,6 +1905,18 @@ impl DocumentAnimationSet {
      }
  }
  
@@ -4759,7 +4958,7 @@ index 8376bd75..230b462e 100644
  /// Kick off any new transitions for this node and return all of the properties that are
  /// transitioning. This is at the end of calculating style for a single node.
  pub fn start_transitions_if_applicable(
-@@ -1767,6 +1920,42 @@ pub fn start_transitions_if_applicable(
+@@ -1767,6 +1936,42 @@ pub fn start_transitions_if_applicable(
      // Reversing the transition order here means that transitions defined later in the list
      // have preference, in accordance with the specification.
      //
@@ -4802,7 +5001,7 @@ index 8376bd75..230b462e 100644
      // TODO: It would be better to be able to do this without having to allocate an array.
      // We should restructure the code or make `transition_properties()` return a reversible
      // iterator in order to avoid the allocation.
-@@ -1784,6 +1973,19 @@ pub fn start_transitions_if_applicable(
+@@ -1784,6 +1989,19 @@ pub fn start_transitions_if_applicable(
          }
  
          properties_that_transition.insert(physical_property);
@@ -4822,7 +5021,7 @@ index 8376bd75..230b462e 100644
          animation_state.start_transition_if_applicable(
              context,
              &physical_property,
-@@ -1808,19 +2010,30 @@ pub fn maybe_start_animations<E>(
+@@ -1808,19 +2026,30 @@ pub fn maybe_start_animations<E>(
      E: TElement,
  {
      let style = new_style.get_ui();
@@ -4860,7 +5059,7 @@ index 8376bd75..230b462e 100644
              continue;
          };
  
-@@ -1844,6 +2057,13 @@ pub fn maybe_start_animations<E>(
+@@ -1844,6 +2073,13 @@ pub fn maybe_start_animations<E>(
              AnimationDirection::Normal | AnimationDirection::Alternate => {
                  AnimationDirection::Normal
              },
@@ -4874,7 +5073,7 @@ index 8376bd75..230b462e 100644
              AnimationDirection::Reverse | AnimationDirection::AlternateReverse => {
                  AnimationDirection::Reverse
              },
-@@ -1851,7 +2071,14 @@ pub fn maybe_start_animations<E>(
+@@ -1851,7 +2087,14 @@ pub fn maybe_start_animations<E>(
  
          let now = context.current_time_for_animations;
          let started_at = now + delay;
@@ -4890,7 +5089,16 @@ index 8376bd75..230b462e 100644
          let state = match style.animation_play_state_mod(i) {
              AnimationPlayState::Paused => AnimationState::Paused(starting_progress),
              AnimationPlayState::Running => AnimationState::Pending,
-@@ -1911,9 +2138,19 @@ pub fn maybe_start_animations<E>(
+@@ -1896,6 +2139,8 @@ pub fn maybe_start_animations<E>(
+             current_direction: initial_direction,
+             number_of_animating_properties,
+             is_new: true,
++            effect_replaced: false,
++            no_properties: Default::default(),
+         };
+ 
+         // If we started with a negative delay, make sure we iterate the animation if
+@@ -1911,9 +2156,19 @@ pub fn maybe_start_animations<E>(
              }
  
              if new_animation.name == existing_animation.name {
@@ -6761,10 +6969,27 @@ index 2b14775f..62635823 100644
  
  /// supports_condition | declaration
 diff --git a/stylist.rs b/stylist.rs
-index c70dd85a..a97faf19 100644
+index c70dd85a..a05e03d1 100644
 --- a/stylist.rs
 +++ b/stylist.rs
-@@ -1328,6 +1328,7 @@ impl Stylist {
+@@ -26,7 +26,7 @@ use crate::invalidation::media_queries::{
+     EffectiveMediaQueryResults, MediaListKey, ToMediaListKey,
+ };
+ use crate::invalidation::stylesheets::{RuleChangeKind, StylesheetInvalidationSet};
+-#[cfg(feature = "gecko")]
++// (Snowlark patch: the servo build resolves position options too, SNOWLARK-PATCHES.md 99)
+ use crate::properties::StyleBuilder;
+ use crate::properties::{
+     self, AnimationDeclarations, CascadeMode, ComputedValues, FirstLineReparenting,
+@@ -68,7 +68,6 @@ use crate::stylesheets::{
+     ViewTransitionRule,
+ };
+ use crate::stylesheets::{CustomMediaEvaluator, CustomMediaMap};
+-#[cfg(feature = "gecko")]
+ use crate::values::specified::position::PositionTryFallbacksItem;
+ use crate::values::specified::position::PositionTryFallbacksTryTactic;
+ use crate::values::{computed, AtomIdent, Parser, SourceLocation};
+@@ -1328,6 +1327,7 @@ impl Stylist {
              is_probe,
              rule_inclusion,
              matching_fn,
@@ -6772,7 +6997,7 @@ index c70dd85a..a97faf19 100644
          )?;
  
          Some(self.compute_pseudo_element_style_with_inputs(
-@@ -1339,6 +1340,40 @@ impl Stylist {
+@@ -1339,6 +1339,40 @@ impl Stylist {
          ))
      }
  
@@ -6813,7 +7038,16 @@ index c70dd85a..a97faf19 100644
      /// Computes a pseudo-element style lazily using the given CascadeInputs.
      /// This can be used for truly lazy pseudo-elements or to avoid redoing
      /// selector matching for eager pseudo-elements when we need to recompute
-@@ -1552,6 +1587,7 @@ impl Stylist {
+@@ -1382,7 +1416,7 @@ impl Stylist {
+     }
+ 
+     /// Computes a fallback style lazily given the current and parent styles, and name.
+-    #[cfg(feature = "gecko")]
++    /// (Snowlark patch: the servo build too, SNOWLARK-PATCHES.md 99)
+     pub fn resolve_position_try<E>(
+         &self,
+         style: &ComputedValues,
+@@ -1552,6 +1586,7 @@ impl Stylist {
          is_probe: bool,
          rule_inclusion: RuleInclusion,
          matching_fn: Option<&dyn Fn(&PseudoElement) -> bool>,
@@ -6821,7 +7055,7 @@ index c70dd85a..a97faf19 100644
      ) -> Option<CascadeInputs>
      where
          E: TElement,
-@@ -1579,6 +1615,7 @@ impl Stylist {
+@@ -1579,6 +1614,7 @@ impl Stylist {
  
          matching_context.pseudo_element_matching_fn = matching_fn;
          matching_context.extra_data.originating_element_style = Some(originating_element_style);
@@ -6829,7 +7063,7 @@ index c70dd85a..a97faf19 100644
  
          self.push_applicable_declarations(
              element,
-@@ -1613,6 +1650,7 @@ impl Stylist {
+@@ -1613,6 +1649,7 @@ impl Stylist {
              );
              matching_context.pseudo_element_matching_fn = matching_fn;
              matching_context.extra_data.originating_element_style = Some(originating_element_style);
@@ -6837,7 +7071,7 @@ index c70dd85a..a97faf19 100644
  
              self.push_applicable_declarations(
                  element,
-@@ -1825,6 +1863,54 @@ impl Stylist {
+@@ -1825,6 +1862,54 @@ impl Stylist {
          self.lookup_element_dependent_at_rule(element, |data| data.animations.get(name))
      }
  
@@ -6892,7 +7126,31 @@ index c70dd85a..a97faf19 100644
      /// Returns the last @view-transition rule
      /// <https://drafts.csswg.org/css-view-transitions-2/#resolve-view-transition-rule>
      #[inline]
-@@ -3217,6 +3303,7 @@ where
+@@ -1838,7 +1923,6 @@ impl Stylist {
+ 
+     /// Returns the registered `@position-try-rule` animation for the specified name.
+     #[inline]
+-    #[cfg(feature = "gecko")]
+     fn lookup_position_try<'a, E>(
+         &'a self,
+         name: &Atom,
+@@ -1848,9 +1932,15 @@ impl Stylist {
+     where
+         E: TElement + 'a,
+     {
++        // (the servo build's shadow roots keep no style data of their own: only the document's
++        // rules are searched, SNOWLARK-PATCHES.md 99)
++        #[cfg(feature = "gecko")]
+         let mut shadow_root = scope.get_shadow_root_for_scoped(element);
++        #[cfg(not(feature = "gecko"))]
++        let _ = (scope, element);
+         // https://drafts.csswg.org/css-shadow/#tree-scoped-name-global
+         // "First search only the tree-scoped names associated with the same root as the tree-scoped reference."
++        #[cfg(feature = "gecko")]
+         while let Some(r) = shadow_root {
+             if let Some(rule) = r
+                 .style_data()
+@@ -3217,6 +3307,7 @@ where
  #[derive(Copy, Clone, Debug, MallocSizeOf)]
  enum StylistImplicitScopeRoot {
      Normal(ImplicitScopeRoot),
@@ -6900,7 +7158,7 @@ index c70dd85a..a97faf19 100644
      Cached(usize),
  }
  // Should be safe, only mutated through mutable methods in `Stylist`.
-@@ -3890,6 +3977,27 @@ impl CascadeData {
+@@ -3890,6 +3981,27 @@ impl CascadeData {
                  {
                      continue;
                  }
@@ -6928,7 +7186,7 @@ index c70dd85a..a97faf19 100644
              }
  
              debug_assert!(!pseudo_elements
-@@ -4377,6 +4485,14 @@ impl CascadeData {
+@@ -4377,6 +4489,14 @@ impl CascadeData {
                                  | ImplicitScopeRoot::DocumentElement => {
                                      StylistImplicitScopeRoot::Normal(root)
                                  },
@@ -6943,7 +7201,7 @@ index c70dd85a..a97faf19 100644
                                  ImplicitScopeRoot::ShadowHost(_)
                                  | ImplicitScopeRoot::InShadowTree(_) => {
                                      // Style data can be shared between shadow trees, so we must
-@@ -5011,6 +5127,65 @@ impl Rule {
+@@ -5011,6 +5131,65 @@ impl Rule {
          (element, selector.iter_from(offset))
      }
  
@@ -7009,7 +7267,7 @@ index c70dd85a..a97faf19 100644
      /// Tests a given element against our selector.
      #[inline(always)]
      pub fn matches_selector<E: TElement>(
-@@ -5027,6 +5202,12 @@ impl Rule {
+@@ -5027,6 +5206,12 @@ impl Rule {
          {
              return false;
          }
@@ -7022,6 +7280,38 @@ index c70dd85a..a97faf19 100644
          let mut iter = self.selector.iter();
          let mut subject = SubjectOrPseudoElement::Yes;
          if self.bucket_matches == BucketMatches::Subject {
+diff --git a/typed_om/numeric_declaration.rs b/typed_om/numeric_declaration.rs
+index 2b4cd071..35eff66b 100644
+--- a/typed_om/numeric_declaration.rs
++++ b/typed_om/numeric_declaration.rs
+@@ -12,8 +12,7 @@ use crate::values::specified::{
+     NoCalcAngle, NoCalcLength, NoCalcNumber, NoCalcPercentage, NoCalcTime,
+ };
+ use cssparser::{Parser, Token};
+-use style_traits::values::specified::AllowedNumericType;
+-use style_traits::{ParseError, StyleParseErrorKind};
++use style_traits::ParseError;
+ 
+ /// A numeric declaration, with or without a `calc()` expression.
+ #[derive(Clone, ToTyped)]
+@@ -76,14 +75,9 @@ impl Parse for NumericDeclaration {
+                     CalcParseFlags::new(PercentageContext::allowed()),
+                 )?;
+ 
+-                let allow_all_types = AllowedNumericType::All;
+-                let _ = node
+-                    .clone()
+-                    .into_length_or_percentage(allow_all_types)
+-                    .map_err(|()| ParseError::custom(StyleParseErrorKind::UnspecifiedError))?;
+-
+-                // TODO: Add support for other values represented by a `calc()` expression.
+-
++                // Snowlark patch 97: any math function, whatever its type (a number, an angle,
++                // a time...), not only a length-percentage; the caller checks that its type is
++                // valid.
+                 Ok(Self::Calc(node))
+             },
+ 
 diff --git a/url/servo.rs b/url/servo.rs
 index 350e1479..61ae4f76 100644
 --- a/url/servo.rs
@@ -7318,7 +7608,7 @@ index c06b6dbc..00edb056 100644
          }
      }
 diff --git a/values/computed/length_percentage.rs b/values/computed/length_percentage.rs
-index da529868..f9958f5e 100644
+index da529868..e283266a 100644
 --- a/values/computed/length_percentage.rs
 +++ b/values/computed/length_percentage.rs
 @@ -324,6 +324,18 @@ impl LengthPercentage {
@@ -7340,7 +7630,7 @@ index da529868..f9958f5e 100644
      /// Resolves the percentage. Just an alias of resolve().
      #[inline]
      pub fn percentage_relative_to(&self, basis: Length) -> Length {
-@@ -640,6 +652,13 @@ impl From<&CalcAnchorSide> for AnchorSide {
+@@ -640,6 +652,20 @@ impl From<&CalcAnchorSide> for AnchorSide {
  }
  
  impl CalcLengthPercentage {
@@ -7351,10 +7641,17 @@ index da529868..f9958f5e 100644
 +        &self.node
 +    }
 +
++    /// Snowlark patch: the range the value is clamped to, so an embedder can build the value again
++    /// from a mapped expression tree (anchor functions resolved: SNOWLARK-PATCHES.md 99).
++    #[inline]
++    pub fn clamping_mode(&self) -> AllowedNumericType {
++        self.clamping_mode
++    }
++
      /// Resolves the percentage.
      #[inline]
      pub fn resolve(&self, basis: Length) -> Length {
-@@ -661,6 +680,26 @@ impl CalcLengthPercentage {
+@@ -661,6 +687,26 @@ impl CalcLengthPercentage {
          }
      }
  

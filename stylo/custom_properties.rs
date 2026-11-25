@@ -398,16 +398,22 @@ fn reify_variable_value_range(
         let (fallback, has_fallback) = if let Some(fallback) = &reference.fallback {
             debug_assert!(fallback.start.get() < reference.end);
 
-            (
-                reify_variable_value_range(
-                    css,
-                    references,
-                    reference_index,
-                    fallback.start.get(),
-                    reference.end - 1, // Skip the closing ')'.
-                )?,
-                true,
-            )
+            // Snowlark patch 98: the fallback from the whitespace after the comma, and the
+            // references in it from its own list (a nested var() is not in this one).
+            let mut nested_index = 0;
+            let value = reify_variable_value_range(
+                css,
+                &fallback.references.refs,
+                &mut nested_index,
+                fallback.typed_start,
+                reference.end - 1, // Skip the closing ')'.
+            )?;
+            while *reference_index < references.len()
+                && references[*reference_index].start < reference.end
+            {
+                *reference_index += 1;
+            }
+            (value, true)
         } else {
             (ThinVec::new(), false)
         };
@@ -808,6 +814,9 @@ pub struct VariableFallback {
     // parenthesis, if any, to be inserted, which means that we can rely on our end being
     // reference.end - 1.
     start: num::NonZeroUsize,
+    /// Snowlark patch 98: where the fallback starts with the whitespace after the comma, which
+    /// Typed OM keeps (`start` skips it).
+    typed_start: usize,
     first_token_type: TokenSerializationType,
     last_token_type: TokenSerializationType,
     /// References from this fallback value.
@@ -1265,6 +1274,8 @@ fn parse_declaration_value_block(
 
                         let mut fallback = None;
                         if input.try_parse(|input| input.expect_comma()).is_ok() {
+                            let typed_start =
+                                input.position().byte_index() - input_start.byte_index();
                             input.skip_whitespace();
                             let fallback_start = num::NonZeroUsize::new(
                                 input.position().byte_index() - input_start.byte_index(),
@@ -1282,6 +1293,7 @@ fn parse_declaration_value_block(
                             )?;
                             fallback = Some(VariableFallback {
                                 start: fallback_start,
+                                typed_start,
                                 first_token_type: first,
                                 last_token_type: last,
                                 references,

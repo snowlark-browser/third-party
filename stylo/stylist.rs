@@ -26,7 +26,7 @@ use crate::invalidation::media_queries::{
     EffectiveMediaQueryResults, MediaListKey, ToMediaListKey,
 };
 use crate::invalidation::stylesheets::{RuleChangeKind, StylesheetInvalidationSet};
-#[cfg(feature = "gecko")]
+// (Snowlark patch: the servo build resolves position options too, SNOWLARK-PATCHES.md 99)
 use crate::properties::StyleBuilder;
 use crate::properties::{
     self, AnimationDeclarations, CascadeMode, ComputedValues, FirstLineReparenting,
@@ -68,7 +68,6 @@ use crate::stylesheets::{
     ViewTransitionRule,
 };
 use crate::stylesheets::{CustomMediaEvaluator, CustomMediaMap};
-#[cfg(feature = "gecko")]
 use crate::values::specified::position::PositionTryFallbacksItem;
 use crate::values::specified::position::PositionTryFallbacksTryTactic;
 use crate::values::{computed, AtomIdent, Parser, SourceLocation};
@@ -1417,7 +1416,7 @@ impl Stylist {
     }
 
     /// Computes a fallback style lazily given the current and parent styles, and name.
-    #[cfg(feature = "gecko")]
+    /// (Snowlark patch: the servo build too, SNOWLARK-PATCHES.md 99)
     pub fn resolve_position_try<E>(
         &self,
         style: &ComputedValues,
@@ -1924,7 +1923,6 @@ impl Stylist {
 
     /// Returns the registered `@position-try-rule` animation for the specified name.
     #[inline]
-    #[cfg(feature = "gecko")]
     fn lookup_position_try<'a, E>(
         &'a self,
         name: &Atom,
@@ -1934,9 +1932,15 @@ impl Stylist {
     where
         E: TElement + 'a,
     {
+        // (the servo build's shadow roots keep no style data of their own: only the document's
+        // rules are searched, SNOWLARK-PATCHES.md 99)
+        #[cfg(feature = "gecko")]
         let mut shadow_root = scope.get_shadow_root_for_scoped(element);
+        #[cfg(not(feature = "gecko"))]
+        let _ = (scope, element);
         // https://drafts.csswg.org/css-shadow/#tree-scoped-name-global
         // "First search only the tree-scoped names associated with the same root as the tree-scoped reference."
+        #[cfg(feature = "gecko")]
         while let Some(r) = shadow_root {
             if let Some(rule) = r
                 .style_data()

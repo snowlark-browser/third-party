@@ -12,7 +12,7 @@ CSS engine of Servo and Firefox, with changes for Snowlark.
 
 ## Contents
 
-- The complete source of the `stylo` crate as it is built into Snowlark (source revision d87d34c9247e), including the
+- The complete source of the `stylo` crate as it is built into Snowlark (source revision 31140d1bba56), including the
   files that are unchanged from the release.
 - `CHANGES.diff`: every change from the unmodified release to this source, as one diff.
 - `SNOWLARK-PATCHES.md`: the list of changes with the reason for each. In the source, each change
@@ -568,6 +568,33 @@ The other Stylo crates Snowlark uses (`selectors`, `stylo_atoms`, `stylo_dom`, `
    (`ScrollbarPartState::matches`) and the rest of the
    selector against the element, where the selectors crate's stateless pseudo-element matching refuses any
    pseudo-class after the pseudo-element.
+
+96. **A CSS animation whose effect script replaced** (`servo/animation.rs`, Web Animations 1 §4.5.3, CSS
+   Animations 2 §4.1): `Animation::effect_replaced`, set through the page's `CSSAnimation` object, makes the
+   animation apply no keyframes (`get_property_declaration_at_time`) and animate no property
+   (`properties_changed()` is empty, so no compositor runs it); its timing still runs. It survives the
+   animation's updates from a new style (`update_from_other`).
+
+97. **`CSSNumericValue.parse` of any math function** (`typed_om/numeric_declaration.rs`, CSS Typed OM 1
+   §4.3.1): `NumericDeclaration` took a math function only when it was a length-percentage, so
+   `calc(2 + 3)`, `calc(1deg * 2)` and `min(1s, 2s)` did not parse; it now takes any, and snowlark-style
+   checks that the reified value's type is valid.
+
+98. **A `var()` fallback reified with its leading whitespace** (`custom_properties.rs`, CSS Typed OM 1 §5.4):
+   `VariableFallback` records where the fallback starts before the whitespace after the comma
+   (`typed_start`), and `reify_variable_value_range` reads the fallback from there, so `var(--A, 1em)`
+   reifies to a fallback of `" 1em"` and `var(--A, var(--B))` to `" "` and a reference. Substitution still
+   uses `start`. The references inside a fallback are read from the fallback's own list, where the
+   parser puts them (upstream looked for them in the outer list and reified a nested `var()` as text).
+
+99. **CSS Anchor Positioning 1 in the servo build** (`properties/longhands.toml`, `properties/shorthands.toml`,
+   `values/computed/length_percentage.rs`): `anchor-name`, `anchor-scope`, `position-anchor`,
+   `position-try-order`, `position-visibility` and the `position-try` shorthand lose their gecko-only engine
+   line and are behind `layout.css.anchor-positioning.enabled` (the preference that already gates `anchor()`,
+   `anchor-size()` and `@position-try`), as `position-area` and `position-try-fallbacks` already exist. Their
+   value types are engine-neutral. `CalcLengthPercentage::clamping_mode()` lets the embedder rebuild a value
+   whose `anchor()` and `anchor-size()` its layout resolved (upstream resolves them only through gecko's
+   layout).
 
 To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 still lacks, and run `cargo test -p snowlark-style`.
