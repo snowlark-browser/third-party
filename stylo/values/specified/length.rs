@@ -19,7 +19,8 @@ use crate::values::computed::{self, CSSPixelLength, Context, FontSize};
 use crate::values::generics::NonNegative;
 use crate::values::generics::length as generics;
 use crate::values::generics::length::{
-    GenericAnchorSizeFunction, GenericFitTolerance, GenericLengthOrNumber,
+    GenericAnchorSizeFunction, GenericCalcSizeBasis, GenericCalcSizeFunction, GenericFitTolerance,
+    GenericLengthOrNumber,
     GenericLengthPercentageOrNormal, GenericMargin, GenericMaxSize, GenericSize,
 };
 use crate::values::specified::NonNegativeNumber;
@@ -1837,6 +1838,80 @@ enum ParseAnchorFunctions {
     No,
 }
 
+/// Snowlark patch (SNOWLARK-PATCHES.md 107): which `<size-keyword>`s a `calc-size()` basis
+/// may be: the property's own sizing keywords (CSS Sizing 4 §7), never `none`.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum CalcSizeKeywords {
+    /// `width`, `height` and their `min-` forms: `auto` too.
+    Size,
+    /// `max-width` and `max-height`.
+    MaxSize,
+    /// `flex-basis`: `auto` and `content` too.
+    FlexBasis,
+}
+
+/// A specified `calc-size()` function.
+pub type CalcSizeFunction = GenericCalcSizeFunction<NonNegativeLengthPercentage>;
+
+impl CalcSizeFunction {
+    /// `calc-size( <calc-size-basis>, <calc-sum> )`.
+    fn parse(
+        context: &ParserContext,
+        input: &mut Parser,
+        keywords: CalcSizeKeywords,
+    ) -> Result<Self, ParseError> {
+        input.expect_function_matching("calc-size")?;
+        input.parse_nested_block(|input| {
+            let basis = Self::parse_basis(context, input, keywords)?;
+            input.expect_comma()?;
+            // With `any` the calculation may not refer to `size`.
+            let allow_size = !matches!(basis, GenericCalcSizeBasis::Any);
+            let calc = CalcNode::parse_calc_size_sum(context, input, allow_size)?;
+            Ok(Self {
+                basis,
+                calc: NonNegative(LengthPercentage::Calc(Box::new(calc))),
+            })
+        })
+    }
+
+    fn parse_basis(
+        context: &ParserContext,
+        input: &mut Parser,
+        keywords: CalcSizeKeywords,
+    ) -> Result<GenericCalcSizeBasis<NonNegativeLengthPercentage>, ParseError> {
+        if let Ok(inner) = input.try_parse(|i| Self::parse(context, i, keywords)) {
+            return Ok(GenericCalcSizeBasis::CalcSize(Box::new(inner)));
+        }
+        if let Ok(basis) = input.try_parse(|i| -> Result<_, ParseError> {
+            let ident = i.expect_ident()?;
+            Ok(match_ignore_ascii_case! { &ident,
+                "any" => GenericCalcSizeBasis::Any,
+                "auto" if keywords != CalcSizeKeywords::MaxSize => GenericCalcSizeBasis::Auto,
+                "content" if keywords == CalcSizeKeywords::FlexBasis => GenericCalcSizeBasis::Content,
+                "min-content" => GenericCalcSizeBasis::MinContent,
+                "max-content" => GenericCalcSizeBasis::MaxContent,
+                "fit-content" => GenericCalcSizeBasis::FitContent,
+                "stretch" if is_stretch_enabled() => GenericCalcSizeBasis::Stretch,
+                _ => return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError)),
+            })
+        }) {
+            return Ok(basis);
+        }
+        let calc = CalcNode::parse_calc_size_sum(context, input, false)?;
+        Ok(GenericCalcSizeBasis::LengthPercentage(NonNegative(
+            LengthPercentage::Calc(Box::new(calc)),
+        )))
+    }
+}
+
+macro_rules! parse_calc_size_function {
+    ($size:ident, $input:expr, $context:expr, $keywords:expr) => {
+        if let Ok(f) = $input.try_parse(|i| CalcSizeFunction::parse($context, i, $keywords)) {
+            return Ok($size::CalcSize(Box::new(f)));
+        }
+    };
+}
+
 impl Size {
     /// Parses, with quirks.
     pub fn parse_quirky(
@@ -1851,6 +1926,7 @@ impl Size {
             allow_quirks,
             allow_webkit_fill_available,
             ParseAnchorFunctions::Yes,
+            CalcSizeKeywords::Size,
         )
     }
 
@@ -1865,6 +1941,7 @@ impl Size {
             AllowQuirks::No,
             true,
             ParseAnchorFunctions::No,
+            CalcSizeKeywords::FlexBasis,
         )
     }
 
@@ -1878,10 +1955,12 @@ impl Size {
         allow_quirks: AllowQuirks,
         allow_webkit_fill_available: bool,
         allow_anchor_functions: ParseAnchorFunctions,
+        calc_size_keywords: CalcSizeKeywords,
     ) -> Result<Self, ParseError> {
         parse_size_non_length!(Size, input, allow_webkit_fill_available,
                                "auto" => Auto);
         parse_fit_content_function!(Size, input, context, allow_quirks);
+        parse_calc_size_function!(Size, input, context, calc_size_keywords);
 
         let allow_anchor = allow_anchor_functions == ParseAnchorFunctions::Yes
             && crate::pref!("layout.css.anchor-positioning.enabled", gecko = true);
@@ -1923,6 +2002,7 @@ impl Size {
             allow_quirks,
             allow_webkit_fill_available,
             ParseAnchorFunctions::Yes,
+            CalcSizeKeywords::Size,
         )
     }
 
@@ -1942,6 +2022,7 @@ impl Size {
             AllowQuirks::No,
             allow_webkit_fill_available,
             ParseAnchorFunctions::Yes,
+            CalcSizeKeywords::Size,
         )
     }
 
@@ -1972,6 +2053,7 @@ impl MaxSize {
         parse_size_non_length!(MaxSize, input, allow_webkit_fill_available,
                                "none" => None);
         parse_fit_content_function!(MaxSize, input, context, allow_quirks);
+        parse_calc_size_function!(MaxSize, input, context, CalcSizeKeywords::MaxSize);
 
         match input
             .try_parse(|i| NonNegativeLengthPercentage::parse_quirky(context, i, allow_quirks))

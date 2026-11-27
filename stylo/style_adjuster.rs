@@ -443,6 +443,39 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
         }
     }
 
+    /// Snowlark patch 105: a `textarea` element is a scroll container: its `overflow` values that
+    /// are `visible` compute to `auto` (its lines scroll inside its box, as the HTML rendering of a
+    /// textarea's text control has them).
+    fn adjust_for_textarea_overflow<E>(&mut self, element: Option<E>)
+    where
+        E: TElement,
+    {
+        if self.style.pseudo.is_some() {
+            return;
+        }
+        let Some(e) = element else {
+            return;
+        };
+        if !e.is_html_element() || e.local_name() != &*atom!("textarea") {
+            return;
+        }
+        use crate::values::specified::box_::Overflow;
+        let (x, y) = (
+            *self.style.get_box().get_overflow_x(),
+            *self.style.get_box().get_overflow_y(),
+        );
+        if x != Overflow::Visible && y != Overflow::Visible {
+            return;
+        }
+        let box_style = self.style.mutate_box();
+        if x == Overflow::Visible {
+            box_style.set_overflow_x(Overflow::Auto);
+        }
+        if y == Overflow::Visible {
+            box_style.set_overflow_y(Overflow::Auto);
+        }
+    }
+
     #[cfg(feature = "gecko")]
     fn adjust_for_contain(&mut self) {
         let box_style = self.style.get_box();
@@ -1101,6 +1134,8 @@ impl<'a, 'b: 'a> StyleAdjuster<'a, 'b> {
         self.blockify_if_necessary(layout_parent_style, element);
         self.adjust_for_webkit_line_clamp();
         self.adjust_for_position();
+        // (Snowlark patch 105)
+        self.adjust_for_textarea_overflow(element);
         self.adjust_for_overflow();
         #[cfg(feature = "gecko")]
         {

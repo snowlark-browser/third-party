@@ -50,6 +50,56 @@ enum AllowOr {
     No,
 }
 
+/// Whose custom properties a style query tests (Snowlark patch 108): the container's, for
+/// `@container style()`, or the element's own, for `if(style())`
+/// (https://drafts.csswg.org/css-values-5/#if-notation).
+#[derive(Clone, Copy)]
+pub enum StyleQueryTarget<'a> {
+    /// The query container's custom properties.
+    Container,
+    /// The custom properties the element computed so far, and those being resolved now.
+    Element(&'a custom_properties::ComputedSubstitutionFunctions, &'a [custom_properties::Name]),
+}
+
+impl<'a> StyleQueryTarget<'a> {
+    fn get<'b>(
+        self,
+        ctx: &'b computed::Context,
+        registration: &PropertyDescriptors,
+        name: &custom_properties::Name,
+    ) -> Option<&'b ComputedRegisteredValue>
+    where
+        'a: 'b,
+    {
+        match self {
+            Self::Container => ctx.inherited_custom_properties().get(registration, name),
+            Self::Element(functions, _) => functions.get_var(registration, name),
+        }
+    }
+
+    /// The substitution functions to resolve `var()` in a query value against.
+    pub(crate) fn substitution_functions(
+        self,
+        ctx: &computed::Context,
+    ) -> Cow<'a, custom_properties::ComputedSubstitutionFunctions> {
+        match self {
+            Self::Container => Cow::Owned(custom_properties::ComputedSubstitutionFunctions::new(
+                Some(ctx.inherited_custom_properties().clone()),
+                None,
+            )),
+            Self::Element(functions, _) => Cow::Borrowed(functions),
+        }
+    }
+
+    /// The custom properties an enclosing substitution is resolving.
+    pub(crate) fn seen(self) -> &'a [custom_properties::Name] {
+        match self {
+            Self::Container => &[],
+            Self::Element(_, seen) => seen,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, ToShmem)]
 enum StyleFeatureValue {
     Value(Option<Arc<custom_properties::SpecifiedValue>>),
@@ -254,24 +304,73 @@ impl StyleQuery {
         ctx: &computed::Context,
         attribute_tracker: &mut AttributeTracker,
     ) -> KleeneValue {
-        ctx.builder
-            .add_flags(ComputedValueFlags::DEPENDS_ON_CONTAINER_STYLE_QUERY);
+        self.matches_for(ctx, attribute_tracker, StyleQueryTarget::Container)
+    }
+
+    /// Parses the argument of `if()`'s `style()` test: a `<style-query>`.
+    pub(crate) fn parse_for_if(
+        context: &ParserContext,
+        input: &mut Parser,
+    ) -> Result<Self, ParseError> {
+        Self::parse(context, input, FeatureType::Container)
+    }
+
+    /// Evaluates the query against `target`'s custom properties.
+    pub(crate) fn matches_for(
+        &self,
+        ctx: &computed::Context,
+        attribute_tracker: &mut AttributeTracker,
+        target: StyleQueryTarget,
+    ) -> KleeneValue {
+        if matches!(target, StyleQueryTarget::Container) {
+            ctx.builder
+                .add_flags(ComputedValueFlags::DEPENDS_ON_CONTAINER_STYLE_QUERY);
+        }
         match *self {
-            StyleQuery::Feature(ref f) => f.matches(ctx, attribute_tracker),
-            StyleQuery::Not(ref c) => !c.matches(ctx, attribute_tracker),
-            StyleQuery::InParens(ref c) => c.matches(ctx, attribute_tracker),
+            StyleQuery::Feature(ref f) => f.matches(ctx, attribute_tracker, target),
+            StyleQuery::Not(ref c) => !c.matches_for(ctx, attribute_tracker, target),
+            StyleQuery::InParens(ref c) => c.matches_for(ctx, attribute_tracker, target),
             StyleQuery::Operation(ref conditions, op) => {
                 debug_assert!(!conditions.is_empty(), "We never create an empty op");
                 match op {
                     Operator::And => KleeneValue::any_false(conditions.iter(), |c| {
-                        c.matches(ctx, attribute_tracker)
+                        c.matches_for(ctx, attribute_tracker, target)
                     }),
-                    Operator::Or => {
-                        KleeneValue::any(conditions.iter(), |c| c.matches(ctx, attribute_tracker))
-                    },
+                    Operator::Or => KleeneValue::any(conditions.iter(), |c| {
+                        c.matches_for(ctx, attribute_tracker, target)
+                    }),
                 }
             },
             StyleQuery::GeneralEnclosed(_) => KleeneValue::Unknown,
+        }
+    }
+
+    /// Calls `f` with the name of every custom property the query tests.
+    pub(crate) fn for_each_custom_property(&self, f: &mut impl FnMut(&custom_properties::Name)) {
+        match self {
+            Self::Feature(StyleFeature::Plain(p)) => f(&p.name),
+            Self::Feature(StyleFeature::Range(r)) => r.for_each_custom_property(f),
+            Self::GeneralEnclosed(_) => {},
+            Self::InParens(c) | Self::Not(c) => c.for_each_custom_property(f),
+            Self::Operation(c, _) => c.iter().for_each(|c| c.for_each_custom_property(f)),
+        }
+    }
+
+    /// Calls `f` with each value in the query that holds substitution functions.
+    pub(crate) fn for_each_value<'a>(
+        &'a self,
+        f: &mut impl FnMut(&'a custom_properties::VariableValue),
+    ) {
+        match self {
+            Self::Feature(StyleFeature::Plain(p)) => {
+                if let StyleFeatureValue::Value(Some(ref v)) = p.value {
+                    f(v)
+                }
+            },
+            Self::Feature(StyleFeature::Range(r)) => r.for_each_value(f),
+            Self::GeneralEnclosed(_) => {},
+            Self::InParens(c) | Self::Not(c) => c.for_each_value(f),
+            Self::Operation(c, _) => c.iter().for_each(|c| c.for_each_value(f)),
         }
     }
 
@@ -350,10 +449,11 @@ impl StyleFeature {
         &self,
         ctx: &computed::Context,
         attribute_tracker: &mut AttributeTracker,
+        target: StyleQueryTarget,
     ) -> KleeneValue {
         match self {
-            Self::Plain(plain) => plain.matches(ctx, attribute_tracker),
-            Self::Range(range) => range.evaluate(ctx, attribute_tracker),
+            Self::Plain(plain) => plain.matches(ctx, attribute_tracker, target),
+            Self::Range(range) => range.evaluate_for(ctx, attribute_tracker, target),
         }
     }
 
@@ -428,22 +528,27 @@ impl StyleFeaturePlain {
         ctx: &computed::Context,
         attribute_tracker: &mut AttributeTracker,
         current_value: Option<&ComputedRegisteredValue>,
+        target: StyleQueryTarget,
     ) -> bool {
-        let substitution_functions = custom_properties::ComputedSubstitutionFunctions::new(
-            Some(ctx.inherited_custom_properties().clone()),
-            None,
-        );
-        let substitution::SubstitutionResult { css, attr_taint } = match substitution::substitute(
-            value,
-            /* property_id */ None,
-            &substitution_functions,
-            stylist,
-            ctx,
-            attribute_tracker,
-        ) {
-            Ok(sub) => sub,
-            Err(_) => return current_value.is_none(),
-        };
+        let substitution_functions = target.substitution_functions(ctx);
+        let substitution::SubstitutionResult { css, attr_taint } =
+            match substitution::substitute_with_seen(
+                value,
+                /* property_id */ None,
+                &substitution_functions,
+                stylist,
+                ctx,
+                attribute_tracker,
+                target.seen(),
+            ) {
+                Ok(sub) => sub,
+                // In if(), a value that fails to substitute matches nothing.
+                Err(_) if matches!(target, StyleQueryTarget::Element(..)) => return false,
+                Err(_) => return current_value.is_none(),
+            };
+        if matches!(target, StyleQueryTarget::Container) && super::contains_random_function(&css) {
+            return false;
+        }
         if registration.is_universal() {
             return match current_value {
                 Some(v) => v.as_universal().is_some_and(|v| v.css == css),
@@ -468,6 +573,7 @@ impl StyleFeaturePlain {
         &self,
         ctx: &computed::Context,
         attribute_tracker: &mut AttributeTracker,
+        target: StyleQueryTarget,
     ) -> KleeneValue {
         // FIXME(emilio): Confirm this is the right style to query.
         let stylist = ctx
@@ -475,13 +581,44 @@ impl StyleFeaturePlain {
             .stylist
             .expect("container queries should have a stylist around");
         let registration = stylist.get_custom_property_registration(&self.name);
-        let current_value = ctx
-            .inherited_custom_properties()
-            .get(registration, &self.name);
+        let current_value = target.get(ctx, registration, &self.name);
+        if let StyleQueryTarget::Element(..) = target
+            && let StyleFeatureValue::Keyword(kw) = self.value
+        {
+            // Snowlark patch 108: in if(), the keywords compare with what the element's own
+            // declaration of that keyword would give.
+            let initial = || match &registration.initial_value {
+                Some(initial) => {
+                    custom_properties::compute_variable_value(initial, registration, ctx, None)
+                        .as_ref()
+                        == current_value
+                },
+                None => current_value.is_none(),
+            };
+            let inherited = || {
+                ctx.inherited_custom_properties()
+                    .get(registration, &self.name)
+                    == current_value
+            };
+            return KleeneValue::from(match kw {
+                CSSWideKeyword::Initial => initial(),
+                CSSWideKeyword::Inherit => inherited(),
+                CSSWideKeyword::Unset if registration.inherits() => inherited(),
+                CSSWideKeyword::Unset => initial(),
+                CSSWideKeyword::Revert
+                | CSSWideKeyword::RevertLayer
+                | CSSWideKeyword::RevertRule => false,
+            });
+        }
         KleeneValue::from(match self.value {
             StyleFeatureValue::Value(Some(ref v)) => {
-                if ctx.container_info.is_none() {
+                if matches!(target, StyleQueryTarget::Container) && ctx.container_info.is_none() {
                     // If no container, custom props are guaranteed-unknown.
+                    false
+                } else if matches!(target, StyleQueryTarget::Container)
+                    && super::contains_random_function(&v.css)
+                {
+                    // Container queries do not accept random() (Snowlark patch 108).
                     false
                 } else if v.has_references() {
                     // If there are --var() references in the query value,
@@ -493,6 +630,7 @@ impl StyleFeaturePlain {
                         ctx,
                         attribute_tracker,
                         current_value,
+                        target,
                     )
                 } else {
                     custom_properties::compute_variable_value(

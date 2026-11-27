@@ -144,7 +144,6 @@ impl<LengthPercentage: Parse> Parse for LengthPercentageOrAuto<LengthPercentage>
     Debug,
     MallocSizeOf,
     PartialEq,
-    ToAnimatedValue,
     ToAnimatedZero,
     ToComputedValue,
     ToCss,
@@ -174,6 +173,11 @@ pub enum GenericSize<LengthPercent> {
     FitContentFunction(LengthPercent),
     AnchorSizeFunction(Box<GenericAnchorSizeFunction<Self>>),
     AnchorContainingCalcFunction(LengthPercent),
+    /// Snowlark patch (SNOWLARK-PATCHES.md 107): `calc-size()` (CSS Sizing 4 §7). It
+    /// interpolates through `AnimatedSize` (`values/computed/calc_size.rs`), not this derive.
+    #[animation(error)]
+    #[typed(skip)]
+    CalcSize(Box<GenericCalcSizeFunction<LengthPercent>>),
 }
 
 impl<LengthPercent> SpecifiedValueInfo for GenericSize<LengthPercent>
@@ -228,7 +232,6 @@ impl<LengthPercentage> Size<LengthPercentage> {
     Debug,
     MallocSizeOf,
     PartialEq,
-    ToAnimatedValue,
     ToAnimatedZero,
     ToComputedValue,
     ToCss,
@@ -258,6 +261,11 @@ pub enum GenericMaxSize<LengthPercent> {
     FitContentFunction(LengthPercent),
     AnchorSizeFunction(Box<GenericAnchorSizeFunction<Self>>),
     AnchorContainingCalcFunction(LengthPercent),
+    /// Snowlark patch (SNOWLARK-PATCHES.md 107): `calc-size()` (CSS Sizing 4 §7). It
+    /// interpolates through `AnimatedSize` (`values/computed/calc_size.rs`), not this derive.
+    #[animation(error)]
+    #[typed(skip)]
+    CalcSize(Box<GenericCalcSizeFunction<LengthPercent>>),
 }
 
 impl<LP> SpecifiedValueInfo for GenericMaxSize<LP>
@@ -286,6 +294,94 @@ where
 }
 
 pub use self::GenericMaxSize as MaxSize;
+
+/// Snowlark patch (SNOWLARK-PATCHES.md 107): the basis of a `calc-size()` function
+/// (CSS Sizing 4 §7): `<size-keyword> | <calc-sum> | <calc-size()> | any`. The specified and
+/// computed values keep the basis as written: calc-size() is only resolved at used-value time
+/// (§7.1), and prepared for interpolation when it interpolates (§7.2.1).
+#[allow(missing_docs)]
+#[derive(
+    Clone,
+    Debug,
+    MallocSizeOf,
+    PartialEq,
+    ToComputedValue,
+    ToResolvedValue,
+    ToShmem,
+)]
+#[repr(C, u8)]
+pub enum GenericCalcSizeBasis<LengthPercent> {
+    Auto,
+    MinContent,
+    MaxContent,
+    FitContent,
+    Stretch,
+    /// `content`, only in `flex-basis`.
+    Content,
+    /// `any`: a definite size that the calculation does not refer to.
+    Any,
+    LengthPercentage(LengthPercent),
+    CalcSize(Box<GenericCalcSizeFunction<LengthPercent>>),
+}
+
+/// Snowlark patch (SNOWLARK-PATCHES.md 107): `calc-size(<calc-size-basis>, <calc-sum>)`.
+/// The calculation is a `<length-percentage>` whose calc tree may hold the `size` leaf.
+#[derive(
+    Clone,
+    Debug,
+    MallocSizeOf,
+    PartialEq,
+    ToComputedValue,
+    ToResolvedValue,
+    ToShmem,
+)]
+#[repr(C)]
+pub struct GenericCalcSizeFunction<LengthPercent> {
+    /// The basis.
+    pub basis: GenericCalcSizeBasis<LengthPercent>,
+    /// The calculation.
+    pub calc: LengthPercent,
+}
+
+/// Writes a `<length-percentage>` as a bare `<calc-sum>`, as the arguments of `calc-size()` are
+/// written: without the `calc()` wrapper a calculation's root has.
+fn calc_sum_to_css<LP: ToCss, W: Write>(lp: &LP, dest: &mut CssWriter<W>) -> std::fmt::Result {
+    let mut s = String::new();
+    lp.to_css(&mut CssWriter::new(&mut s))?;
+    let bare = s
+        .strip_prefix("calc(")
+        .and_then(|rest| rest.strip_suffix(')'))
+        .unwrap_or(&s);
+    dest.write_str(bare)
+}
+
+impl<LP: ToCss> ToCss for GenericCalcSizeBasis<LP> {
+    fn to_css<W: Write>(&self, dest: &mut CssWriter<W>) -> std::fmt::Result {
+        dest.write_str(match self {
+            Self::Auto => "auto",
+            Self::MinContent => "min-content",
+            Self::MaxContent => "max-content",
+            Self::FitContent => "fit-content",
+            Self::Stretch => "stretch",
+            Self::Content => "content",
+            Self::Any => "any",
+            Self::LengthPercentage(lp) => return calc_sum_to_css(lp, dest),
+            Self::CalcSize(f) => return f.to_css(dest),
+        })
+    }
+}
+
+impl<LP: ToCss> ToCss for GenericCalcSizeFunction<LP> {
+    fn to_css<W: Write>(&self, dest: &mut CssWriter<W>) -> std::fmt::Result {
+        dest.write_str("calc-size(")?;
+        self.basis.to_css(dest)?;
+        dest.write_str(", ")?;
+        calc_sum_to_css(&self.calc, dest)?;
+        dest.write_char(')')
+    }
+}
+
+impl<LP> SpecifiedValueInfo for GenericCalcSizeFunction<LP> {}
 
 impl<LengthPercentage> MaxSize<LengthPercentage> {
     /// `none` value.

@@ -523,7 +523,8 @@ impl TryTacticAdjustment for MaxSize {
             | Self::MinContent
             | Self::FitContent
             | Self::WebkitFillAvailable
-            | Self::Stretch => {},
+            | Self::Stretch
+            | Self::CalcSize(..) => {},
             #[cfg(feature = "gecko")]
             Self::MozAvailable => {},
         }
@@ -548,7 +549,8 @@ impl TryTacticAdjustment for Size {
             | Self::MinContent
             | Self::FitContent
             | Self::WebkitFillAvailable
-            | Self::Stretch => {},
+            | Self::Stretch
+            | Self::CalcSize(..) => {},
             #[cfg(feature = "gecko")]
             Self::MozAvailable => {},
         }

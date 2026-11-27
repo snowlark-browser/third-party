@@ -37,6 +37,9 @@ pub enum ComputedLeaf {
     Angle(Angle),
     Time(Time),
     Resolution(Resolution),
+    /// Snowlark patch (SNOWLARK-PATCHES.md 107): the `size` keyword of a `calc-size()`
+    /// calculation, kept until used-value time (CSS Sizing 4 §7.1).
+    Size,
 }
 
 impl ComputedLeaf {
@@ -47,7 +50,8 @@ impl ComputedLeaf {
             | Self::Number(..)
             | Self::Angle(..)
             | Self::Time(..)
-            | Self::Resolution(..) => false,
+            | Self::Resolution(..)
+            | Self::Size => false,
         }
     }
 }
@@ -61,6 +65,7 @@ impl calc::CalcNodeLeaf for ComputedLeaf {
             Self::Angle(_) => NumericType::angle(),
             Self::Time(_) => NumericType::time(),
             Self::Resolution(_) => NumericType::resolution(),
+            Self::Size => NumericType::length(),
         }
     }
 
@@ -72,6 +77,7 @@ impl calc::CalcNodeLeaf for ComputedLeaf {
             Self::Angle(ref a) => a.degrees(),
             Self::Time(ref t) => t.seconds(),
             Self::Resolution(ref r) => r.dppx(),
+            Self::Size => return None,
         })
     }
 
@@ -89,6 +95,7 @@ impl calc::CalcNodeLeaf for ComputedLeaf {
             Self::Angle(ref a) => a.degrees(),
             Self::Time(ref t) => t.seconds(),
             Self::Resolution(ref r) => r.dppx(),
+            Self::Size => return None,
         })
     }
 
@@ -102,7 +109,8 @@ impl calc::CalcNodeLeaf for ComputedLeaf {
             | Self::Percentage(_)
             | Self::Angle(_)
             | Self::Time(_)
-            | Self::Resolution(_) => None,
+            | Self::Resolution(_)
+            | Self::Size => None,
             Self::Number(value) => Some(value),
         }
     }
@@ -170,10 +178,11 @@ impl calc::CalcNodeLeaf for ComputedLeaf {
             (Angle(one), Angle(other)) => one.partial_cmp(other),
             (Time(one), Time(other)) => one.partial_cmp(other),
             (Resolution(one), Resolution(other)) => one.partial_cmp(other),
+            (Size, Size) => None,
             _ => unsafe {
                 match *self {
                     Length(..) | Percentage(..) | Number(..) | Angle(..) | Time(..)
-                    | Resolution(..) => {},
+                    | Resolution(..) | Size => {},
                 }
                 debug_unreachable!("Forgot to handle unit in compare()")
             },
@@ -216,10 +225,12 @@ impl calc::CalcNodeLeaf for ComputedLeaf {
             (&mut Resolution(ref mut one), Resolution(other)) => {
                 *one += *other;
             },
+            // Two `size` keywords stay apart: only numeric leaves combine.
+            (&mut Size, &Size) => return Err(()),
             _ => unsafe {
                 match *other {
                     Length(..) | Percentage(..) | Number(..) | Angle(..) | Time(..)
-                    | Resolution(..) => {},
+                    | Resolution(..) | Size => {},
                 }
                 debug_unreachable!("Forgot to handle unit in try_sum_in_place()")
             },
@@ -280,10 +291,11 @@ impl calc::CalcNodeLeaf for ComputedLeaf {
             (Resolution(one), Resolution(other)) => {
                 Self::Resolution(super::Resolution::from_dppx(op(one.dppx(), other.dppx())))
             },
+            (Size, Size) => return Err(()),
             _ => unsafe {
                 match *self {
                     Length(..) | Percentage(..) | Number(..) | Angle(..) | Time(..)
-                    | Resolution(..) => {},
+                    | Resolution(..) | Size => {},
                 }
                 debug_unreachable!("Forgot to handle unit in try_op()")
             },
@@ -310,6 +322,7 @@ impl calc::CalcNodeLeaf for ComputedLeaf {
             Self::Resolution(value) => {
                 *value = Resolution::from_dppx(op(value.dppx()));
             },
+            Self::Size => return Err(()),
         };
         Ok(())
     }
@@ -326,6 +339,7 @@ impl calc::CalcNodeLeaf for ComputedLeaf {
             Self::Angle(..) => calc::SortKey::Deg,
             Self::Time(..) => calc::SortKey::S,
             Self::Resolution(..) => calc::SortKey::Dppx,
+            Self::Size => calc::SortKey::Other,
         }
     }
 }

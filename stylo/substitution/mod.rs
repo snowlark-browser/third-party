@@ -7,6 +7,7 @@
 
 pub mod attr;
 pub mod env;
+pub mod if_function;
 pub mod var;
 
 use crate::custom_properties::{
@@ -35,6 +36,7 @@ use style_traits::{ParseError, ParsingMode, StyleParseErrorKind};
 
 pub use self::attr::AttrFunction;
 pub use self::env::EnvFunction;
+pub use self::if_function::IfFunction;
 pub use self::var::VarFunction;
 
 /// Substitution function name.
@@ -47,6 +49,8 @@ pub enum SubstitutionFunctionKind {
     Env,
     /// DOM attribute
     Attr,
+    /// Conditional value (Snowlark patch 108)
+    If,
 }
 
 /// Context for parsing an arbitrary substitution function.
@@ -155,6 +159,37 @@ impl ArbitraryDeclarationValue {
     fn is_empty(&self) -> bool {
         self.first_token_type == TokenSerializationType::Nothing
     }
+
+    /// Parses an `if()` branch's condition: the tokens before its top-level `:`, which must not
+    /// hold a top-level `!` or `;` (Snowlark patch 108). Returns the source text too.
+    fn parse_if_condition<'i>(
+        input: &mut Parser<'i>,
+        context: &mut SubstitutionParserContext,
+    ) -> Result<(Self, &'i str), ParseError> {
+        input.skip_whitespace();
+        let start_position = input.position();
+        let start =
+            num::NonZeroUsize::new(start_position.byte_index() - context.input_start.byte_index())
+                .unwrap();
+        let mut references = References::default();
+        let (first_token_type, last_token_type) =
+            parse_declaration_value_tokens(input, context, &mut references, true)?;
+        let end_position = input.position();
+        let end = num::NonZeroUsize::new(
+            end_position.byte_index() - context.input_start.byte_index(),
+        )
+        .unwrap();
+        Ok((
+            Self {
+                start,
+                end,
+                first_token_type,
+                last_token_type,
+                references,
+            },
+            input.slice(start_position..end_position),
+        ))
+    }
 }
 
 fn parse_optional_fallback(
@@ -200,15 +235,39 @@ fn parse_declaration_value_block(
     context: &mut SubstitutionParserContext,
     references: &mut References,
 ) -> Result<(TokenSerializationType, TokenSerializationType), ParseError> {
+    parse_declaration_value_tokens(input, context, references, /* condition */ false)
+}
+
+/// The tokens of a `<declaration-value>`. For an `if()` condition (`condition`, Snowlark patch
+/// 108), they end before the first top-level `:`, and a top-level `!` or `;` is an error.
+fn parse_declaration_value_tokens(
+    input: &mut Parser,
+    context: &mut SubstitutionParserContext,
+    references: &mut References,
+    condition: bool,
+) -> Result<(TokenSerializationType, TokenSerializationType), ParseError> {
     let mut is_first = true;
     let mut first_token_type = TokenSerializationType::Nothing;
     let mut last_token_type = TokenSerializationType::Nothing;
     let mut prev_reference_index: Option<usize> = None;
     loop {
         let token_start = input.position();
+        let state = input.state();
         let Ok(token) = input.next_including_whitespace_and_comments() else {
             break;
         };
+        if condition {
+            match *token {
+                Token::Colon => {
+                    input.reset(&state);
+                    break;
+                },
+                Token::Delim('!') | Token::Semicolon => {
+                    return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
+                },
+                _ => {},
+            }
+        }
 
         let prev_token_type = last_token_type;
         let serialization_type = token.serialization_type();
@@ -445,6 +504,8 @@ pub enum SubstitutionFunction {
     Env(EnvFunction),
     /// An `attr()` reference.
     Attr(AttrFunction),
+    /// An `if()` function (Snowlark patch 108).
+    If(IfFunction),
 }
 
 impl SubstitutionFunction {
@@ -459,6 +520,7 @@ impl SubstitutionFunction {
             SubstitutionFunctionKind::Var => Self::Var(VarFunction::parse(input, context)?),
             SubstitutionFunctionKind::Env => Self::Env(EnvFunction::parse(input, context)?),
             SubstitutionFunctionKind::Attr => Self::Attr(AttrFunction::parse(input, context)?),
+            SubstitutionFunctionKind::If => Self::If(IfFunction::parse(input, context)?),
         })
     }
 
@@ -469,6 +531,8 @@ impl SubstitutionFunction {
             Self::Var(..) => ReferenceFlags::VAR,
             Self::Env(..) => ReferenceFlags::ENV,
             Self::Attr(..) => ReferenceFlags::ATTR,
+            // Its style() tests read custom properties, as var() does.
+            Self::If(..) => ReferenceFlags::VAR,
         }
     }
 
@@ -481,6 +545,7 @@ impl SubstitutionFunction {
             Self::Var(function) => function.replace(source, context),
             Self::Env(function) => function.replace(source, context),
             Self::Attr(function) => function.replace(source, context),
+            Self::If(function) => function.replace(source, context),
         }
     }
 
@@ -494,6 +559,7 @@ impl SubstitutionFunction {
             Self::Var(function) => function.for_each_unparsed_value(f),
             Self::Env(function) => function.for_each_unparsed_value(f),
             Self::Attr(function) => function.for_each_unparsed_value(f),
+            Self::If(function) => function.for_each_unparsed_value(f),
         }
     }
 }
@@ -917,16 +983,40 @@ pub fn substitute<'a>(
     computed_context: &computed::Context,
     attribute_tracker: &mut AttributeTracker,
 ) -> Result<SubstitutionResult<'a>, ()> {
-    debug_assert!(variable_value.has_references());
-    let mut attr_taint = AttrTaint::default();
-    let v = SubstitutionReplacementContext::new(
+    substitute_with_seen(
+        variable_value,
         property_id,
         substitution_functions,
         stylist,
         computed_context,
         attribute_tracker,
+        &[],
     )
-    .substitute_variable_value(variable_value, Some(&mut attr_taint))?;
+}
+
+/// Like `substitute`, with the custom properties already being resolved by an enclosing
+/// substitution (an `if()`'s `style()` test reading `var()`), so that a cycle through them
+/// ends instead of recursing (Snowlark patch 108).
+pub fn substitute_with_seen<'a>(
+    variable_value: &'a VariableValue,
+    property_id: Option<PropertyIdRef>,
+    substitution_functions: &'a ComputedSubstitutionFunctions,
+    stylist: &Stylist,
+    computed_context: &computed::Context,
+    attribute_tracker: &mut AttributeTracker,
+    seen: &[Name],
+) -> Result<SubstitutionResult<'a>, ()> {
+    debug_assert!(variable_value.has_references());
+    let mut attr_taint = AttrTaint::default();
+    let mut context = SubstitutionReplacementContext::new(
+        property_id,
+        substitution_functions,
+        stylist,
+        computed_context,
+        attribute_tracker,
+    );
+    context.seen.extend(seen.iter().cloned());
+    let v = context.substitute_variable_value(variable_value, Some(&mut attr_taint))?;
     Ok(SubstitutionResult {
         css: v.css,
         attr_taint,

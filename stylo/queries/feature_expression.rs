@@ -8,8 +8,9 @@
 use super::feature::{Evaluator, QueryFeatureDescription};
 use super::feature::{FeatureFlags, KeywordDiscriminant};
 use crate::context::QuirksMode;
+use super::condition::StyleQueryTarget;
 use crate::custom_properties::{
-    ComputedSubstitutionFunctions, VariableValue as CustomVariableValue,
+    VariableValue as CustomVariableValue,
 };
 use crate::derives::*;
 use crate::dom::AttributeTracker;
@@ -501,6 +502,19 @@ impl QueryFeatureExpression {
         input: &mut Parser,
         feature_type: FeatureType,
     ) -> Result<Self, ParseError> {
+        let start = input.position();
+        let expression = Self::parse_feature_in_parenthesis_block(context, input, feature_type)?;
+        if super::contains_random_function(input.slice_from(start)) {
+            return Err(ParseError::custom(StyleParseErrorKind::UnspecifiedError));
+        }
+        Ok(expression)
+    }
+
+    fn parse_feature_in_parenthesis_block(
+        context: &ParserContext,
+        input: &mut Parser,
+        feature_type: FeatureType,
+    ) -> Result<Self, ParseError> {
         let (feature_index, range) =
             match input.try_parse(|input| Self::parse_feature_name(context, input, feature_type)) {
                 Ok(v) => v,
@@ -924,6 +938,21 @@ impl QueryStyleRange {
         context: &computed::Context,
         attribute_tracker: &mut AttributeTracker,
     ) -> KleeneValue {
+        self.evaluate_for(context, attribute_tracker, StyleQueryTarget::Container)
+    }
+
+    /// Evaluates the range against `target`'s custom properties (Snowlark patch 108).
+    pub fn evaluate_for(
+        &self,
+        context: &computed::Context,
+        attribute_tracker: &mut AttributeTracker,
+        target: StyleQueryTarget,
+    ) -> KleeneValue {
+        if matches!(target, StyleQueryTarget::Container)
+            && super::contains_random_function(&self.to_css_string())
+        {
+            return KleeneValue::False;
+        }
         match self {
             QueryStyleRange::StyleRange2 {
                 value1,
@@ -935,6 +964,7 @@ impl QueryStyleRange {
                     context,
                     attribute_tracker,
                     &mut PrecomputedHashSet::default(),
+                    target,
                 )
                 .as_ref(),
                 Self::resolve_value(
@@ -942,6 +972,7 @@ impl QueryStyleRange {
                     context,
                     attribute_tracker,
                     &mut PrecomputedHashSet::default(),
+                    target,
                 )
                 .as_ref(),
             )
@@ -960,12 +991,14 @@ impl QueryStyleRange {
                     context,
                     attribute_tracker,
                     &mut PrecomputedHashSet::default(),
+                    target,
                 );
                 let v2 = Self::resolve_value(
                     value2,
                     context,
                     attribute_tracker,
                     &mut PrecomputedHashSet::default(),
+                    target,
                 );
                 Self::compare_values(v1.as_ref(), v2.as_ref())
                     .is_some_and(|c1| {
@@ -977,6 +1010,7 @@ impl QueryStyleRange {
                                     context,
                                     attribute_tracker,
                                     &mut PrecomputedHashSet::default(),
+                                    target,
                                 )
                                 .as_ref(),
                             )
@@ -993,6 +1027,7 @@ impl QueryStyleRange {
         context: &computed::Context,
         attribute_tracker: &mut AttributeTracker,
         visited_set: &mut PrecomputedHashSet<DashedIdent>,
+        target: StyleQueryTarget,
     ) -> Option<Component> {
         match value {
             QueryExpressionValue::Custom(ident) => {
@@ -1004,9 +1039,14 @@ impl QueryStyleRange {
                     .stylist
                     .expect("container queries should have a stylist around");
                 let registration = stylist.get_custom_property_registration(&name);
-                let current_value = context
-                    .inherited_custom_properties()
-                    .get(registration, &name)?;
+                let current_value = match target {
+                    StyleQueryTarget::Container => context
+                        .inherited_custom_properties()
+                        .get(registration, &name)?,
+                    StyleQueryTarget::Element(functions, _) => {
+                        functions.get_var(registration, &name)?
+                    },
+                };
                 match &current_value.v {
                     ValueInner::Component(component) => Some(component.clone()),
                     ValueInner::Universal(v) => {
@@ -1020,6 +1060,7 @@ impl QueryStyleRange {
                                 context,
                                 attribute_tracker,
                                 visited_set,
+                                target,
                             )
                         } else {
                             None
@@ -1032,21 +1073,19 @@ impl QueryStyleRange {
                 }
             },
             QueryExpressionValue::Function(value) => {
-                let sub_funcs = ComputedSubstitutionFunctions::new(
-                    Some(context.inherited_custom_properties().clone()),
-                    None,
-                );
+                let sub_funcs = target.substitution_functions(context);
                 let stylist = context
                     .builder
                     .stylist
                     .expect("container queries should have a stylist around");
-                let substituted = substitution::substitute(
+                let substituted = substitution::substitute_with_seen(
                     value,
                     /* property_id */ None,
                     &sub_funcs,
                     stylist,
                     context,
                     attribute_tracker,
+                    target.seen(),
                 )
                 .ok()?;
                 Self::resolve_universal(
@@ -1055,6 +1094,7 @@ impl QueryStyleRange {
                     context,
                     attribute_tracker,
                     visited_set,
+                    target,
                 )
             },
             QueryExpressionValue::Length(v) => {
@@ -1091,7 +1131,13 @@ impl QueryStyleRange {
         context: &computed::Context,
         attribute_tracker: &mut AttributeTracker,
         visited_set: &mut PrecomputedHashSet<DashedIdent>,
+        target: StyleQueryTarget,
     ) -> Option<Component> {
+        if matches!(target, StyleQueryTarget::Container)
+            && super::contains_random_function(css_text)
+        {
+            return None;
+        }
         let parser_context = ParserContext::new(
             Origin::Author,
             url_data,
@@ -1106,7 +1152,7 @@ impl QueryStyleRange {
         QueryExpressionValue::parse_for_style_range(&parser_context, &mut Parser::new(css_text))
             .ok()
             .and_then(|parsed| {
-                Self::resolve_value(&parsed, context, attribute_tracker, visited_set)
+                Self::resolve_value(&parsed, context, attribute_tracker, visited_set, target)
             })
     }
 
@@ -1137,6 +1183,43 @@ impl QueryStyleRange {
                 }
             },
             _ => None,
+        }
+    }
+
+    fn values(&self) -> impl Iterator<Item = &QueryExpressionValue> {
+        let (a, b, c) = match self {
+            QueryStyleRange::StyleRange2 { value1, value2, .. } => (value1, value2, None),
+            QueryStyleRange::StyleRange3 {
+                value1,
+                value2,
+                value3,
+                ..
+            } => (value1, value2, Some(value3)),
+        };
+        [a, b].into_iter().chain(c)
+    }
+
+    /// Calls `f` with the name of every custom property the range names.
+    pub(crate) fn for_each_custom_property(
+        &self,
+        f: &mut impl FnMut(&crate::custom_properties::Name),
+    ) {
+        for value in self.values() {
+            if let QueryExpressionValue::Custom(ident) = value {
+                f(&ident.undashed())
+            }
+        }
+    }
+
+    /// Calls `f` with each value in the range that holds substitution functions.
+    pub(crate) fn for_each_value<'a>(
+        &'a self,
+        f: &mut impl FnMut(&'a crate::custom_properties::VariableValue),
+    ) {
+        for value in self.values() {
+            if let QueryExpressionValue::Function(v) = value {
+                f(v)
+            }
         }
     }
 

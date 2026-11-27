@@ -149,7 +149,7 @@ impl LengthPercentage {
         Self::new_percent(Percentage::hundred())
     }
 
-    fn to_calc_node(&self) -> CalcNode {
+    pub(crate) fn to_calc_node(&self) -> CalcNode {
         match self.unpack() {
             Unpacked::Length(l) => CalcNode::Leaf(ComputedLeaf::Length(l)),
             Unpacked::Percentage(p) => CalcNode::Leaf(ComputedLeaf::Percentage(
@@ -249,6 +249,12 @@ impl LengthPercentage {
                     );
                     Self::new_length(Length::new(number))
                 },
+                // Snowlark patch (SNOWLARK-PATCHES.md 107): a `calc-size()` calculation that is
+                // just `size` stays a calculation until used-value time.
+                ComputedLeaf::Size => Self::new_calc_unchecked(Box::new(CalcLengthPercentage {
+                    clamping_mode,
+                    node: CalcNode::Leaf(ComputedLeaf::Size),
+                })),
                 ComputedLeaf::Angle(..) | ComputedLeaf::Time(..) | ComputedLeaf::Resolution(..) => {
                     debug_assert!(
                         false,
@@ -890,6 +896,7 @@ impl specified::CalcLengthPercentage {
                 ComputedLeaf::Number(t.to_computed_value(context) as f32)
             },
             Leaf::RandomKey(ref key) => ComputedLeaf::Number(*key.to_computed_value(context)),
+            Leaf::Size => ComputedLeaf::Size,
         });
 
         LengthPercentage::new_calc(node, self.0.clamping_mode)
@@ -945,6 +952,7 @@ impl specified::CalcLengthPercentage {
                 })
             },
             Leaf::Number(n) => ComputedLeaf::Number(n.get()),
+            Leaf::Size => ComputedLeaf::Size,
             _ => {
                 resolvable = false;
                 ComputedLeaf::Number(0.)
@@ -1003,6 +1011,7 @@ impl specified::CalcLengthPercentage {
                 ComputedLeaf::Resolution(r) => {
                     Leaf::Resolution(NoCalcResolution::from_dppx(r.dppx()))
                 },
+                ComputedLeaf::Size => Leaf::Size,
             }),
         })
     }

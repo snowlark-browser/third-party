@@ -127,6 +127,9 @@ pub enum Leaf {
     TreeCountingFunction(TreeCountingFunction),
     /// `<random-key>`
     RandomKey(Box<RandomKey>),
+    /// Snowlark patch (SNOWLARK-PATCHES.md 107): the `size` keyword of a `calc-size()`
+    /// calculation (CSS Sizing 4 §7), a `<length>` that is the basis's size at used-value time.
+    Size,
 }
 
 impl ToTyped for Leaf {
@@ -199,7 +202,8 @@ impl Leaf {
             | Self::Time(..)
             | Self::Resolution(..)
             | Self::Percentage(..)
-            | Self::Number(..) => self.clone(),
+            | Self::Number(..)
+            | Self::Size => self.clone(),
         })
     }
 }
@@ -317,6 +321,9 @@ bitflags! {
         const ANCHOR = 1 << 0;
         /// `anchor-size()` function.
         const ANCHOR_SIZE = 1 << 1;
+        /// Snowlark patch (SNOWLARK-PATCHES.md 107): the `size` keyword of a `calc-size()`
+        /// calculation. Not a function, but carried down nested math functions the same way.
+        const SIZE_KEYWORD = 1 << 2;
     }
 }
 
@@ -391,6 +398,7 @@ impl generic::CalcNodeLeaf for Leaf {
             Leaf::Time(_) => NumericType::time(),
             Leaf::Resolution(_) => NumericType::resolution(),
             Leaf::Percentage(p) => p.numeric_type(),
+            Leaf::Size => NumericType::length(),
             Leaf::ColorComponent(_)
             | Leaf::Number(_)
             | Leaf::TreeCountingFunction(_)
@@ -412,7 +420,7 @@ impl generic::CalcNodeLeaf for Leaf {
                     RandomKey::CacheKey(_) => None,
                 };
             },
-            Self::ColorComponent(_) | Self::TreeCountingFunction(_) => return None,
+            Self::ColorComponent(_) | Self::TreeCountingFunction(_) | Self::Size => return None,
         })
     }
 
@@ -436,7 +444,7 @@ impl generic::CalcNodeLeaf for Leaf {
                     RandomKey::CacheKey(_) => None,
                 };
             },
-            Self::ColorComponent(_) | Self::TreeCountingFunction(_) => return None,
+            Self::ColorComponent(_) | Self::TreeCountingFunction(_) | Self::Size => return None,
         })
     }
 
@@ -456,7 +464,8 @@ impl generic::CalcNodeLeaf for Leaf {
             | (Percentage(_), Percentage(_))
             | (Number(_), Number(_))
             | (TreeCountingFunction(_), TreeCountingFunction(_))
-            | (RandomKey(_), RandomKey(_)) => true,
+            | (RandomKey(_), RandomKey(_))
+            | (Size, Size) => true,
             _ => {
                 match *other {
                     Number(..)
@@ -467,7 +476,8 @@ impl generic::CalcNodeLeaf for Leaf {
                     | Length(..)
                     | ColorComponent(..)
                     | TreeCountingFunction(..)
-                    | RandomKey(..) => {},
+                    | RandomKey(..)
+                    | Size => {},
                 }
                 unsafe {
                     debug_unreachable!();
@@ -542,7 +552,7 @@ impl generic::CalcNodeLeaf for Leaf {
             (Number(one), Number(other)) => one.partial_cmp(other),
             (ColorComponent(one), ColorComponent(other)) => one.partial_cmp(other),
             (TreeCountingFunction(one), TreeCountingFunction(other)) => one.partial_cmp(other),
-            (RandomKey(_), RandomKey(_)) => None,
+            (RandomKey(_), RandomKey(_)) | (Size, Size) => None,
             _ => {
                 match *self {
                     Length(..)
@@ -553,7 +563,8 @@ impl generic::CalcNodeLeaf for Leaf {
                     | Resolution(..)
                     | ColorComponent(..)
                     | TreeCountingFunction(..)
-                    | RandomKey(..) => {},
+                    | RandomKey(..)
+                    | Size => {},
                 }
                 unsafe {
                     debug_unreachable!("Forgot a branch?");
@@ -571,7 +582,8 @@ impl generic::CalcNodeLeaf for Leaf {
             | Leaf::Percentage(_)
             | Leaf::ColorComponent(_)
             | Leaf::TreeCountingFunction(_)
-            | Leaf::RandomKey(_) => None,
+            | Leaf::RandomKey(_)
+            | Leaf::Size => None,
             Leaf::Number(n) => Some(n.value()),
         }
     }
@@ -585,7 +597,7 @@ impl generic::CalcNodeLeaf for Leaf {
             Self::Angle(..) => SortKey::Deg,
             Self::Length(ref l) => l.sort_key(),
             Self::ColorComponent(..) => SortKey::ColorComponent,
-            Self::TreeCountingFunction(..) | Self::RandomKey(..) => SortKey::Other,
+            Self::TreeCountingFunction(..) | Self::RandomKey(..) | Self::Size => SortKey::Other,
         }
     }
 
@@ -647,6 +659,8 @@ impl generic::CalcNodeLeaf for Leaf {
             (&mut Length(ref mut one), Length(other)) => {
                 *one = one.try_op(other, std::ops::Add::add)?;
             },
+            // Two `size` keywords stay apart: only numeric leaves combine.
+            (&mut Size, &Size) => return Err(()),
             (&mut ColorComponent(_), &ColorComponent(_)) => {
                 // Can not get the sum of color components, because they haven't been resolved yet.
                 return Err(());
@@ -669,7 +683,8 @@ impl generic::CalcNodeLeaf for Leaf {
                     | Length(..)
                     | ColorComponent(..)
                     | TreeCountingFunction(..)
-                    | RandomKey(..) => {},
+                    | RandomKey(..)
+                    | Size => {},
                 }
                 unsafe {
                     debug_unreachable!();
@@ -739,7 +754,7 @@ impl generic::CalcNodeLeaf for Leaf {
                 other.seconds(),
             )))),
             (Length(one), Length(other)) => Ok(Leaf::Length(one.try_op(other, op)?)),
-            (&ColorComponent(..), &ColorComponent(..)) => Err(()),
+            (&ColorComponent(..), &ColorComponent(..)) | (&Size, &Size) => Err(()),
             (&TreeCountingFunction(_), &TreeCountingFunction(_)) => Err(()),
             (&RandomKey(_), &RandomKey(_)) => Err(()),
             _ => {
@@ -752,7 +767,8 @@ impl generic::CalcNodeLeaf for Leaf {
                     | Resolution(..)
                     | ColorComponent(..)
                     | TreeCountingFunction(..)
-                    | RandomKey(..) => {},
+                    | RandomKey(..)
+                    | Size => {},
                 }
                 unsafe {
                     debug_unreachable!();
@@ -769,7 +785,10 @@ impl generic::CalcNodeLeaf for Leaf {
             Leaf::Resolution(one) => *one = NoCalcResolution::from_dppx(op(one.dppx())),
             Leaf::Percentage(one) => *one = CalcPercentageLeaf::new(op(one.get()), one.hint),
             Leaf::Number(one) => *one = NoCalcNumber::new(op(one.value())),
-            Leaf::ColorComponent(..) | Leaf::TreeCountingFunction(..) | Leaf::RandomKey(..) => {
+            Leaf::ColorComponent(..)
+            | Leaf::TreeCountingFunction(..)
+            | Leaf::RandomKey(..)
+            | Leaf::Size => {
                 return Err(());
             },
         };
@@ -784,7 +803,8 @@ impl generic::CalcNodeLeaf for Leaf {
             | Leaf::Resolution(_)
             | Leaf::ColorComponent(_)
             | Leaf::Percentage(_)
-            | Leaf::Number(_) => true,
+            | Leaf::Number(_)
+            | Leaf::Size => true,
             Leaf::TreeCountingFunction(_) | Leaf::RandomKey(_) => false,
         }
     }
@@ -992,6 +1012,7 @@ impl CalcNode {
                     "infinity" => Leaf::Number(NoCalcNumber::new(f32::INFINITY)),
                     "-infinity" => Leaf::Number(NoCalcNumber::new(f32::NEG_INFINITY)),
                     "nan" => Leaf::Number(NoCalcNumber::new(f32::NAN)),
+                    "size" if flags.additional_functions.contains(AdditionalFunctions::SIZE_KEYWORD) => Leaf::Size,
                     _ => {
                         match ChannelKeyword::from_ident(ident) {
                             Ok(channel_keyword) if flags.color_components.contains(channel_keyword) => Leaf::ColorComponent(channel_keyword),
@@ -1643,6 +1664,29 @@ impl CalcNode {
         };
         Self::parse(context, input, function, flags)?
             .into_length_or_percentage(clamping_mode)
+            .map_err(|()| ParseError::custom(StyleParseErrorKind::UnspecifiedError))
+    }
+
+    /// Snowlark patch (SNOWLARK-PATCHES.md 107): parses one `<calc-sum>` argument of
+    /// `calc-size()` (CSS Sizing 4 §7) as a `<length-percentage>`. `allow_size` permits the
+    /// `size` keyword (the calculation, unless the basis is `any`). The sum is parsed as the
+    /// contents of `calc()`, so a bare number such as `0` is not a length here.
+    pub fn parse_calc_size_sum(
+        context: &ParserContext,
+        input: &mut Parser,
+        allow_size: bool,
+    ) -> Result<CalcLengthPercentage, ParseError> {
+        let mut additional_functions = AdditionalFunctions::empty();
+        if allow_size {
+            additional_functions |= AdditionalFunctions::SIZE_KEYWORD;
+        }
+        let flags = CalcParseFlags {
+            additional_functions,
+            percentage_context: PercentageContext::allowed_with_hint(NumericBaseType::Length),
+            ..Default::default()
+        };
+        Self::parse_argument(context, input, flags)?
+            .into_length_or_percentage(AllowedNumericType::NonNegative)
             .map_err(|()| ParseError::custom(StyleParseErrorKind::UnspecifiedError))
     }
 

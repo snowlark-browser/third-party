@@ -624,12 +624,12 @@ where
         }
         let coordinates =
             lists::by_computed_value::animate(&self.coordinates, &other.coordinates, procedure)?;
-        // (no radius is a zero radius)
+        // (no radius is a zero radius, and a zero result is none, as when parsed)
         let round = match (&self.round, &other.round) {
             (None, None) => None,
             (a, b) => {
                 let or_zero = |r: &Option<L>| r.clone().unwrap_or_else(L::zero);
-                Some(or_zero(a).animate(&or_zero(b), procedure)?)
+                Some(or_zero(a).animate(&or_zero(b), procedure)?).filter(|r| !r.is_zero())
             },
         };
         Ok(Polygon {

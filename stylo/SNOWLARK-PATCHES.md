@@ -223,7 +223,7 @@ The patches below were written on 0.22.0 and carried to 0.24.0 by a three-way me
 
 38. **`polygon(round <length>)` and fill rules of outlines** (`values/generics/basic_shape.rs`,
    `values/specified/basic_shape.rs`): `GenericPolygon::round`, CSS Shapes 2, which serializes after the
-   fill rule, interpolates with none as zero and is `None` at zero; `polygon()` and `shape()` keep a
+   fill rule, interpolates with none as zero and is `None` at zero (parsed or interpolated); `polygon()` and `shape()` keep a
    `<fill-rule>` in `offset-path` too (`path()` still takes none there). WPT css/motion/parsing.
 
 39. **Transitions skip unchanged properties before building their values** (`servo/animation.rs`
@@ -641,6 +641,44 @@ The patches below were written on 0.22.0 and carried to 0.24.0 by a three-way me
    timing) made the implicit keyframe the animated value and froze the animation there. The keyframes
    are now built from the style without animation and transition rules
    (`StyleResolverForElement::style_without_animations`); a pseudo-element's style has none.
+
+105. **A textarea is a scroll container** (`style_adjuster.rs`, `adjust_for_textarea_overflow`): `overflow` values
+   of `visible` on an HTML `textarea` compute to `auto`, so its lines scroll inside its box (`scrollTop`, the
+   wheel, the caret kept in view) as in the engines in use. Upstream leaves it to Gecko's anonymous editor
+   root (`adjust_for_text_control_editing_root`), which the servo build has no counterpart of.
+
+106. **Four-side values shorten by what their sides serialize as** (`values/generics/rect.rs`, `Rect`'s `ToCss`):
+   two sides count as the same when they are equal or serialize the same, so a computed value made by arithmetic
+   (an interpolated `inset()`, whose `rect()` end gives `100% - 80%` as the f32 fraction 0.19999999) drops its
+   repeated sides as the value written would (CSSOM's shortest serialization; WPT
+   `css-shapes/animation/shape-outside-interpolation.html`).
+107. **`calc-size()` and `interpolate-size`** (CSS Sizing 4 §7; `values/generics/length.rs`,
+   `values/specified/length.rs`, `values/specified/calc.rs`, `values/computed/calc.rs`,
+   `values/computed/calc_size.rs`): `width`, `height`, their `min-`/`max-` and logical forms and `flex-basis`
+   parse `calc-size(<basis>, <calc-sum>)` into a `CalcSize` variant of `Size`/`MaxSize`. The calculation is a
+   `<length-percentage>` whose calc tree may hold a `size` leaf (specified `Leaf::Size`, computed
+   `ComputedLeaf::Size`, parsed only inside calc-size(), through `AdditionalFunctions::SIZE_KEYWORD`). Specified
+   and computed values keep the basis as written (§7.1); `CalcSizeFunction::prepare` does §7.2.1 (a nested
+   basis or a `<calc-sum>` basis substituted into the calculation, a percentage basis de-percentified to `100%`)
+   for interpolation and for layout. The animated value of the sizing properties is `AnimatedSize`, which
+   carries the element's `interpolate-size`: values that do not interpolate as they are interpolate as
+   calc-size() (§7.2), a keyword combining with a `<length-percentage>` only under `allow-keywords` (§7.3).
+108. **`if()`** (CSS Values 5 §8.3; `substitution/if_function.rs`, `substitution/mod.rs`,
+   `queries/condition.rs`, `queries/feature_expression.rs`, `queries/mod.rs`, `properties/cascade.rs`,
+   `custom_properties.rs`, `values/specified/random.rs`): a fourth arbitrary substitution function. Its
+   branches are `<condition> : <declaration-value>?` separated by `;`; a condition that parses as
+   `<if-condition>` as written keeps the `var()` in its `style()` tests, any other is kept as a
+   `<declaration-value>` (a top-level `!` makes the `if()` invalid) and parsed after substitution, where
+   a failure to parse is false. `style()` tests the element's own custom properties (`StyleQueryTarget`,
+   also used by container queries with `Container`), `media()` the device (the element is then marked as
+   using viewport units, so it restyles on resize), `supports()` is evaluated when parsed. The first
+   branch that holds gives the value; none makes the function invalid at computed-value time. The
+   custom properties a branch's `style()` tests name are dependencies in the custom-property graph (up to
+   the branch that holds), so a property that tests itself is in a cycle; `substitute_with_seen` carries
+   the properties being resolved into a `style()` value's substitution so a cycle through it ends. A value
+   is attr()-tainted when its conditions read attr()-tainted values. Media features and container style
+   queries refuse `random()` (csswg-drafts 10982; `contains_random_function`), and the `property-scoped`
+   random key of an alias is its property's.
 
 To move to a newer stylo: replace this directory with the new release, re-apply the changes that upstream
 still lacks, and run `cargo test -p snowlark-style`.

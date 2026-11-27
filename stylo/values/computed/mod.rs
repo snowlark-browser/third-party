@@ -162,6 +162,7 @@ pub mod border;
 #[path = "box.rs"]
 pub mod box_;
 pub mod calc;
+pub mod calc_size;
 pub mod color;
 pub mod column;
 pub mod corner_shape;

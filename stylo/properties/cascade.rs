@@ -35,6 +35,7 @@ use crate::style_adjuster::StyleAdjuster;
 use crate::stylesheets::container_rule::ContainerSizeQuery;
 use crate::stylesheets::layer_rule::LayerOrder;
 use crate::stylist::Stylist;
+use crate::substitution::if_function::IfBranchCondition;
 use crate::substitution::{
     ReferenceFlags, References, SubstitutionArgument, SubstitutionFunction,
     SubstitutionFunctionKind, SubstitutionReplacementContext,
@@ -2537,6 +2538,62 @@ fn substitute_all(
                             continue;
                         };
                         (VarType::Custom(name.0.clone()), var_fn.fallback.as_ref())
+                    },
+                    SubstitutionFunction::If(ref if_fn) => {
+                        // Snowlark patch 108: the custom properties a branch's style() tests
+                        // read are dependencies, as var() references are, for each branch up to
+                        // the one that holds; only that branch's value is substituted.
+                        for branch in if_fn.branches.iter() {
+                            if let IfBranchCondition::Unparsed(ref arg) = branch.condition {
+                                // What the condition substitutes is a dependency too.
+                                let _ = check_declaration_value_cycle!(arg);
+                            }
+                            let (condition, _) = branch.resolve_condition(
+                                source,
+                                &mut context.replacement_context(property_id),
+                            );
+                            if let Some(ref condition) = condition {
+                                let mut names = SmallVec::<[Name; 4]>::new();
+                                condition.for_each_custom_property(&mut |n| names.push(n.clone()));
+                                for name in names {
+                                    visit_link(
+                                        VarType::Custom(name),
+                                        index,
+                                        references_from_non_custom_properties,
+                                        context,
+                                        lowlink,
+                                        self_ref,
+                                    );
+                                }
+                                let mut values = SmallVec::<[&VariableValue; 2]>::new();
+                                condition.for_each_value(&mut |v| values.push(v));
+                                for value in values {
+                                    visit_value_references(
+                                        var,
+                                        &value.references,
+                                        value,
+                                        index,
+                                        property_id,
+                                        references_from_non_custom_properties,
+                                        context,
+                                        lowlink,
+                                        self_ref,
+                                        non_custom_references,
+                                    );
+                                }
+                            }
+                            let holds = match condition {
+                                None => true,
+                                Some(ref c) => {
+                                    c.holds(&mut context.replacement_context(property_id))
+                                },
+                            };
+                            if holds {
+                                refs_stack.push(&branch.value.references);
+                                break;
+                            }
+                        }
+                        continue;
                     },
                 };
 

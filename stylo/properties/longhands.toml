@@ -3840,12 +3840,12 @@ affects = ""
 type = "ScrollBehavior"
 initial = "computed::ScrollBehavior::Auto"
 
-# Snowlark: CSS Values 5 interpolate-size, parsed and computed; transitions and animations do not
-# interpolate to or from intrinsic size keywords yet.
+# Snowlark: interpolate-size (CSS Sizing 4 §7.3); the sizing properties read it when they become animated values
+# (SNOWLARK-PATCHES.md 107).
 [interpolate-size]
 struct = "inherited_box"
 engine = "servo"
-spec = "https://drafts.csswg.org/css-values-5/#interpolate-size"
+spec = "https://drafts.csswg.org/css-sizing-4/#interpolate-size"
 animation_type = "none"
 affects = ""
 type = "InterpolateSize"

@@ -126,9 +126,21 @@ where
         W: Write,
     {
         self.0.to_css(dest)?;
-        let same_vertical = self.0 == self.2;
-        let same_horizontal = self.1 == self.3;
-        if same_vertical && same_horizontal && self.0 == self.1 {
+        // Snowlark patch: sides are the same when they serialize the same, so that a computed value
+        // made by arithmetic (an interpolated `inset()`, `100% - 80%` as an f32 fraction) shortens as
+        // the one written would.
+        let same = |a: &T, b: &T| {
+            a == b || {
+                let text = |v: &T| {
+                    let mut s = String::new();
+                    v.to_css(&mut CssWriter::new(&mut s)).map(|_| s).ok()
+                };
+                text(a).is_some_and(|t| Some(t) == text(b))
+            }
+        };
+        let same_vertical = same(&self.0, &self.2);
+        let same_horizontal = same(&self.1, &self.3);
+        if same_vertical && same_horizontal && same(&self.0, &self.1) {
             return Ok(());
         }
         dest.write_char(' ')?;
